@@ -32,6 +32,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      position: relative;
     }
     .logo {
       display: flex;
@@ -48,6 +49,25 @@
       color: #23395d;
       font-size: 1.23em;
       letter-spacing: 0.05em;
+    }
+    /* Menú hamburguesa */
+    .menu-toggle {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      margin-left: 12px;
+      z-index: 20;
+    }
+    .menu-toggle span {
+      height: 4px;
+      background: #23395d;
+      margin: 5px 0;
+      border-radius: 2px;
+      transition: 0.4s;
+      display: block;
     }
     .nav-menu {
       display: flex;
@@ -66,6 +86,7 @@
     .nav-menu a:hover {
       color: #ee9626;
     }
+
     .hero-section {
       min-height: 100vh;
       width: 100vw;
@@ -245,7 +266,7 @@
     /* Sección Imagen Completa */
     .full-img-section {
       width: 100vw;
-      min-height: 418px; /* antes 380px + 1cm */
+      min-height: 418px;
       margin: 0;
       padding: 0;
       overflow: hidden;
@@ -256,7 +277,7 @@
     }
     .full-img {
       width: 100vw;
-      min-height: 418px; /* antes 380px + 1cm */
+      min-height: 418px;
       height: 38vw;
       max-height: 600px;
       object-fit: cover;
@@ -268,7 +289,85 @@
       pointer-events: none;
     }
 
-    /* Responsivo */
+    /* NUEVA SECCIÓN CONTACTO MODERNA */
+    .contact-section {
+      width: 100vw;
+      min-height: 400px;
+      position: relative;
+      background: url(Img2_Atrio.jpg) center center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+      z-index: 1;
+    }
+    .contact-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(33, 56, 99, 0.84);
+      z-index: 1;
+    }
+    .contact-modern {
+      justify-content: center;
+      align-items: center;
+      min-height: 400px;
+      background: none;
+      padding: 0;
+      display: flex;
+      width: 100%;
+    }
+    .contact-modern-content {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 70px 20px 60px 20px;
+      background: rgba(33, 56, 99, 0.86);
+      border-radius: 30px;
+      text-align: center;
+      box-shadow: 0 8px 32px #1123452f;
+      position: relative;
+      z-index: 2;
+    }
+    .contact-title {
+      font-size: 2.6em;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #fff;
+    }
+    .contact-name {
+      font-size: 1.6em;
+      font-weight: 400;
+      margin-bottom: 30px;
+      color: #c9e7ff;
+      letter-spacing: 0.03em;
+    }
+    .contact-social-modern {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 38px;
+      margin-bottom: 22px;
+      margin-top: 6px;
+    }
+    .contact-social-modern .social-icon img {
+      width: 54px;
+      height: 54px;
+      filter: brightness(0) invert(1); /* Iconos blancos */
+      transition: transform 0.20s, filter 0.20s;
+    }
+    .contact-social-modern .social-icon:hover img {
+      transform: scale(1.17) rotate(-6deg);
+      filter: brightness(0) invert(1) drop-shadow(0 4px 22px #ee9626aa); /* Blanco con sombra naranja al hover */
+    }
+    .contact-modern-text {
+      margin-top: 14px;
+      color: #c9e7ff;
+      font-size: 1.15em;
+      letter-spacing: 0.02em;
+    }
     @media (max-width: 1200px) {
       .hero-content { margin-left: 4cm; }
       .areas-container { max-width: 1000px; }
@@ -307,18 +406,55 @@
       .full-img-section { min-height: 220px; }
     }
     @media (max-width: 700px) {
-      .navbar-content { flex-direction: column; }
-      .navbar { height: auto; padding: 0 10px; }
+      .navbar-content {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .menu-toggle {
+        display: flex;
+      }
+      .nav-menu {
+        display: none;
+        position: absolute;
+        top: 64px;
+        left: 0;
+        right: 0;
+        background: #fff;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        padding: 24px 0 18px 0;
+        z-index: 19;
+        box-shadow: 0 6px 24px #0002;
+      }
+      .nav-menu.open {
+        display: flex;
+        animation: fadeIn 0.25s;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-12px);}
+        to { opacity: 1; transform: translateY(0);}
+      }
+      .navbar { height: 64px; padding: 0 10px; }
+      .logo-img { width: 56px; height: 56px; }
+      .logo-text { font-size: 0.95em; }
       .hero-content { margin-left: 20px; }
-      .nav-menu { gap: 20px; }
-      .hero-title { font-size: 2em; }
-      .hero-subtitle { font-size: 1.25em; }
-      .hero-desc { font-size: 1em; }
+      .nav-menu a { font-size: 1.1em; }
       .vision-container { padding: 0 18px; }
       .vision-title { font-size: 2em; }
       .vision-text { font-size: 1em; }
       .full-img { height: 38vw; min-height: 120px; max-height: 220px; }
       .full-img-section { min-height: 120px; }
+      .contact-modern-content {
+        padding: 32px 8px 30px 8px;
+        max-width: 97vw;
+        border-radius: 16px;
+      }
+      .contact-title { font-size: 1.6em; }
+      .contact-name { font-size: 1em; }
+      .contact-social-modern .social-icon img { width: 38px; height: 38px; }
+      .contact-modern-text { font-size: 1em; }
     }
     @media (max-width: 540px) {
       .hero-content { margin-left: 8px; max-width: 99vw; }
@@ -335,178 +471,13 @@
         min-width: unset;
         margin-bottom: 10px;
       }
-      .navbar-content { flex-direction: column; }
+      .navbar-content { flex-direction: row; }
       .navbar { height: auto; padding: 10px; }
       .nav-menu { flex-direction: column; gap: 8px; margin-top: 10px; }
       .vision-title { font-size: 1.1em; }
       .full-img { height: 38vw; min-height: 80px; max-height: 120px; }
       .full-img-section { min-height: 80px; }
     }
-.contact-section {
-  width: 100vw;
-  min-height: 470px;
-  position: relative;
-  background: url(Img2_Atrio.jpg) center center/cover no-repeat;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
-  z-index: 1;
-}
-.contact-overlay {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(33, 56, 99, 0.84);
-  z-index: 1;
-}
-.contact-container {
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 1280px;
-  padding: 56px 32px;
-  z-index: 2;
-  color: #fff;
-  justify-content: space-between;
-}
-.contact-left {
-  flex: 1.1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  margin-right: 40px;
-}
-.contact-title {
-  font-size: 2.6em;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  margin-bottom: 16px;
-}
-.contact-name {
-  font-size: 2em;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  margin-bottom: 24px;
-  color: #c9e7ff;
-}
-.contact-right {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  min-width: 320px;
-  max-width: 580px;
-}
-.contact-address {
-  font-size: 1.2em;
-  margin-bottom: 12px;
-}
-.contact-bold {
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 0.03em;
-}
-.contact-find a {
-  color: #6cd8ff;
-  text-decoration: underline;
-  font-size: 1em;
-  margin-bottom: 10px;
-  display: inline-block;
-}
-.contact-form-text {
-  font-size: 1em;
-  margin-bottom: 8px;
-}
-.contact-form {
-  width: 100%;
-  margin-bottom: 22px;
-}
-.form-row {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-.contact-form input,
-.contact-form textarea {
-  font-family: 'Montserrat', Arial, sans-serif;
-  padding: 11px 13px;
-  border-radius: 4px;
-  border: none;
-  font-size: 1em;
-  background: #f5f8fa;
-  color: #23395d;
-  width: 100%;
-  box-sizing: border-box;
-  margin-right: 0;
-}
-.contact-form textarea {
-  min-height: 44px;
-  max-height: 120px;
-  resize: vertical;
-  flex: 2;
-}
-.contact-form button {
-  padding: 13px 34px;
-  background: #ee9626;
-  color: #fff;
-  font-weight: bold;
-  border: none;
-  border-radius: 4px;
-  font-size: 1.08em;
-  cursor: pointer;
-  transition: background 0.2s;
-  margin-left: 8px;
-  flex: 0.45;
-}
-.contact-form button:hover {
-  background: #c67616;
-}
-.contact-social {
-  display: flex;
-  gap: 19px;
-  margin-top: 10px;
-}
-.social-icon img {
-  width: 30px;
-  height: 30px;
-  display: block;
-  transition: transform 0.18s;
-  filter: brightness(0) invert(1);
-}
-.social-icon.instagram img { filter: none; }
-.social-icon:hover img { transform: scale(1.13); }
-
-/* RESPONSIVO */
-@media (max-width: 1100px) {
-  .contact-container {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 42px 12px;
-  }
-  .contact-left, .contact-right {
-    margin: 0;
-    align-items: center;
-    width: 100%;
-    max-width: none;
-  }
-  .contact-form { margin-bottom: 16px; }
-}
-@media (max-width: 700px) {
-  .contact-title { font-size: 1.7em; }
-  .contact-name { font-size: 1.25em; }
-  .contact-container { padding: 18px 2vw; }
-  .form-row { flex-direction: column; gap: 8px; }
-  .contact-form button { width: 100%; margin-left: 0; }
-  .social-icon img { width: 26px; height: 26px; }
-}
   </style>
 </head>
 <body>
@@ -516,7 +487,12 @@
         <img src="Koop Logo.png" alt="Logo Koop" class="logo-img">
         <div class="logo-text">KOOP STRATEGIC ADVISORY</div>
       </div>
-      <div class="nav-menu">
+      <div class="menu-toggle" id="menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="nav-menu" id="nav-menu">
         <a href="#inicio">INICIO</a>
         <a href="#areas">ÁREAS DE PRÁCTICA</a>
         <a href="#vision">NUESTRA VISIÓN</a>
@@ -612,54 +588,42 @@
   <section class="full-img-section">
     <img src="Corte suprema de justicia de colombia.jpg" alt="Equipo empresarial Koop" class="full-img">
   </section>
-<!-- SECCIÓN CONTÁCTENOS -->
-<section class="contact-section" id="contacto">
-  <div class="contact-overlay"></div>
-  <div class="contact-container">
-    <div class="contact-left">
-      <div class="contact-title">CONTÁCTANOS</div>
-      <div class="contact-name">KOOP STRATEGIC ADVISORY</div>
-    </div>
-    <div class="contact-right">
-      <div class="contact-address">
-        <span class="contact-bold">NUESTRA DIRECCIÓN</span><br>
-        Av. Calle 123 #45-67, Bogotá D.C.<br>
-        <b>Email:</b> contacto@koop.com<br>
-        <b>Tel:</b> (+57) 123 456 7890
-      </div>
-      <div class="contact-find">
-        <a href="https://goo.gl/maps/" target="_blank">Haz clic aquí para encontrarnos</a>
-      </div>
-      <div class="contact-form-text">
-        Para preguntas generales, por favor completa el siguiente formulario:
-      </div>
-      <form class="contact-form">
-        <div class="form-row">
-          <input type="text" placeholder="Nombre" required>
-          <input type="email" placeholder="Email" required>
-          <input type="text" placeholder="Teléfono" required>
+  <!-- SECCIÓN CONTÁCTANOS MODERNA -->
+  <section class="contact-section" id="contacto">
+    <div class="contact-overlay"></div>
+    <div class="contact-container contact-modern">
+      <div class="contact-modern-content">
+        <div class="contact-title" style="text-align:center;">CONTÁCTANOS</div>
+        <div class="contact-name" style="text-align:center; color:#fff;">KOOP STRATEGIC ADVISORY</div>
+        <div class="contact-social contact-social-modern">
+          <a href="https://www.instagram.com/koopstrategicadvisory/" target="_blank" class="social-icon instagram" title="Instagram">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" alt="Instagram">
+          </a>
+          <a href="https://www.facebook.com/profile.php?id=61579034631401" target="_blank" class="social-icon facebook" title="Facebook">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/facebook.svg" alt="Facebook">
+          </a>
+          <a href="https://tiktok.com/" target="_blank" class="social-icon tiktok" title="TikTok">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/tiktok.svg" alt="TikTok">
+          </a>
+          <a href="https://wa.me/573503965755" target="_blank" class="social-icon whatsapp" title="WhatsApp">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/whatsapp.svg" alt="WhatsApp">
+          </a>
         </div>
-        <div class="form-row">
-          <textarea placeholder="Escribe tu mensaje aquí..." required></textarea>
-          <button type="submit">Enviar</button>
-        </div>
-      </form>
-      <div class="contact-social">
-        <a href="https://www.instagram.com/koopstrategicadvisory/" target="_blank" class="social-icon instagram" title="Instagram">
-          <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" alt="Instagram">
-        </a>
-        <a href="https://www.facebook.com/profile.php?id=61579034631401" target="_blank" class="social-icon facebook" title="Facebook">
-          <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/facebook.svg" alt="Facebook">
-        </a>
-        <a href="https://tiktok.com/" target="_blank" class="social-icon tiktok" title="TikTok">
-          <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/tiktok.svg" alt="TikTok">
-        </a>
-        <a href="https://wa.me/573503965755" target="_blank" class="social-icon whatsapp" title="WhatsApp">
-          <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/whatsapp.svg" alt="WhatsApp">
-        </a>
+        <div class="contact-modern-text">Atendemos consultas por cualquiera de nuestras redes sociales.</div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+  <!-- SCRIPT MENÚ HAMBURGUESA -->
+  <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    menuToggle.onclick = function() {
+      navMenu.classList.toggle('open');
+    };
+    // Cierra el menú al hacer clic en un enlace
+    navMenu.querySelectorAll('a').forEach(link => {
+      link.onclick = () => navMenu.classList.remove('open');
+    });
+  </script>
 </body>
 </html>
