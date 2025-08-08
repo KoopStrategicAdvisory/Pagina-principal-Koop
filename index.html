@@ -18,6 +18,38 @@
       background: #141b2d;
       color: #fff;
     }
+
+    /* =========================
+       SPLASH (INICIO)
+       ========================= */
+    .splash{
+      position:fixed; inset:0; background:#fff;
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999; transition: opacity .6s ease;
+    }
+    .splash--hide{ opacity:0; pointer-events:none; }
+    .splash__frame{
+      width: clamp(260px, 34vw, 540px);   /* tamaño visible del logo */
+      min-height: 90px;                   /* respaldo de altura */
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;                    /* recorta borde transparente */
+      background:#fff;
+    }
+    .splash__logo{
+      width: 100%;
+      height: auto;
+      display:block;
+      opacity:0;                          /* fade-in desde invisible */
+      transition: opacity 2.5s ease, transform 2.5s ease;
+      transform: scale(var(--overscan, 1.08)); /* overscan para “comerse” margen */
+      user-select:none; -webkit-user-drag:none;
+      image-rendering: -webkit-optimize-contrast;
+    }
+    .splash__logo.is-visible{ opacity:1; }
+    /* =========================
+       SPLASH (FIN)
+       ========================= */
+
     .navbar {
       width: 100%;
       display: flex;
@@ -186,14 +218,8 @@
       letter-spacing: 0.02em;
       margin-left: 4cm;
     }
-    .areas-title-bold {
-      font-weight: 700;
-      color: #ee9626;
-    }
-    .areas-title-normal {
-      font-weight: 300;
-      color: #4877b1;
-    }
+    .areas-title-bold { font-weight: 700; color: #ee9626; }
+    .areas-title-normal { font-weight: 300; color: #4877b1; }
     .areas-list {
       flex: 1 1 64%;
       background: #fff;
@@ -202,236 +228,80 @@
       padding: 40px 40px 40px 24px;
       box-sizing: border-box;
     }
-    .areas-col {
-      flex: 1 1 0;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .area-item {
-      display: flex;
-      align-items: flex-start;
-    }
+    .areas-col { flex: 1 1 0; display: flex; flex-direction: column; gap: 18px; }
+    .area-item { display: flex; align-items: flex-start; }
     .area-bullet {
-      width: 12px;
-      height: 12px;
-      margin-top: 6px;
-      margin-right: 12px;
-      border-radius: 3px;
-      background: #2998ff;
-      flex-shrink: 0;
+      width: 12px; height: 12px; margin-top: 6px; margin-right: 12px;
+      border-radius: 3px; background: #2998ff; flex-shrink: 0;
     }
-    .area-name {
-      font-weight: 700;
-      color: #23395d;
-      margin-bottom: 2px;
-      letter-spacing: 0.02em;
-      font-size: 1.09em;
-    }
-    .area-desc {
-      color: #4877b1;
-      font-size: 1em;
-      font-weight: 400;
-      letter-spacing: 0.01em;
-    }
+    .area-name { font-weight: 700; color: #23395d; margin-bottom: 2px; letter-spacing: 0.02em; font-size: 1.09em; }
+    .area-desc { color: #4877b1; font-size: 1em; font-weight: 400; letter-spacing: 0.01em; }
     .vision-section {
-      width: 100%;
-      background: #06325a;
-      padding: 90px 0 80px 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box;
+      width: 100%; background: #06325a; padding: 90px 0 80px 0;
+      display: flex; justify-content: center; align-items: center; box-sizing: border-box;
     }
-    .vision-container {
-      max-width: 980px;
-      margin: 0 auto;
-      text-align: center;
-      color: #fff;
-    }
-    .vision-title {
-      font-size: 2.8em;
-      font-weight: 400;
-      margin-bottom: 32px;
-      letter-spacing: 0.01em;
-    }
-    .vision-bold {
-      font-weight: 700;
-      letter-spacing: 0.02em;
-    }
-    .vision-text {
-      font-size: 1.18em;
-      line-height: 1.6;
-      color: #f5faff;
-    }
-    .vision-text p {
-      margin-bottom: 22px;
-    }
+    .vision-container { max-width: 980px; margin: 0 auto; text-align: center; color: #fff; }
+    .vision-title { font-size: 2.8em; font-weight: 400; margin-bottom: 32px; letter-spacing: 0.01em; }
+    .vision-bold { font-weight: 700; letter-spacing: 0.02em; }
+    .vision-text { font-size: 1.18em; line-height: 1.6; color: #f5faff; }
+    .vision-text p { margin-bottom: 22px; }
     .full-img-section {
-      width: 100%;
-      min-height: 418px;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: #222;
-      display: flex;
-      align-items: stretch;
-      justify-content: center;
-      box-sizing: border-box;
+      width: 100%; min-height: 418px; margin: 0; padding: 0; overflow: hidden; background: #222;
+      display: flex; align-items: stretch; justify-content: center; box-sizing: border-box;
     }
     .full-img {
-      width: 100%;
-      min-height: 418px;
-      height: 38vw;
-      max-height: 600px;
-      object-fit: cover;
-      object-position: center;
-      display: block;
-      margin: 0 auto;
-      user-select: none;
-      -webkit-user-drag: none;
-      pointer-events: none;
+      width: 100%; min-height: 418px; height: 38vw; max-height: 600px;
+      object-fit: cover; object-position: center; display: block; margin: 0 auto;
+      user-select: none; -webkit-user-drag: none; pointer-events: none;
     }
     .contact-section {
-      width: 100%;
-      min-height: 400px;
-      position: relative;
+      width: 100%; min-height: 400px; position: relative;
       background: url(Img2_Atrio.jpg) center center/cover no-repeat;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      margin: 0;
-      z-index: 1;
-      box-sizing: border-box;
+      display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 1; box-sizing: border-box;
     }
     .contact-overlay {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(33, 56, 99, 0.84);
-      z-index: 1;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(33, 56, 99, 0.84); z-index: 1;
     }
     .contact-modern {
-      justify-content: center;
-      align-items: center;
-      min-height: 400px;
-      background: none;
-      padding: 0;
-      display: flex;
-      width: 100%;
+      justify-content: center; align-items: center; min-height: 400px; background: none; padding: 0; display: flex; width: 100%;
     }
     .contact-modern-content {
-      width: 100%;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 70px 20px 60px 20px;
-      background: rgba(33, 56, 99, 0.86);
-      border-radius: 30px;
-      text-align: center;
-      box-shadow: 0 8px 32px #1123452f;
-      position: relative;
-      z-index: 2;
+      width: 100%; max-width: 480px; margin: 0 auto; padding: 70px 20px 60px 20px;
+      background: rgba(33, 56, 99, 0.86); border-radius: 30px; text-align: center; box-shadow: 0 8px 32px #1123452f;
+      position: relative; z-index: 2;
     }
-    .contact-title {
-      font-size: 2.6em;
-      font-weight: 700;
-      margin-bottom: 14px;
-      color: #fff;
-    }
-    .contact-name {
-      font-size: 1.6em;
-      font-weight: 400;
-      margin-bottom: 30px;
-      color: #c9e7ff;
-      letter-spacing: 0.03em;
-    }
-    .contact-social-modern {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 38px;
-      margin-bottom: 22px;
-      margin-top: 6px;
-    }
-    .contact-social-modern .social-icon img {
-      width: 54px;
-      height: 54px;
-      filter: brightness(0) invert(1);
-      transition: transform 0.20s, filter 0.20s;
-    }
-    .contact-social-modern .social-icon:hover img {
-      transform: scale(1.17) rotate(-6deg);
-      filter: brightness(0) invert(1) drop-shadow(0 4px 22px #ee9626aa);
-    }
-    .contact-modern-text {
-      margin-top: 14px;
-      color: #c9e7ff;
-      font-size: 1.15em;
-      letter-spacing: 0.02em;
-    }
+    .contact-title { font-size: 2.6em; font-weight: 700; margin-bottom: 14px; color: #fff; }
+    .contact-name  { font-size: 1.6em; font-weight: 400; margin-bottom: 30px; color: #c9e7ff; letter-spacing: 0.03em; }
+    .contact-social-modern { display: flex; justify-content: center; align-items: center; gap: 38px; margin-bottom: 22px; margin-top: 6px; }
+    .contact-social-modern .social-icon img { width: 54px; height: 54px; filter: brightness(0) invert(1); transition: transform 0.20s, filter 0.20s; }
+    .contact-social-modern .social-icon:hover img { transform: scale(1.17) rotate(-6deg); filter: brightness(0) invert(1) drop-shadow(0 4px 22px #ee9626aa); }
+    .contact-modern-text { margin-top: 14px; color: #c9e7ff; font-size: 1.15em; letter-spacing: 0.02em; }
     .site-footer {
-      width: 100%;
-      background: #353e49;
-      padding: 18px 0 14px 0;
-      border-top: 2px solid #2a3038;
-      color: #f5f5f5;
-      font-size: 1em;
-      margin-top: 0;
-      box-sizing: border-box;
+      width: 100%; background: #353e49; padding: 18px 0 14px 0; border-top: 2px solid #2a3038;
+      color: #f5f5f5; font-size: 1em; margin-top: 0; box-sizing: border-box;
     }
     .footer-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 40px;
+      max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 40px;
     }
-    .footer-left {
-      color: #f5f5f5;
-      letter-spacing: 0.01em;
-    }
-    .footer-right a {
-      color: #b4cff6;
-      text-decoration: underline;
-      transition: color 0.2s;
-    }
-    .footer-right a:hover {
-      color: #ee9626;
-    }
+    .footer-left { color: #f5f5f5; letter-spacing: 0.01em; }
+    .footer-right a { color: #b4cff6; text-decoration: underline; transition: color 0.2s; }
+    .footer-right a:hover { color: #ee9626; }
+
     @media (max-width: 1200px) {
       .hero-content { margin-left: 4cm; }
       .areas-container { max-width: 1000px; }
     }
     @media (max-width: 900px) {
       .hero-content { margin-left: 2cm; }
-      .areas-container {
-        flex-direction: column;
-        min-height: unset;
-      }
+      .areas-container { flex-direction: column; min-height: unset; }
       .areas-title {
-        flex: unset;
-        width: 100%;
-        padding: 32px 18px 16px 18px;
-        font-size: 2em;
-        align-items: center;
-        text-align: center;
-        margin-left: 0 !important;
+        flex: unset; width: 100%; padding: 32px 18px 16px 18px;
+        font-size: 2em; align-items: center; text-align: center; margin-left: 0 !important;
       }
-      .areas-list {
-        flex-direction: column !important;
-        gap: 20px !important;
-        padding: 18px 10px 32px 10px;
-      }
-      .areas-col {
-        width: 100% !important;
-      }
-      .area-item {
-        width: 95%;
-        margin-bottom: 12px;
-      }
+      .areas-list { flex-direction: column !important; gap: 20px !important; padding: 18px 10px 32px 10px; }
+      .areas-col { width: 100% !important; }
+      .area-item { width: 95%; margin-bottom: 12px; }
       .vision-section { padding: 50px 0 40px 0; }
       .vision-title { font-size: 2em; }
       .vision-text { font-size: 1em; }
@@ -439,36 +309,14 @@
       .full-img-section { min-height: 220px; }
     }
     @media (max-width: 700px) {
-      .navbar-content {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .menu-toggle {
-        display: flex;
-      }
+      .navbar-content { flex-direction: row; align-items: center; justify-content: space-between; }
+      .menu-toggle { display: flex; }
       .nav-menu {
-        display: none;
-        position: absolute;
-        top: 64px;
-        left: 0;
-        right: 0;
-        background: #fff;
-        flex-direction: column;
-        align-items: center;
-        gap: 18px;
-        padding: 24px 0 18px 0;
-        z-index: 19;
-        box-shadow: 0 6px 24px #0002;
+        display: none; position: absolute; top: 64px; left: 0; right: 0; background: #fff;
+        flex-direction: column; align-items: center; gap: 18px; padding: 24px 0 18px 0; z-index: 19; box-shadow: 0 6px 24px #0002;
       }
-      .nav-menu.open {
-        display: flex;
-        animation: fadeIn 0.25s;
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-12px);}
-        to { opacity: 1; transform: translateY(0);}
-      }
+      .nav-menu.open { display: flex; animation: fadeIn 0.25s; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(-12px);} to { opacity: 1; transform: translateY(0);} }
       .navbar { height: 64px; padding: 0 10px; }
       .logo-img { width: 56px; height: 56px; }
       .logo-text { font-size: 0.95em; }
@@ -477,261 +325,299 @@
       .vision-container { padding: 0 18px; }
       .vision-title { font-size: 2em; }
       .vision-text { font-size: 1em; }
-      .full-img {
-        height: 72vw;
-        min-height: 200px;
-        max-height: 350px;
-      }
+      .full-img { height: 72vw; min-height: 200px; max-height: 350px; }
       .full-img-section { min-height: 200px; }
       .contact-modern-content {
-        padding: 32px 8px 30px 8px;
-        max-width: 97vw;
-        border-radius: 16px;
+        padding: 32px 8px 30px 8px; max-width: 97vw; border-radius: 16px;
       }
       .contact-title { font-size: 1.6em; }
-      .contact-name { font-size: 1em; }
+      .contact-name  { font-size: 1em; }
       .contact-social-modern .social-icon img { width: 38px; height: 38px; }
       .contact-modern-text { font-size: 1em; }
-      .footer-container {
-        flex-direction: column;
-        gap: 8px;
-        padding: 0 16px;
-        text-align: center;
-      }
+      .footer-container { flex-direction: column; gap: 8px; padding: 0 16px; text-align: center; }
     }
     @media (max-width: 540px) {
       .hero-content { margin-left: 8px; max-width: 99vw; }
-      .areas-title {
-        font-size: 1.28em;
-        padding: 18px 8px 8px 8px;
-      }
-      .areas-list {
-        flex-direction: column !important;
-        gap: 12px !important;
-        padding: 12px 2vw;
-      }
-      .areas-col {
-        width: 100% !important;
-      }
-      .area-item {
-        width: 100%;
-        min-width: unset;
-        margin-bottom: 10px;
-      }
+      .areas-title { font-size: 1.28em; padding: 18px 8px 8px 8px; }
+      .areas-list { flex-direction: column !important; gap: 12px !important; padding: 12px 2vw; }
+      .areas-col { width: 100% !important; }
+      .area-item { width: 100%; min-width: unset; margin-bottom: 10px; }
       .navbar-content { flex-direction: row; }
       .navbar { height: auto; padding: 10px; }
       .nav-menu { flex-direction: column; gap: 8px; margin-top: 10px; }
       .vision-title { font-size: 1.1em; }
-      .full-img {
-        height: 90vw;
-        min-height: 170px;
-        max-height: 270px;
-      }
+      .full-img { height: 90vw; min-height: 170px; max-height: 270px; }
       .full-img-section { min-height: 170px; }
     }
   </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="navbar-content">
-      <div class="logo">
-        <img src="Koop Logo.png" alt="Logo Koop" class="logo-img">
-        <div class="logo-text">KOOP STRATEGIC ADVISORY</div>
-      </div>
-      <div class="menu-toggle" id="menu-toggle">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-      <div class="nav-menu" id="nav-menu">
-        <a href="#inicio">INICIO</a>
-        <a href="#areas">ÁREAS DE PRÁCTICA</a>
-        <a href="#vision">NUESTRA VISIÓN</a>
-        <a href="#abogados">ABOGADOS</a>
-        <a href="#contacto">CONTACTO</a>
-      </div>
-    </div>
-  </nav>
-  <div class="hero-section" id="inicio">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <div class="hero-box">
-        <div class="hero-title">Servicios Jurídicos y Contables <br> de alta calidad</div>
-        <div class="hero-subtitle">Especialistas en Ley Comercial,<br> Litigación, Insolvencia y Fraude</div>
-        <div class="hero-desc">
-          Equipo experto en derecho empresarial, penal y contable. <br>
-          Brindamos consultoría estratégica para empresas y personas naturales.
-        </div>
-        <a href="#contacto"><button class="cta-btn">Solicita tu consulta</button></a>
-      </div>
+
+  <!-- ===== SPLASH ===== -->
+  <div id="splash" class="splash" aria-hidden="true">
+    <div class="splash__frame">
+      <!-- usa %20 por el espacio en el nombre -->
+      <img id="splashLogo" class="splash__logo" src="Koop%20Logo.png" alt="Koop Strategic Advisory">
     </div>
   </div>
-  <!-- SECCIÓN ÁREAS DE PRÁCTICA -->
-  <section class="areas-section" id="areas">
-    <div class="areas-container">
-      <div class="areas-title">
-        <span class="areas-title-bold">ÁREAS DE</span> <span class="areas-title-normal">PRÁCTICA</span>
-      </div>
-      <div class="areas-list">
-        <!-- Columna Izquierda: Áreas Iniciales -->
-        <div class="areas-col">
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">LITIGACIÓN</div>
-              <div class="area-desc">Representación estratégica en procesos judiciales civiles, comerciales y penales.</div>
-            </div>
-          </div>
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">NEGOCIOS</div>
-              <div class="area-desc">Asesoría en estructuración de negocios y contratos comerciales.</div>
-            </div>
-          </div>
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">INSOLVENCIA</div>
-              <div class="area-desc">Acompañamiento en procesos de insolvencia empresarial y reorganización.</div>
-            </div>
-          </div>
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">FRAUDE</div>
-              <div class="area-desc">Prevención, análisis y gestión de riesgos de fraude corporativo.</div>
-            </div>
-          </div>
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">RESOLUCIÓN DE DISPUTAS</div>
-              <div class="area-desc">Soluciones efectivas en arbitraje, conciliación y mediación.</div>
-            </div>
-          </div>
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">IMPUESTOS</div>
-              <div class="area-desc">Consultoría tributaria y planeación fiscal para empresas y personas.</div>
-            </div>
-          </div>
+
+  <!-- ===== CONTENIDO REAL ===== -->
+  <div id="app" hidden>
+    <nav class="navbar">
+      <div class="navbar-content">
+        <div class="logo">
+          <img src="Koop Logo.png" alt="Logo Koop" class="logo-img">
+          <div class="logo-text">KOOP STRATEGIC ADVISORY</div>
         </div>
-        <!-- Columna Derecha: Nuevas Áreas -->
-        <div class="areas-col">
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">DERECHO LABORAL</div>
-              <div class="area-desc">Asesoría y representación en asuntos laborales individuales y colectivos.</div>
-            </div>
+        <div class="menu-toggle" id="menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+          <a href="#inicio">INICIO</a>
+          <a href="#areas">ÁREAS DE PRÁCTICA</a>
+          <a href="#vision">NUESTRA VISIÓN</a>
+          <a href="#abogados">ABOGADOS</a>
+          <a href="#contacto">CONTACTO</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="hero-section" id="inicio">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="hero-box">
+          <div class="hero-title">Servicios Jurídicos y Contables <br> de alta calidad</div>
+          <div class="hero-subtitle">Especialistas en Ley Comercial,<br> Litigación, Insolvencia y Fraude</div>
+          <div class="hero-desc">
+            Equipo experto en derecho empresarial, penal y contable. <br>
+            Brindamos consultoría estratégica para empresas y personas naturales.
           </div>
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">DERECHO FAMILIAR</div>
-              <div class="area-desc">Procesos de familia, sucesiones, custodia y protección patrimonial.</div>
-            </div>
-          </div>
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">AUDITORÍA & REVISORÍA FISCAL</div>
-              <div class="area-desc">Supervisión independiente y aseguramiento financiero y contable.</div>
-            </div>
-          </div>
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">PROPIEDAD INTELECTUAL</div>
-              <div class="area-desc">Registro, protección y defensa de marcas, patentes y derechos de autor.</div>
-            </div>
-          </div>
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">PLANEACIÓN PATRIMONIAL</div>
-              <div class="area-desc">Estructuración, protección y gestión de patrimonios familiares y empresariales.</div>
-            </div>
-          </div>
-          <div class="area-item">
-            <div class="area-bullet"></div>
-            <div>
-              <div class="area-name">CONTRATACIÓN PÚBLICA</div>
-              <div class="area-desc">Asesoría integral en procesos contractuales estatales y licitaciones.</div>
-            </div>
-          </div>
+          <a href="#contacto"><button class="cta-btn">Solicita tu consulta</button></a>
         </div>
       </div>
     </div>
-  </section>
-  <!-- SECCIÓN NUESTRA VISIÓN -->
-  <section class="vision-section" id="vision">
-    <div class="vision-container">
-      <h2 class="vision-title"><span class="vision-bold">NUESTRA</span> VISIÓN</h2>
-      <div class="vision-text">
-        <p>
-          En Koop Strategic Advisory, nuestra visión es consolidarnos como la firma de referencia en servicios jurídicos, contables y de consultoría empresarial, reconocidos por nuestra ética, innovación y excelencia. Nos apasiona acompañar a empresas y personas en la toma de decisiones estratégicas que les permitan crecer, proteger sus intereses y transformar sus proyectos en resultados sostenibles.
-        </p>
-        <p>
-          Trabajamos bajo un enfoque multidisciplinario, integrando conocimientos legales, contables y de auditoría para ofrecer soluciones integrales y personalizadas. Nuestro equipo está comprometido con la actualización permanente, la confianza y el trato directo con cada cliente.
-        </p>
-        <p>
-          Buscamos construir relaciones de largo plazo basadas en la transparencia, el profesionalismo y el valor agregado, contribuyendo activamente al desarrollo empresarial y a la construcción de una sociedad más justa y eficiente.
-        </p>
-      </div>
-    </div>
-  </section>
-  <!-- SECCIÓN IMAGEN COMPLETA -->
-  <section class="full-img-section">
-    <img src="Corte suprema de justicia de colombia.jpg" alt="Equipo empresarial Koop" class="full-img">
-  </section>
-  <!-- SECCIÓN CONTÁCTANOS MODERNA -->
-  <section class="contact-section" id="contacto">
-    <div class="contact-overlay"></div>
-    <div class="contact-container contact-modern">
-      <div class="contact-modern-content">
-        <div class="contact-title" style="text-align:center;">CONTÁCTANOS</div>
-        <div class="contact-name" style="text-align:center; color:#fff;">KOOP STRATEGIC ADVISORY</div>
-        <div class="contact-social contact-social-modern">
-          <a href="https://www.instagram.com/koopstrategicadvisory/" target="_blank" class="social-icon instagram" title="Instagram">
-            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" alt="Instagram">
-          </a>
-          <a href="https://www.facebook.com/profile.php?id=61579034631401" target="_blank" class="social-icon facebook" title="Facebook">
-            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/facebook.svg" alt="Facebook">
-          </a>
-          <a href="https://tiktok.com/" target="_blank" class="social-icon tiktok" title="TikTok">
-            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/tiktok.svg" alt="TikTok">
-          </a>
-          <a href="https://wa.me/573503965755" target="_blank" class="social-icon whatsapp" title="WhatsApp">
-            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/whatsapp.svg" alt="WhatsApp">
-          </a>
+
+    <!-- SECCIÓN ÁREAS DE PRÁCTICA -->
+    <section class="areas-section" id="areas">
+      <div class="areas-container">
+        <div class="areas-title">
+          <span class="areas-title-bold">ÁREAS DE</span> <span class="areas-title-normal">PRÁCTICA</span>
         </div>
-        <div class="contact-modern-text">Atendemos consultas por cualquiera de nuestras redes sociales.</div>
+        <div class="areas-list">
+          <!-- Columna Izquierda: Áreas Iniciales -->
+          <div class="areas-col">
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">LITIGACIÓN</div>
+                <div class="area-desc">Representación estratégica en procesos judiciales civiles, comerciales y penales.</div>
+              </div>
+            </div>
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">NEGOCIOS</div>
+                <div class="area-desc">Asesoría en estructuración de negocios y contratos comerciales.</div>
+              </div>
+            </div>
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">INSOLVENCIA</div>
+                <div class="area-desc">Acompañamiento en procesos de insolvencia empresarial y reorganización.</div>
+              </div>
+            </div>
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">FRAUDE</div>
+                <div class="area-desc">Prevención, análisis y gestión de riesgos de fraude corporativo.</div>
+              </div>
+            </div>
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">RESOLUCIÓN DE DISPUTAS</div>
+                <div class="area-desc">Soluciones efectivas en arbitraje, conciliación y mediación.</div>
+              </div>
+            </div>
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">IMPUESTOS</div>
+                <div class="area-desc">Consultoría tributaria y planeación fiscal para empresas y personas.</div>
+              </div>
+            </div>
+          </div>
+          <!-- Columna Derecha: Nuevas Áreas -->
+          <div class="areas-col">
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">DERECHO LABORAL</div>
+                <div class="area-desc">Asesoria empresarial, Pensiones, No pago de la liquidación, Despido Injustificado, Contrato Laboral revestido de Contrato de Prestación de Servicios, Reintegro laboral y Sindicatos.</div>
+              </div>
+            </div>
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">DERECHO DE FAMILIA</div>
+                <div class="area-desc">Procesos de familia, Privación o suspensión de la Patria Potestad, Sucesiones, Custodia Visitas y Fijación de cuota alimentaria, Trámites ante Comisaría de familia e ICBF, Solicitudes de Medidas de Protección.</div>
+              </div>
+            </div>
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">AUDITORÍA & REVISORÍA FISCAL</div>
+                <div class="area-desc">Supervisión independiente y aseguramiento financiero y contable.</div>
+              </div>
+            </div>
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">PROPIEDAD INTELECTUAL</div>
+                <div class="area-desc">Registro, protección y defensa de marcas, patentes y derechos de autor.</div>
+              </div>
+            </div>
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">PLANEACIÓN PATRIMONIAL</div>
+                <div class="area-desc">Estructuración, protección y gestión de patrimonios familiares y empresariales.</div>
+              </div>
+            </div>
+            <div class="area-item">
+              <div class="area-bullet"></div>
+              <div>
+                <div class="area-name">CONTRATACIÓN PÚBLICA</div>
+                <div class="area-desc">Asesoría integral en procesos contractuales estatales y licitaciones.</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
-  <!-- FOOTER -->
-  <footer class="site-footer">
-    <div class="footer-container">
-      <div class="footer-left">
-        © 2024 Creado por Koop Strategic Advisory
+    </section>
+
+    <!-- SECCIÓN NUESTRA VISIÓN -->
+    <section class="vision-section" id="vision">
+      <div class="vision-container">
+        <h2 class="vision-title"><span class="vision-bold">NUESTRA</span> VISIÓN</h2>
+        <div class="vision-text">
+          <p>
+            En Koop Strategic Advisory, nuestra visión es consolidarnos como la firma de referencia en servicios jurídicos, contables y de consultoría empresarial, reconocidos por nuestra ética, innovación y excelencia. Nos apasiona acompañar a empresas y personas en la toma de decisiones estratégicas que les permitan crecer, proteger sus intereses y transformar sus proyectos en resultados sostenibles.
+          </p>
+          <p>
+            Trabajamos bajo un enfoque multidisciplinario, integrando conocimientos legales, contables y de auditoría para ofrecer soluciones integrales y personalizadas. Nuestro equipo está comprometido con la actualización permanente, la confianza y el trato directo con cada cliente.
+          </p>
+          <p>
+            Buscamos construir relaciones de largo plazo basadas en la transparencia, el profesionalismo y el valor agregado, contribuyendo activamente al desarrollo empresarial y a la construcción de una sociedad más justa y eficiente.
+          </p>
+        </div>
       </div>
-      <div class="footer-right">
-        <a href="privacidad.html" target="_blank">Política de Privacidad</a>
+    </section>
+
+    <!-- SECCIÓN IMAGEN COMPLETA -->
+    <section class="full-img-section">
+      <img src="Corte suprema de justicia de colombia.jpg" alt="Equipo empresarial Koop" class="full-img">
+    </section>
+
+    <!-- SECCIÓN CONTÁCTANOS MODERNA -->
+    <section class="contact-section" id="contacto">
+      <div class="contact-overlay"></div>
+      <div class="contact-container contact-modern">
+        <div class="contact-modern-content">
+          <div class="contact-title" style="text-align:center;">CONTÁCTANOS</div>
+          <div class="contact-name" style="text-align:center; color:#fff;">KOOP STRATEGIC ADVISORY</div>
+          <div class="contact-social contact-social-modern">
+            <a href="https://www.instagram.com/koopstrategicadvisory/" target="_blank" class="social-icon instagram" title="Instagram">
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" alt="Instagram">
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=61579034631401" target="_blank" class="social-icon facebook" title="Facebook">
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/facebook.svg" alt="Facebook">
+            </a>
+            <a href="https://tiktok.com/" target="_blank" class="social-icon tiktok" title="TikTok">
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/tiktok.svg" alt="TikTok">
+            </a>
+            <a href="https://wa.me/573503965755" target="_blank" class="social-icon whatsapp" title="WhatsApp">
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/whatsapp.svg" alt="WhatsApp">
+            </a>
+          </div>
+          <div class="contact-modern-text">Atendemos consultas por cualquiera de nuestras redes sociales.</div>
+        </div>
       </div>
-    </div>
-  </footer>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div class="footer-left">
+          © 2024 Creado por Koop Strategic Advisory
+        </div>
+        <div class="footer-right">
+          <a href="privacidad.html" target="_blank">Política de Privacidad</a>
+        </div>
+      </div>
+    </footer>
+  </div> <!-- /#app -->
+
   <script>
+    // ===== Menú móvil (se mantiene tal cual) =====
     const menuToggle = document.getElementById('menu-toggle');
     const navMenu = document.getElementById('nav-menu');
-    menuToggle.onclick = function() {
-      navMenu.classList.toggle('open');
-    };
-    navMenu.querySelectorAll('a').forEach(link => {
-      link.onclick = () => navMenu.classList.remove('open');
-    });
+    if (menuToggle && navMenu) {
+      menuToggle.onclick = function() { navMenu.classList.toggle('open'); };
+      navMenu.querySelectorAll('a').forEach(link => {
+        link.onclick = () => navMenu.classList.remove('open');
+      });
+    }
+
+    // ===== Splash JS =====
+    (function () {
+      const splash = document.getElementById('splash');
+      const logo   = document.getElementById('splashLogo');
+      const app    = document.getElementById('app');
+
+      const MIN_VISIBLE_MS = 2500; // duración del fade-in del logo
+      const FADE_MS = 600;         // fade-out del fondo blanco
+      const start = Date.now();
+
+      function revealLogo() {
+        // Ajuste opcional fino del recorte: 1.08–1.12
+        // logo.style.setProperty('--overscan', '1.10');
+        void logo.offsetWidth; // reflow para asegurar que la transición se dispare
+        logo.classList.add('is-visible');
+      }
+
+      function scheduleHide() {
+        const elapsed = Date.now() - start;
+        const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
+        setTimeout(() => {
+          splash.classList.add('splash--hide');
+          setTimeout(() => {
+            try { splash.remove(); } catch(e){}
+            if (app) app.hidden = false;
+          }, FADE_MS);
+        }, wait);
+      }
+
+      if (logo) {
+        if (logo.complete) { revealLogo(); scheduleHide(); }
+        else { logo.addEventListener('load', () => { revealLogo(); scheduleHide(); }); }
+      } else {
+        // Si por cualquier razón no encuentra el logo, no bloquea la página
+        scheduleHide();
+      }
+
+      // Fallback duro para evitar bloqueo si algo falla
+      setTimeout(() => {
+        if (document.body.contains(splash)) {
+          splash.classList.add('splash--hide');
+          setTimeout(() => { try { splash.remove(); } catch(e){} if (app) app.hidden = false; }, FADE_MS);
+        }
+      }, 7000);
+    })();
   </script>
 </body>
 </html>
