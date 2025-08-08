@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Koop Strategic Advisory | Estudio Jurídico & Contable</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Fallback si JS está desactivado -->
+  <noscript><style>#splash{display:none!important}#app{opacity:1!important}</style></noscript>
+
   <style>
     html, body {
       width: 100%;
@@ -12,27 +16,28 @@
       padding: 0;
       box-sizing: border-box;
       overflow-x: hidden;
+      height: 100%;
     }
     body {
       font-family: 'Montserrat', Arial, sans-serif;
-      background: #141b2d;
+      background: #141b2d; /* Fondo azul visible inmediatamente al salir del splash */
       color: #fff;
     }
 
     /* =========================
-       SPLASH (INICIO)
+       SPLASH
        ========================= */
     .splash{
       position:fixed; inset:0; background:#fff;
       display:flex; align-items:center; justify-content:center;
-      z-index:9999; transition: opacity .6s ease;
+      z-index:9999; transition: opacity .8s ease; /* fade-out del splash */
     }
     .splash--hide{ opacity:0; pointer-events:none; }
     .splash__frame{
-      width: clamp(260px, 34vw, 540px);   /* tamaño visible del logo */
-      min-height: 90px;                   /* respaldo de altura */
+      width: clamp(260px, 34vw, 540px);
+      min-height: 90px;
       display:flex; align-items:center; justify-content:center;
-      overflow:hidden;                    /* recorta borde transparente */
+      overflow:hidden;
       background:#fff;
     }
     .splash__logo{
@@ -41,19 +46,18 @@
       display:block;
       opacity:0;                          /* fade-in desde invisible */
       transition: opacity 2.5s ease, transform 2.5s ease;
-      transform: scale(var(--overscan, 1.08)); /* overscan para “comerse” margen */
+      transform: scale(var(--overscan, 1.08)); /* “come” el borde transparente del PNG */
       user-select:none; -webkit-user-drag:none;
       image-rendering: -webkit-optimize-contrast;
     }
     .splash__logo.is-visible{ opacity:1; }
+
+    /* ===== Contenido visible pero arrancando transparente (se anima por JS) ===== */
+    #app { opacity: 0; }
+
     /* =========================
-       SPLASH (FIN)
+       ESTILOS DE TU SITIO
        ========================= */
-
-    /* ===== Fade-in del contenido tras el splash ===== */
-    #app { opacity: 0; transition: opacity .8s ease; }
-    #app.visible { opacity: 1; }
-
     .navbar {
       width: 100%;
       display: flex;
@@ -76,211 +80,92 @@
       justify-content: space-between;
       position: relative;
     }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .logo-img {
-      width: 100px;
-      height: 100px;
-      object-fit: contain;
-    }
-    .logo-text {
-      font-weight: 700;
-      color: #23395d;
-      font-size: 1.23em;
-      letter-spacing: 0.05em;
-    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-img { width: 100px; height: 100px; object-fit: contain; }
+    .logo-text { font-weight: 700; color: #23395d; font-size: 1.23em; letter-spacing: 0.05em; }
     .menu-toggle {
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      cursor: pointer;
-      width: 36px;
-      height: 36px;
-      margin-left: 12px;
-      z-index: 20;
+      display: none; flex-direction: column; justify-content: center;
+      cursor: pointer; width: 36px; height: 36px; margin-left: 12px; z-index: 20;
     }
     .menu-toggle span {
-      height: 4px;
-      background: #23395d;
-      margin: 5px 0;
-      border-radius: 2px;
-      transition: 0.4s;
-      display: block;
+      height: 4px; background: #23395d; margin: 5px 0; border-radius: 2px; transition: 0.4s; display: block;
     }
-    .nav-menu {
-      display: flex;
-      gap: 36px;
-      align-items: center;
-      justify-content: center;
-    }
-    .nav-menu a {
-      color: #23395d;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 1em;
-      letter-spacing: 0.02em;
-      transition: color 0.2s;
-    }
-    .nav-menu a:hover {
-      color: #ee9626;
-    }
+    .nav-menu { display: flex; gap: 36px; align-items: center; justify-content: center; }
+    .nav-menu a { color: #23395d; text-decoration: none; font-weight: 500; font-size: 1em; letter-spacing: 0.02em; transition: color 0.2s; }
+    .nav-menu a:hover { color: #ee9626; }
+
     .hero-section {
-      min-height: 100vh;
-      width: 100%;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
+      min-height: 100vh; width: 100%; position: relative; display: flex; align-items: center; justify-content: flex-start;
       background: url('Imagen gigante centro int.JPG') center center/cover no-repeat;
-      margin-top: 64px;
-      box-sizing: border-box;
+      margin-top: 64px; box-sizing: border-box;
     }
     .hero-overlay {
-      position: absolute;
-      left: 0; top: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-      background: linear-gradient(
-        to right,
-        rgba(35, 57, 93, 0.90) 0%,
-        rgba(35, 57, 93, 0.60) 45%,
-        rgba(35, 57, 93, 0.30) 82%,
-        rgba(35, 57, 93, 0.00) 100%
-      );
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 1;
+      background: linear-gradient(to right, rgba(35,57,93,.90) 0%, rgba(35,57,93,.60) 45%, rgba(35,57,93,.30) 82%, rgba(35,57,93,0) 100%);
     }
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      max-width: 540px;
-      color: #fff;
-      margin-left: 11.5cm;
-      text-align: left;
-    }
-    .hero-title {
-      font-size: 2.7em;
-      font-weight: 700;
-      margin-bottom: 10px;
-      line-height: 1.15;
-      text-shadow: 0 4px 24px #23395d66;
-    }
-    .hero-subtitle {
-      font-size: 2em;
-      font-weight: 300;
-      letter-spacing: 0.03em;
-      margin-bottom: 16px;
-      color: #b4cff6;
-    }
-    .hero-desc {
-      font-size: 1.15em;
-      color: #eef6ff;
-      margin-bottom: 24px;
-    }
+    .hero-content { position: relative; z-index: 2; max-width: 540px; color: #fff; margin-left: 11.5cm; text-align: left; }
+    .hero-title { font-size: 2.7em; font-weight: 700; margin-bottom: 10px; line-height: 1.15; text-shadow: 0 4px 24px #23395d66; }
+    .hero-subtitle { font-size: 2em; font-weight: 300; letter-spacing: 0.03em; margin-bottom: 16px; color: #b4cff6; }
+    .hero-desc { font-size: 1.15em; color: #eef6ff; margin-bottom: 24px; }
     .cta-btn {
-      background: #ee9626;
-      color: #fff;
-      padding: 14px 38px;
-      border-radius: 30px;
-      font-weight: bold;
-      font-size: 1.08em;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 2px 16px #ee96262f;
-      transition: background 0.2s;
+      background: #ee9626; color: #fff; padding: 14px 38px; border-radius: 30px; font-weight: bold; font-size: 1.08em;
+      border: none; cursor: pointer; box-shadow: 0 2px 16px #ee96262f; transition: background 0.2s;
     }
     .cta-btn:hover { background: #c67616; }
+
     .areas-section {
-      width: 100%;
-      background: linear-gradient(90deg, #e9f0fa 36%, #fff 36%);
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
-      padding: 0;
-      box-sizing: border-box;
+      width: 100%; background: linear-gradient(90deg, #e9f0fa 36%, #fff 36%); display: flex; justify-content: center; align-items: stretch;
+      padding: 0; box-sizing: border-box;
     }
-    .areas-container {
-      display: flex;
-      flex-direction: row;
-      width: 100%;
-      max-width: 1200px;
-      min-height: 360px;
-    }
+    .areas-container { display: flex; flex-direction: row; width: 100%; max-width: 1200px; min-height: 360px; }
     .areas-title {
-      flex: 0 0 36%;
-      background: #e9f0fa;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 60px 40px;
-      font-size: 2.3em;
-      font-weight: 400;
-      color: #1d3557;
-      letter-spacing: 0.02em;
-      margin-left: 4cm;
+      flex: 0 0 36%; background: #e9f0fa; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+      padding: 60px 40px; font-size: 2.3em; font-weight: 400; color: #1d3557; letter-spacing: 0.02em; margin-left: 4cm;
     }
     .areas-title-bold { font-weight: 700; color: #ee9626; }
     .areas-title-normal { font-weight: 300; color: #4877b1; }
     .areas-list {
-      flex: 1 1 64%;
-      background: #fff;
-      display: flex;
-      gap: 40px;
-      padding: 40px 40px 40px 24px;
-      box-sizing: border-box;
+      flex: 1 1 64%; background: #fff; display: flex; gap: 40px; padding: 40px 40px 40px 24px; box-sizing: border-box;
     }
     .areas-col { flex: 1 1 0; display: flex; flex-direction: column; gap: 18px; }
     .area-item { display: flex; align-items: flex-start; }
-    .area-bullet {
-      width: 12px; height: 12px; margin-top: 6px; margin-right: 12px;
-      border-radius: 3px; background: #2998ff; flex-shrink: 0;
-    }
+    .area-bullet { width: 12px; height: 12px; margin-top: 6px; margin-right: 12px; border-radius: 3px; background: #2998ff; flex-shrink: 0; }
     .area-name { font-weight: 700; color: #23395d; margin-bottom: 2px; letter-spacing: 0.02em; font-size: 1.09em; }
     .area-desc { color: #4877b1; font-size: 1em; font-weight: 400; letter-spacing: 0.01em; }
-    .vision-section {
-      width: 100%; background: #06325a; padding: 90px 0 80px 0;
-      display: flex; justify-content: center; align-items: center; box-sizing: border-box;
-    }
+
+    .vision-section { width: 100%; background: #06325a; padding: 90px 0 80px 0; display: flex; justify-content: center; align-items: center; box-sizing: border-box; }
     .vision-container { max-width: 980px; margin: 0 auto; text-align: center; color: #fff; }
     .vision-title { font-size: 2.8em; font-weight: 400; margin-bottom: 32px; letter-spacing: 0.01em; }
     .vision-bold { font-weight: 700; letter-spacing: 0.02em; }
     .vision-text { font-size: 1.18em; line-height: 1.6; color: #f5faff; }
     .vision-text p { margin-bottom: 22px; }
+
     .full-img-section {
       width: 100%; min-height: 418px; margin: 0; padding: 0; overflow: hidden; background: #222;
       display: flex; align-items: stretch; justify-content: center; box-sizing: border-box;
     }
     .full-img {
-      width: 100%; min-height: 418px; height: 38vw; max-height: 600px;
-      object-fit: cover; object-position: center; display: block; margin: 0 auto;
-      user-select: none; -webkit-user-drag: none; pointer-events: none;
+      width: 100%; min-height: 418px; height: 38vw; max-height: 600px; object-fit: cover; object-position: center;
+      display: block; margin: 0 auto; user-select: none; -webkit-user-drag: none; pointer-events: none;
     }
+
     .contact-section {
-      width: 100%; min-height: 400px; position: relative;
-      background: url(Img2_Atrio.jpg) center center/cover no-repeat;
+      width: 100%; min-height: 400px; position: relative; background: url(Img2_Atrio.jpg) center center/cover no-repeat;
       display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 1; box-sizing: border-box;
     }
-    .contact-overlay {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(33, 56, 99, 0.84); z-index: 1;
-    }
-    .contact-modern {
-      justify-content: center; align-items: center; min-height: 400px; background: none; padding: 0; display: flex; width: 100%;
-    }
+    .contact-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(33, 56, 99, 0.84); z-index: 1; }
+    .contact-modern { justify-content: center; align-items: center; min-height: 400px; background: none; padding: 0; display: flex; width: 100%; }
     .contact-modern-content {
-      width: 100%; max-width: 480px; margin: 0 auto; padding: 70px 20px 60px 20px;
-      background: rgba(33, 56, 99, 0.86); border-radius: 30px; text-align: center; box-shadow: 0 8px 32px #1123452f;
-      position: relative; z-index: 2;
+      width: 100%; max-width: 480px; margin: 0 auto; padding: 70px 20px 60px 20px; background: rgba(33, 56, 99, 0.86);
+      border-radius: 30px; text-align: center; box-shadow: 0 8px 32px #1123452f; position: relative; z-index: 2;
     }
     .contact-title { font-size: 2.6em; font-weight: 700; margin-bottom: 14px; color: #fff; }
-    .contact-name  { font-size: 1.6em; font-weight: 400; margin-bottom: 30px; color: #c9e7ff; letter-spacing: 0.03em; }
+    .contact-name { font-size: 1.6em; font-weight: 400; margin-bottom: 30px; color: #c9e7ff; letter-spacing: 0.03em; }
     .contact-social-modern { display: flex; justify-content: center; align-items: center; gap: 38px; margin-bottom: 22px; margin-top: 6px; }
     .contact-social-modern .social-icon img { width: 54px; height: 54px; filter: brightness(0) invert(1); transition: transform 0.20s, filter 0.20s; }
     .contact-social-modern .social-icon:hover img { transform: scale(1.17) rotate(-6deg); filter: brightness(0) invert(1) drop-shadow(0 4px 22px #ee9626aa); }
     .contact-modern-text { margin-top: 14px; color: #c9e7ff; font-size: 1.15em; letter-spacing: 0.02em; }
+
     .site-footer {
       width: 100%; background: #353e49; padding: 18px 0 14px 0; border-top: 2px solid #2a3038;
       color: #f5f5f5; font-size: 1em; margin-top: 0; box-sizing: border-box;
@@ -300,8 +185,7 @@
       .hero-content { margin-left: 2cm; }
       .areas-container { flex-direction: column; min-height: unset; }
       .areas-title {
-        flex: unset; width: 100%; padding: 32px 18px 16px 18px;
-        font-size: 2em; align-items: center; text-align: center; margin-left: 0 !important;
+        flex: unset; width: 100%; padding: 32px 18px 16px 18px; font-size: 2em; align-items: center; text-align: center; margin-left: 0 !important;
       }
       .areas-list { flex-direction: column !important; gap: 20px !important; padding: 18px 10px 32px 10px; }
       .areas-col { width: 100% !important; }
@@ -316,8 +200,8 @@
       .navbar-content { flex-direction: row; align-items: center; justify-content: space-between; }
       .menu-toggle { display: flex; }
       .nav-menu {
-        display: none; position: absolute; top: 64px; left: 0; right: 0; background: #fff;
-        flex-direction: column; align-items: center; gap: 18px; padding: 24px 0 18px 0; z-index: 19; box-shadow: 0 6px 24px #0002;
+        display: none; position: absolute; top: 64px; left: 0; right: 0; background: #fff; flex-direction: column; align-items: center;
+        gap: 18px; padding: 24px 0 18px 0; z-index: 19; box-shadow: 0 6px 24px #0002;
       }
       .nav-menu.open { display: flex; animation: fadeIn 0.25s; }
       @keyframes fadeIn { from { opacity: 0; transform: translateY(-12px);} to { opacity: 1; transform: translateY(0);} }
@@ -331,11 +215,9 @@
       .vision-text { font-size: 1em; }
       .full-img { height: 72vw; min-height: 200px; max-height: 350px; }
       .full-img-section { min-height: 200px; }
-      .contact-modern-content {
-        padding: 32px 8px 30px 8px; max-width: 97vw; border-radius: 16px;
-      }
+      .contact-modern-content { padding: 32px 8px 30px 8px; max-width: 97vw; border-radius: 16px; }
       .contact-title { font-size: 1.6em; }
-      .contact-name  { font-size: 1em; }
+      .contact-name { font-size: 1em; }
       .contact-social-modern .social-icon img { width: 38px; height: 38px; }
       .contact-modern-text { font-size: 1em; }
       .footer-container { flex-direction: column; gap: 8px; padding: 0 16px; text-align: center; }
@@ -366,7 +248,7 @@
   </div>
 
   <!-- ===== CONTENIDO REAL ===== -->
-  <div id="app" hidden>
+  <div id="app">
     <nav class="navbar">
       <div class="navbar-content">
         <div class="logo">
@@ -374,9 +256,7 @@
           <div class="logo-text">KOOP STRATEGIC ADVISORY</div>
         </div>
         <div class="menu-toggle" id="menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
+          <span></span><span></span><span></span>
         </div>
         <div class="nav-menu" id="nav-menu">
           <a href="#inicio">INICIO</a>
@@ -410,95 +290,23 @@
           <span class="areas-title-bold">ÁREAS DE</span> <span class="areas-title-normal">PRÁCTICA</span>
         </div>
         <div class="areas-list">
-          <!-- Columna Izquierda: Áreas Iniciales -->
+          <!-- Columna Izquierda -->
           <div class="areas-col">
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">LITIGACIÓN</div>
-                <div class="area-desc">Representación estratégica en procesos judiciales civiles, comerciales y penales.</div>
-              </div>
-            </div>
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">NEGOCIOS</div>
-                <div class="area-desc">Asesoría en estructuración de negocios y contratos comerciales.</div>
-              </div>
-            </div>
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">INSOLVENCIA</div>
-                <div class="area-desc">Acompañamiento en procesos de insolvencia empresarial y reorganización.</div>
-              </div>
-            </div>
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">FRAUDE</div>
-                <div class="area-desc">Prevención, análisis y gestión de riesgos de fraude corporativo.</div>
-              </div>
-            </div>
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">RESOLUCIÓN DE DISPUTAS</div>
-                <div class="area-desc">Soluciones efectivas en arbitraje, conciliación y mediación.</div>
-              </div>
-            </div>
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">IMPUESTOS</div>
-                <div class="area-desc">Consultoría tributaria y planeación fiscal para empresas y personas.</div>
-              </div>
-            </div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">LITIGACIÓN</div><div class="area-desc">Representación estratégica en procesos judiciales civiles, comerciales y penales.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">NEGOCIOS</div><div class="area-desc">Asesoría en estructuración de negocios y contratos comerciales.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">INSOLVENCIA</div><div class="area-desc">Acompañamiento en procesos de insolvencia empresarial y reorganización.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">FRAUDE</div><div class="area-desc">Prevención, análisis y gestión de riesgos de fraude corporativo.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">RESOLUCIÓN DE DISPUTAS</div><div class="area-desc">Soluciones efectivas en arbitraje, conciliación y mediación.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">IMPUESTOS</div><div class="area-desc">Consultoría tributaria y planeación fiscal para empresas y personas.</div></div></div>
           </div>
-          <!-- Columna Derecha: Nuevas Áreas -->
+          <!-- Columna Derecha -->
           <div class="areas-col">
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">DERECHO LABORAL</div>
-                <div class="area-desc">Asesoria empresarial, Pensiones, No pago de la liquidación, Despido Injustificado, Contrato Laboral revestido de Contrato de Prestación de Servicios, Reintegro laboral y Sindicatos.</div>
-              </div>
-            </div>
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">DERECHO DE FAMILIA</div>
-                <div class="area-desc">Procesos de familia, Privación o suspensión de la Patria Potestad, Sucesiones, Custodia Visitas y Fijación de cuota alimentaria, Trámites ante Comisaría de familia e ICBF, Solicitudes de Medidas de Protección.</div>
-              </div>
-            </div>
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">AUDITORÍA & REVISORÍA FISCAL</div>
-                <div class="area-desc">Supervisión independiente y aseguramiento financiero y contable.</div>
-              </div>
-            </div>
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">PROPIEDAD INTELECTUAL</div>
-                <div class="area-desc">Registro, protección y defensa de marcas, patentes y derechos de autor.</div>
-              </div>
-            </div>
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">PLANEACIÓN PATRIMONIAL</div>
-                <div class="area-desc">Estructuración, protección y gestión de patrimonios familiares y empresariales.</div>
-              </div>
-            </div>
-            <div class="area-item">
-              <div class="area-bullet"></div>
-              <div>
-                <div class="area-name">CONTRATACIÓN PÚBLICA</div>
-                <div class="area-desc">Asesoría integral en procesos contractuales estatales y licitaciones.</div>
-              </div>
-            </div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">DERECHO LABORAL</div><div class="area-desc">Asesoria empresarial, Pensiones, No pago de la liquidación, Despido Injustificado, Contrato Laboral revestido de Contrato de Prestación de Servicios, Reintegro laboral y Sindicatos.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">DERECHO DE FAMILIA</div><div class="area-desc">Procesos de familia, Privación o suspensión de la Patria Potestad, Sucesiones, Custodia Visitas y Fijación de cuota alimentaria, Trámites ante Comisaría de familia e ICBF, Solicitudes de Medidas de Protección.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">AUDITORÍA & REVISORÍA FISCAL</div><div class="area-desc">Supervisión independiente y aseguramiento financiero y contable.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">PROPIEDAD INTELECTUAL</div><div class="area-desc">Registro, protección y defensa de marcas, patentes y derechos de autor.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">PLANEACIÓN PATRIMONIAL</div><div class="area-desc">Estructuración, protección y gestión de patrimonios familiares y empresariales.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">CONTRATACIÓN PÚBLICA</div><div class="area-desc">Asesoría integral en procesos contractuales estatales y licitaciones.</div></div></div>
           </div>
         </div>
       </div>
@@ -509,15 +317,9 @@
       <div class="vision-container">
         <h2 class="vision-title"><span class="vision-bold">NUESTRA</span> VISIÓN</h2>
         <div class="vision-text">
-          <p>
-            En Koop Strategic Advisory, nuestra visión es consolidarnos como la firma de referencia en servicios jurídicos, contables y de consultoría empresarial, reconocidos por nuestra ética, innovación y excelencia. Nos apasiona acompañar a empresas y personas en la toma de decisiones estratégicas que les permitan crecer, proteger sus intereses y transformar sus proyectos en resultados sostenibles.
-          </p>
-          <p>
-            Trabajamos bajo un enfoque multidisciplinario, integrando conocimientos legales, contables y de auditoría para ofrecer soluciones integrales y personalizadas. Nuestro equipo está comprometido con la actualización permanente, la confianza y el trato directo con cada cliente.
-          </p>
-          <p>
-            Buscamos construir relaciones de largo plazo basadas en la transparencia, el profesionalismo y el valor agregado, contribuyendo activamente al desarrollo empresarial y a la construcción de una sociedad más justa y eficiente.
-          </p>
+          <p>En Koop Strategic Advisory, nuestra visión es consolidarnos como la firma de referencia en servicios jurídicos, contables y de consultoría empresarial, reconocidos por nuestra ética, innovación y excelencia. Nos apasiona acompañar a empresas y personas en la toma de decisiones estratégicas que les permitan crecer, proteger sus intereses y transformar sus proyectos en resultados sostenibles.</p>
+          <p>Trabajamos bajo un enfoque multidisciplinario, integrando conocimientos legales, contables y de auditoría para ofrecer soluciones integrales y personalizadas. Nuestro equipo está comprometido con la actualización permanente, la confianza y el trato directo con cada cliente.</p>
+          <p>Buscamos construir relaciones de largo plazo basadas en la transparencia, el profesionalismo y el valor agregado, contribuyendo activamente al desarrollo empresarial y a la construcción de una sociedad más justa y eficiente.</p>
         </div>
       </div>
     </section>
@@ -556,9 +358,7 @@
     <!-- FOOTER -->
     <footer class="site-footer">
       <div class="footer-container">
-        <div class="footer-left">
-          © 2024 Creado por Koop Strategic Advisory
-        </div>
+        <div class="footer-left">© 2024 Creado por Koop Strategic Advisory</div>
         <div class="footer-right">
           <a href="privacidad.html" target="_blank">Política de Privacidad</a>
         </div>
@@ -567,68 +367,88 @@
   </div> <!-- /#app -->
 
   <script>
-    // ===== Menú móvil (se mantiene tal cual) =====
+    // ===== Menú móvil =====
     const menuToggle = document.getElementById('menu-toggle');
     const navMenu = document.getElementById('nav-menu');
     if (menuToggle && navMenu) {
-      menuToggle.onclick = function() { navMenu.classList.toggle('open'); };
-      navMenu.querySelectorAll('a').forEach(link => {
-        link.onclick = () => navMenu.classList.remove('open');
-      });
+      menuToggle.onclick = () => navMenu.classList.toggle('open');
+      navMenu.querySelectorAll('a').forEach(link => link.onclick = () => navMenu.classList.remove('open'));
     }
 
-    // ===== Splash JS =====
+    // ===== Splash: logo fade-in; luego splash fade-out; fondo azul aparece; luego contenido hace fade-in =====
     (function () {
       const splash = document.getElementById('splash');
       const logo   = document.getElementById('splashLogo');
       const app    = document.getElementById('app');
 
       const MIN_VISIBLE_MS = 2500; // duración del fade-in del logo
-      const FADE_MS = 600;         // fade-out del fondo blanco
-      const start = Date.now();
+      const FADE_MS = 800;         // fade-out del splash
+      const t0 = performance.now();
 
       function revealLogo() {
-        // Ajuste opcional fino del recorte: 1.08–1.12
-        // logo.style.setProperty('--overscan', '1.10');
-        void logo.offsetWidth; // reflow para asegurar que la transición se dispare
-        logo.classList.add('is-visible');
+        if (logo) { void logo.offsetWidth; logo.classList.add('is-visible'); }
       }
 
-      function scheduleHide() {
-        const elapsed = Date.now() - start;
+      function fadeInApp() {
+        if (!app) return;
+        // Forzamos estado inicial
+        app.style.opacity = '0';
+        void app.offsetHeight;
+
+        // Si hay Web Animations API, úsala (más fiable en móvil)
+        if (app.animate) {
+          const anim = app.animate(
+            [{ opacity: 0 }, { opacity: 1 }],
+            { duration: 800, easing: 'ease', fill: 'forwards' }
+          );
+          anim.onfinish = () => { app.style.opacity = '1'; };
+        } else {
+          // Fallback con transición CSS
+          app.style.transition = 'opacity 0.8s ease';
+          requestAnimationFrame(() => { app.style.opacity = '1'; });
+        }
+      }
+
+      function hideSplashThenShowApp() {
+        const elapsed = performance.now() - t0;
         const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
         setTimeout(() => {
-          splash.classList.add('splash--hide');
+          if (splash) splash.classList.add('splash--hide'); // aquí ya se ve el fondo azul
           setTimeout(() => {
-            try { splash.remove(); } catch(e){}
-            if (app) {
-              app.hidden = false;                         // mostrar contenido
-              requestAnimationFrame(() => {
-                app.classList.add('visible');             // activar fade-in suave del index
-              });
-            }
+            try { splash && splash.remove(); } catch(e){}
+            fadeInApp(); // ahora sí, el contenido entra suavemente
           }, FADE_MS);
         }, wait);
       }
 
-      if (logo) {
-        if (logo.complete) { revealLogo(); scheduleHide(); }
-        else { logo.addEventListener('load', () => { revealLogo(); scheduleHide(); }); }
-      } else {
-        scheduleHide();
+      async function start() {
+        try {
+          if (logo && 'decode' in logo) { await logo.decode(); }
+          else if (logo && !logo.complete) {
+            await new Promise(res => logo.addEventListener('load', res, { once: true }));
+          }
+        } catch(e) { /* seguimos aunque falle */ }
+
+        revealLogo();
+        hideSplashThenShowApp();
       }
 
-      // Fallback duro para evitar bloqueo si algo falla
+      // Volver desde caché del historial
+      window.addEventListener('pageshow', (e) => {
+        if (e.persisted) {
+          try { splash && splash.remove(); } catch(e){}
+          // Al volver, muestra el contenido inmediatamente
+          if (app) { app.style.opacity = '1'; }
+        }
+      });
+
+      start();
+
+      // Kill-switch
       setTimeout(() => {
         if (document.body.contains(splash)) {
           splash.classList.add('splash--hide');
-          setTimeout(() => {
-            try { splash.remove(); } catch(e){}
-            if (app) {
-              app.hidden = false;
-              requestAnimationFrame(() => app.classList.add('visible'));
-            }
-          }, FADE_MS);
+          setTimeout(() => { try { splash.remove(); } catch(e){} fadeInApp(); }, FADE_MS);
         }
       }, 7000);
     })();
