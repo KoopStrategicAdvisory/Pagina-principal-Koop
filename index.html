@@ -50,6 +50,10 @@
        SPLASH (FIN)
        ========================= */
 
+    /* ===== Fade-in del contenido tras el splash ===== */
+    #app { opacity: 0; transition: opacity .8s ease; }
+    #app.visible { opacity: 1; }
+
     .navbar {
       width: 100%;
       display: flex;
@@ -597,7 +601,12 @@
           splash.classList.add('splash--hide');
           setTimeout(() => {
             try { splash.remove(); } catch(e){}
-            if (app) app.hidden = false;
+            if (app) {
+              app.hidden = false;                         // mostrar contenido
+              requestAnimationFrame(() => {
+                app.classList.add('visible');             // activar fade-in suave del index
+              });
+            }
           }, FADE_MS);
         }, wait);
       }
@@ -606,7 +615,6 @@
         if (logo.complete) { revealLogo(); scheduleHide(); }
         else { logo.addEventListener('load', () => { revealLogo(); scheduleHide(); }); }
       } else {
-        // Si por cualquier razón no encuentra el logo, no bloquea la página
         scheduleHide();
       }
 
@@ -614,7 +622,13 @@
       setTimeout(() => {
         if (document.body.contains(splash)) {
           splash.classList.add('splash--hide');
-          setTimeout(() => { try { splash.remove(); } catch(e){} if (app) app.hidden = false; }, FADE_MS);
+          setTimeout(() => {
+            try { splash.remove(); } catch(e){}
+            if (app) {
+              app.hidden = false;
+              requestAnimationFrame(() => app.classList.add('visible'));
+            }
+          }, FADE_MS);
         }
       }, 7000);
     })();
