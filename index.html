@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 
   <!-- Fallback si JS está desactivado -->
-  <noscript><style>#splash{display:none!important}#app{opacity:1!important}</style></noscript>
+  <noscript><style>#splash{display:none!important}#app{opacity:1!important}.page-transition{display:none!important}</style></noscript>
 
   <style>
     html, body {
@@ -22,6 +22,23 @@
       font-family: 'Montserrat', Arial, sans-serif;
       background: #141b2d; /* Fondo azul visible inmediatamente al salir del splash */
       color: #fff;
+    }
+
+    /* =========================
+       TRANSICIÓN ENTRE PÁGINAS
+       ========================= */
+    .page-transition{
+      position: fixed;
+      inset: 0;
+      background: #141b2d; /* mismo color de fondo/base */
+      z-index: 9998;       /* debajo del splash (9999) */
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .6s ease;
+    }
+    .page-transition.is-active{
+      opacity: 1;
+      pointer-events: auto;
     }
 
     /* =========================
@@ -131,6 +148,8 @@
     .area-item { display: flex; align-items: flex-start; }
     .area-bullet { width: 12px; height: 12px; margin-top: 6px; margin-right: 12px; border-radius: 3px; background: #2998ff; flex-shrink: 0; }
     .area-name { font-weight: 700; color: #23395d; margin-bottom: 2px; letter-spacing: 0.02em; font-size: 1.09em; }
+    .area-name a { color: inherit; text-decoration: none; transition: color 0.2s; }
+    .area-name a:hover { color: #ee9626; }
     .area-desc { color: #4877b1; font-size: 1em; font-weight: 400; letter-spacing: 0.01em; }
 
     .vision-section { width: 100%; background: #06325a; padding: 90px 0 80px 0; display: flex; justify-content: center; align-items: center; box-sizing: border-box; }
@@ -239,6 +258,9 @@
 </head>
 <body>
 
+  <!-- Overlay de transición (debajo del splash) -->
+  <div class="page-transition" aria-hidden="true"></div>
+
   <!-- ===== SPLASH ===== -->
   <div id="splash" class="splash" aria-hidden="true">
     <div class="splash__frame">
@@ -292,21 +314,21 @@
         <div class="areas-list">
           <!-- Columna Izquierda -->
           <div class="areas-col">
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">LITIGACIÓN</div><div class="area-desc">Representación estratégica en procesos judiciales civiles, comerciales y penales.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">NEGOCIOS</div><div class="area-desc">Asesoría en estructuración de negocios y contratos comerciales.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">INSOLVENCIA</div><div class="area-desc">Acompañamiento en procesos de insolvencia empresarial y reorganización.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">FRAUDE</div><div class="area-desc">Prevención, análisis y gestión de riesgos de fraude corporativo.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">RESOLUCIÓN DE DISPUTAS</div><div class="area-desc">Soluciones efectivas en arbitraje, conciliación y mediación.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">IMPUESTOS</div><div class="area-desc">Consultoría tributaria y planeación fiscal para empresas y personas.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="litigacion.html">LITIGACIÓN</a></div><div class="area-desc">Representación estratégica en procesos judiciales civiles, comerciales y penales.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="negocios.html">NEGOCIOS</a></div><div class="area-desc">Asesoría en estructuración de negocios y contratos comerciales.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="insolvencia.html">INSOLVENCIA</a></div><div class="area-desc">Acompañamiento en procesos de insolvencia empresarial y reorganización.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="fraude.html">FRAUDE</a></div><div class="area-desc">Prevención, análisis y gestión de riesgos de fraude corporativo.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="resolucion-disputas.html">RESOLUCIÓN DE DISPUTAS</a></div><div class="area-desc">Soluciones efectivas en arbitraje, conciliación y mediación.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="impuestos.html">IMPUESTOS</a></div><div class="area-desc">Consultoría tributaria y planeación fiscal para empresas y personas.</div></div></div>
           </div>
           <!-- Columna Derecha -->
           <div class="areas-col">
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">DERECHO LABORAL</div><div class="area-desc">Asesoria empresarial, Pensiones, No pago de la liquidación, Despido Injustificado, Contrato Laboral revestido de Contrato de Prestación de Servicios, Reintegro laboral y Sindicatos.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">DERECHO DE FAMILIA</div><div class="area-desc">Procesos de familia, Privación o suspensión de la Patria Potestad, Sucesiones, Custodia Visitas y Fijación de cuota alimentaria, Trámites ante Comisaría de familia e ICBF, Solicitudes de Medidas de Protección.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">AUDITORÍA & REVISORÍA FISCAL</div><div class="area-desc">Supervisión independiente y aseguramiento financiero y contable.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">PROPIEDAD INTELECTUAL</div><div class="area-desc">Registro, protección y defensa de marcas, patentes y derechos de autor.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">PLANEACIÓN PATRIMONIAL</div><div class="area-desc">Estructuración, protección y gestión de patrimonios familiares y empresariales.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name">CONTRATACIÓN PÚBLICA</div><div class="area-desc">Asesoría integral en procesos contractuales estatales y licitaciones.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="derecho-laboral.html">DERECHO LABORAL</a></div><div class="area-desc">Asesoria empresarial, Pensiones, No pago de la liquidación, Despido Injustificado, Contrato Laboral revestido de Contrato de Prestación de Servicios, Reintegro laboral y Sindicatos.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="derecho-familia.html">DERECHO DE FAMILIA</a></div><div class="area-desc">Procesos de familia, Privación o suspensión de la Patria Potestad, Sucesiones, Custodia Visitas y Fijación de cuota alimentaria, Trámites ante Comisaría de familia e ICBF, Solicitudes de Medidas de Protección.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="auditoria.html">AUDITORÍA & REVISORÍA FISCAL</a></div><div class="area-desc">Supervisión independiente y aseguramiento financiero y contable.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="propiedad-intelectual.html">PROPIEDAD INTELECTUAL</a></div><div class="area-desc">Registro, protección y defensa de marcas, patentes y derechos de autor.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="planeacion-patrimonial.html">PLANEACIÓN PATRIMONIAL</a></div><div class="area-desc">Estructuración, protección y gestión de patrimonios familiares y empresariales.</div></div></div>
+            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="contratacion-publica.html">CONTRATACIÓN PÚBLICA</a></div><div class="area-desc">Asesoría integral en procesos contractuales estatales y licitaciones.</div></div></div>
           </div>
         </div>
       </div>
@@ -375,7 +397,7 @@
       navMenu.querySelectorAll('a').forEach(link => link.onclick = () => navMenu.classList.remove('open'));
     }
 
-    // ===== Splash: logo fade-in; luego splash fade-out; fondo azul aparece; luego contenido hace fade-in =====
+    // ===== Splash + Fade in contenido =====
     (function () {
       const splash = document.getElementById('splash');
       const logo   = document.getElementById('splashLogo');
@@ -391,11 +413,9 @@
 
       function fadeInApp() {
         if (!app) return;
-        // Forzamos estado inicial
         app.style.opacity = '0';
         void app.offsetHeight;
 
-        // Si hay Web Animations API, úsala (más fiable en móvil)
         if (app.animate) {
           const anim = app.animate(
             [{ opacity: 0 }, { opacity: 1 }],
@@ -403,7 +423,6 @@
           );
           anim.onfinish = () => { app.style.opacity = '1'; };
         } else {
-          // Fallback con transición CSS
           app.style.transition = 'opacity 0.8s ease';
           requestAnimationFrame(() => { app.style.opacity = '1'; });
         }
@@ -413,10 +432,10 @@
         const elapsed = performance.now() - t0;
         const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
         setTimeout(() => {
-          if (splash) splash.classList.add('splash--hide'); // aquí ya se ve el fondo azul
+          if (splash) splash.classList.add('splash--hide');
           setTimeout(() => {
             try { splash && splash.remove(); } catch(e){}
-            fadeInApp(); // ahora sí, el contenido entra suavemente
+            fadeInApp();
           }, FADE_MS);
         }, wait);
       }
@@ -427,7 +446,7 @@
           else if (logo && !logo.complete) {
             await new Promise(res => logo.addEventListener('load', res, { once: true }));
           }
-        } catch(e) { /* seguimos aunque falle */ }
+        } catch(e) {}
 
         revealLogo();
         hideSplashThenShowApp();
@@ -437,7 +456,6 @@
       window.addEventListener('pageshow', (e) => {
         if (e.persisted) {
           try { splash && splash.remove(); } catch(e){}
-          // Al volver, muestra el contenido inmediatamente
           if (app) { app.style.opacity = '1'; }
         }
       });
@@ -446,11 +464,44 @@
 
       // Kill-switch
       setTimeout(() => {
-        if (document.body.contains(splash)) {
-          splash.classList.add('splash--hide');
-          setTimeout(() => { try { splash.remove(); } catch(e){} fadeInApp(); }, FADE_MS);
+        const s = document.getElementById('splash');
+        if (s && document.body.contains(s)) {
+          s.classList.add('splash--hide');
+          setTimeout(() => { try { s.remove(); } catch(e){} fadeInApp(); }, 800);
         }
       }, 7000);
+    })();
+
+    // ===== Transición de salida hacia otras páginas internas =====
+    (function () {
+      const overlay = document.querySelector('.page-transition');
+      function shouldIntercept(link) {
+        // Ignora anclas, target=_blank, tel:, mailto:
+        if (!link.href) return false;
+        if (link.target && link.target.toLowerCase() === '_blank') return false;
+        const href = link.getAttribute('href');
+        if (!href) return false;
+        if (href.startsWith('#')) return false;
+        if (href.startsWith('mailto:') || href.startsWith('tel:')) return false;
+
+        const url = new URL(link.href, window.location.href);
+        if (url.hostname !== window.location.hostname) return false; // externo
+        // Si es misma página (misma ruta), no interceptar
+        if (url.pathname === window.location.pathname && url.hash) return false;
+        return true;
+      }
+
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest('a');
+        if (!a || !shouldIntercept(a)) return;
+
+        // Respeta modificadores (Cmd/Ctrl click abre nueva pestaña)
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
+        e.preventDefault();
+        if (overlay) overlay.classList.add('is-active');
+        setTimeout(() => { window.location.href = a.href; }, 600);
+      });
     })();
   </script>
 </body>
