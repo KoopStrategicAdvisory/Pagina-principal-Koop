@@ -246,23 +246,21 @@
     /* ======================================================
        FIX HERO EN MÓVILES (imagen completa, sin recortes)
        ====================================================== */
-    @media (max-width: 540px){
-      .hero-section{
-        /* más alto para que la imagen quepa sin recortarse */
-        height: min(70vh, 520px);
-        min-height: 360px;
+@media (max-width: 540px){
+  .hero-section{
+    height: 75vh;         /* altura generosa en móvil */
+    min-height: 420px;    /* salvaguarda en pantallas bajas */
 
-        /* mostrar imagen completa */
-        background-image: url('img/paloquemao.png?v=20250810-2');
-        background-position: center top;   /* ajusta a 'center 20%' si quieres subirla */
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-color: #141b2d;         /* color de fondo para bandas laterales/superior */
-      }
+    background-image: url('img/paloquemao.png?v=20250810-2');
+    background-position: center;  /* centrada para que el recorte sea equilibrado */
+    background-size: cover;       /* se expande y llena el área, sin bandas */
+    background-repeat: no-repeat;
+    background-color: #141b2d;    /* color de fondo por si hay retardo al cargar */
+  }
 
-      .hero-overlay{ height: 84px; }
-      .hero-headline{ font-size: clamp(1.9rem, 7.2vw, 2.6rem); }
-    }
+  .hero-overlay{ height: 84px; }
+  .hero-headline{ font-size: clamp(1.9rem, 7.2vw, 2.6rem); }
+}
   </style>
 </head>
 <body>
