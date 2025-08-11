@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Koop Strategic Advisory | Estudio Jurídico & Contable</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 
@@ -527,6 +530,27 @@
     // ===== Transición de salida hacia otras páginas internas =====
     (function () {
       const overlay = document.querySelector('.page-transition');
+      
+      // Asegurar que el overlay esté oculto al cargar la página
+      function hideOverlay() {
+        if (overlay) {
+          overlay.classList.remove('is-active');
+        }
+      }
+      
+      // Ocultar overlay inmediatamente al cargar
+      hideOverlay();
+      
+      // Ocultar overlay cuando se restaura desde BFCache
+      window.addEventListener('pageshow', (e) => {
+        if (e.persisted) {
+          hideOverlay();
+        }
+      });
+      
+      // Ocultar overlay cuando se hace focus en la ventana
+      window.addEventListener('focus', hideOverlay);
+      
       function shouldIntercept(link) {
         // Ignora anclas, target=_blank, tel:, mailto:
         if (!link.href) return false;

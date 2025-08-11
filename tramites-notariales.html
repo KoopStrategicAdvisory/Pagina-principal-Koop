@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Koop Strategic Advisory | Trámites Notariales</title>
   <!-- Fuentes -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
@@ -265,8 +268,8 @@
 </head>
 <body>
 
-  <!-- Overlay de transición (inicia activo para fundido de entrada) -->
-  <div class="page-transition is-active" aria-hidden="true"></div>
+  <!-- Overlay de transición -->
+  <div class="page-transition" aria-hidden="true"></div>
 
   <!-- NAV -->
   <nav class="navbar">
@@ -472,15 +475,34 @@
     // Año dinámico
     const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear();
 
-    // Fundido de entrada
-    window.addEventListener('load', () => {
-      const overlay = document.querySelector('.page-transition');
-      overlay && overlay.classList.remove('is-active');
-    });
-
-    // Transición de salida interna
+    // Manejo de transiciones
     (function () {
       const overlay = document.querySelector('.page-transition');
+      
+      // Asegurar que el overlay esté oculto al cargar la página
+      function hideOverlay() {
+        if (overlay) {
+          overlay.classList.remove('is-active');
+        }
+      }
+      
+      // Ocultar overlay inmediatamente al cargar
+      hideOverlay();
+      
+      // Ocultar overlay cuando se restaura desde BFCache
+      window.addEventListener('pageshow', (e) => {
+        if (e.persisted) {
+          hideOverlay();
+        }
+      });
+      
+      // Ocultar overlay cuando se hace focus en la ventana
+      window.addEventListener('focus', hideOverlay);
+      
+      // Ocultar overlay cuando se carga completamente la página
+      window.addEventListener('load', hideOverlay);
+      
+      // Transición de salida interna
       function shouldIntercept(link) {
         if (!link.href) return false;
         if (link.target && link.target.toLowerCase() === '_blank') return false;
@@ -494,6 +516,7 @@
         if (url.pathname === window.location.pathname && url.hash) return false;
         return true;
       }
+      
       document.addEventListener('click', (e) => {
         const a = e.target.closest('a');
         if (!a || !shouldIntercept(a)) return;
