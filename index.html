@@ -7,7 +7,47 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 
   <!-- Fallback si JS está desactivado -->
-  <noscript><style>#splash{display:none!important}#app{opacity:1!important}.page-transition{display:none!important}</style></noscript>
+  <noscript>
+    <style>
+      #splash{display:none!important}
+      #app{opacity:1!important}
+      .page-transition{display:none!important}
+    </style>
+  </noscript>
+
+  <!-- Decisión temprana: mostrar u omitir splash según ruta y referrer -->
+  <script>
+  (() => {
+    // Tipo de navegación (address bar/bookmark, click, reload, BFCache)
+    const nav = performance.getEntriesByType('navigation')[0];
+    const navType = nav ? nav.type : 'navigate'; // 'navigate' | 'reload' | 'back_forward'
+
+    // ¿Estamos en home? (raíz o index)
+    const isRoot = location.pathname === '/' || /index(\.html?)?$/i.test(location.pathname);
+
+    // ¿Viene de página interna del mismo host?
+    let fromInternal = false;
+    try {
+      fromInternal = !!document.referrer && new URL(document.referrer).hostname === location.hostname;
+    } catch(e){}
+
+    // Política: mostrar splash solo en aterrizaje externo a home.
+    const showOnReload = false; // pon true si quieres mostrar también en F5 de home
+    const shouldShowSplash =
+      isRoot && ( (!fromInternal && navType === 'navigate') || (isRoot && navType === 'reload' && showOnReload) );
+
+    if (!shouldShowSplash) {
+      document.documentElement.classList.add('skip-splash');
+    }
+
+    // Si volvemos con BFCache y no debe mostrarse, asegúralo
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted && !shouldShowSplash) {
+        document.documentElement.classList.add('skip-splash');
+      }
+    }, { once: true });
+  })();
+  </script>
 
   <style>
     html, body {
@@ -23,6 +63,10 @@
       background: #141b2d; /* Fondo azul visible inmediatamente al salir del splash */
       color: #fff;
     }
+
+    /* Si ya decidimos saltar el splash, ocúltalo y muestra la app */
+    html.skip-splash #splash { display: none !important; }
+    html.skip-splash #app { opacity: 1 !important; }
 
     /* =========================
        TRANSICIÓN ENTRE PÁGINAS
@@ -397,11 +441,19 @@
       navMenu.querySelectorAll('a').forEach(link => link.onclick = () => navMenu.classList.remove('open'));
     }
 
-    // ===== Splash + Fade in contenido =====
+    // ===== Splash + Fade in contenido (obedece la decisión del <head>) =====
     (function () {
       const splash = document.getElementById('splash');
       const logo   = document.getElementById('splashLogo');
       const app    = document.getElementById('app');
+
+      // ¿Debemos saltar el splash?
+      const skip = document.documentElement.classList.contains('skip-splash');
+      if (skip) {
+        try { splash && splash.remove(); } catch(e){}
+        if (app) app.style.opacity = '1';
+        return;
+      }
 
       const MIN_VISIBLE_MS = 2500; // duración del fade-in del logo
       const FADE_MS = 800;         // fade-out del splash
@@ -452,7 +504,7 @@
         hideSplashThenShowApp();
       }
 
-      // Volver desde caché del historial
+      // Volver desde caché del historial → no re-mostrar splash
       window.addEventListener('pageshow', (e) => {
         if (e.persisted) {
           try { splash && splash.remove(); } catch(e){}
@@ -462,7 +514,7 @@
 
       start();
 
-      // Kill-switch
+      // Kill-switch por si algún evento no disparó
       setTimeout(() => {
         const s = document.getElementById('splash');
         if (s && document.body.contains(s)) {
