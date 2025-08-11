@@ -122,27 +122,17 @@
     /* =========================
        ESTILOS DE TU SITIO
        ========================= */
+    /* ===== NAVBAR ===== */
     .navbar {
       width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 40px;
-      background: #fff;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 10;
-      box-shadow: 0 2px 8px #0001;
-      height: 64px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 40px; background: #fff;
+      position: fixed; top: 0; left: 0;
+      z-index: 100; box-shadow: 0 2px 8px #0001; height: 64px;
     }
     .navbar-content {
-      width: 100%;
-      max-width: 1200px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
+      width: 100%; max-width: 1200px;
+      display: flex; align-items: center; justify-content: space-between; position: relative;
     }
     .logo { display: flex; align-items: center; gap: 10px; }
     .logo-img { width: 100px; height: 100px; object-fit: contain; }
@@ -151,11 +141,9 @@
       display: none; flex-direction: column; justify-content: center;
       cursor: pointer; width: 36px; height: 36px; margin-left: 12px; z-index: 20;
     }
-    .menu-toggle span {
-      height: 4px; background: #23395d; margin: 5px 0; border-radius: 2px; transition: 0.4s; display: block;
-    }
+    .menu-toggle span { height: 4px; background: #23395d; margin: 5px 0; border-radius: 2px; transition: .4s; display: block; }
     .nav-menu { display: flex; gap: 36px; align-items: center; justify-content: center; }
-    .nav-menu a { color: #23395d; text-decoration: none; font-weight: 500; font-size: 1em; letter-spacing: 0.02em; transition: color 0.2s; }
+    .nav-menu a { color: #23395d; text-decoration: none; font-weight: 500; font-size: 1em; letter-spacing: .02em; transition: color .2s; }
     .nav-menu a:hover { color: #ee9626; }
 
     .hero-section {
@@ -263,17 +251,16 @@
       .full-img-section { min-height: 220px; }
     }
     @media (max-width: 700px) {
-      .navbar-content { flex-direction: row; align-items: center; justify-content: space-between; }
-      .menu-toggle { display: flex; }
-      .nav-menu {
-        display: none; position: absolute; top: 64px; left: 0; right: 0; background: #fff; flex-direction: column; align-items: center;
-        gap: 18px; padding: 24px 0 18px 0; z-index: 19; box-shadow: 0 6px 24px #0002;
-      }
-      .nav-menu.open { display: flex; animation: fadeIn 0.25s; }
-      @keyframes fadeIn { from { opacity: 0; transform: translateY(-12px);} to { opacity: 1; transform: translateY(0);} }
       .navbar { height: 64px; padding: 0 10px; }
       .logo-img { width: 56px; height: 56px; }
-      .logo-text { font-size: 0.95em; }
+      .logo-text { font-size: .95em; }
+      .menu-toggle { display: flex; }
+      .nav-menu {
+        display: none; position: absolute; top: 64px; left: 0; right: 0; background: #fff;
+        flex-direction: column; align-items: center; gap: 18px; padding: 24px 0 18px; z-index: 99; box-shadow: 0 6px 24px #0002;
+      }
+      .nav-menu.open { display: flex; animation: fadeIn .25s; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(-12px);} to { opacity: 1; transform: translateY(0);} }
       .hero-content { margin-left: 20px; }
       .nav-menu a { font-size: 1.1em; }
       .vision-container { padding: 0 18px; }
