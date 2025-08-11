@@ -53,6 +53,18 @@
   </script>
 
   <style>
+    :root{
+      --nav-h: 64px;
+      --koop-azul:#23395d;
+      --koop-azul-claro:#e9f0fa;
+      --koop-acento:#ee9626;
+      --koop-bullet:#2998ff;
+      --gris-100:#f5f7fb;
+      --gris-300:#c9d3e6;
+      --gris-500:#8fa1bf;
+      --negro:#0e1320;
+    }
+
     html, body {
       width: 100%;
       margin: 0;
@@ -128,7 +140,7 @@
       display: flex; align-items: center; justify-content: center;
       padding: 0 40px; background: #fff;
       position: fixed; top: 0; left: 0;
-      z-index: 100; box-shadow: 0 2px 8px #0001; height: 64px;
+      z-index: 100; box-shadow: 0 2px 8px #0001; height: var(--nav-h);
     }
     .navbar-content {
       width: 100%; max-width: 1200px;
@@ -144,7 +156,7 @@
     .menu-toggle span { height: 4px; background: #23395d; margin: 5px 0; border-radius: 2px; transition: .4s; display: block; }
     .nav-menu { display: flex; gap: 36px; align-items: center; justify-content: center; }
     .nav-menu a { color: #23395d; text-decoration: none; font-weight: 500; font-size: 1em; letter-spacing: .02em; transition: color .2s; }
-    .nav-menu a:hover { color: #ee9626; }
+    .nav-menu a:hover { color: var(--koop-acento); }
 
     .hero-section {
       min-height: 100vh; width: 100%; position: relative; display: flex; align-items: center; justify-content: flex-start;
@@ -251,12 +263,12 @@
       .full-img-section { min-height: 220px; }
     }
     @media (max-width: 700px) {
-      .navbar { height: 64px; padding: 0 10px; }
+      .navbar { height: var(--nav-h); padding: 0 10px; }
       .logo-img { width: 56px; height: 56px; }
       .logo-text { font-size: .95em; }
       .menu-toggle { display: flex; }
       .nav-menu {
-        display: none; position: absolute; top: 64px; left: 0; right: 0; background: #fff;
+        display: none; position: absolute; top: var(--nav-h); left: 0; right: 0; background: #fff;
         flex-direction: column; align-items: center; gap: 18px; padding: 24px 0 18px; z-index: 99; box-shadow: 0 6px 24px #0002;
       }
       .nav-menu.open { display: flex; animation: fadeIn .25s; }
@@ -308,15 +320,13 @@
           <img src="Koop Logo.png" alt="Logo Koop" class="logo-img">
           <div class="logo-text">KOOP STRATEGIC ADVISORY</div>
         </div>
-        <div class="menu-toggle" id="menu-toggle">
-          <span></span><span></span><span></span>
-        </div>
+        <div class="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
         <div class="nav-menu" id="nav-menu">
-          <a href="#inicio">INICIO</a>
-          <a href="#areas">ÁREAS DE PRÁCTICA</a>
-          <a href="#vision">NUESTRA VISIÓN</a>
-          <a href="#abogados">ABOGADOS</a>
-          <a href="#contacto">CONTACTO</a>
+          <a href="index.html#inicio">INICIO</a>
+          <a href="index.html#areas">ÁREAS DE PRÁCTICA</a>
+          <a href="index.html#vision">NUESTRA VISIÓN</a>
+          <a href="index.html#abogados">ABOGADOS</a>
+          <a href="index.html#contacto">CONTACTO</a>
         </div>
       </div>
     </nav>
