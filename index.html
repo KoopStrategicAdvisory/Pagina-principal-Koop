@@ -181,8 +181,7 @@
       width: 100%; background: linear-gradient(90deg, #e9f0fa 36%, #fff 36%); display: flex; justify-content: center; align-items: stretch;
       padding: 0; box-sizing: border-box;
     }
-    .areas-container { display: flex; flex-direction: row; width: 100%; min-height: 500px; }
-    .practice-container { max-width: 1400px; }
+    .areas-container { display: flex; flex-direction: row; width: 100%; max-width: 1200px; min-height: 500px; }
     .areas-title {
       flex: 0 0 36%; background: #e9f0fa; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
       padding: 60px 40px; font-size: 2.3em; font-weight: 400; color: #1d3557; letter-spacing: 0.02em; margin-left: 4cm;
@@ -191,15 +190,14 @@
     .areas-title-normal { font-weight: 300; color: #4877b1; }
     .areas-cards{
       flex: 1 1 64%; background:#fff; box-sizing:border-box;
-      display:flex; flex-wrap:wrap; gap:16px; padding:24px;
-      justify-content:center;
+      display:grid; gap:16px; padding:24px;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
       height:100%;
     }
 
-    .labor-card, .card{
+    .labor-card{
       position:relative; border-radius:14px; overflow:hidden;
-      flex:1 1 340px; max-width:340px;
-      min-height:340px; background:#ccc; display:block; text-decoration:none;
+      min-height:300px; background:#ccc; display:block; text-decoration:none;
       height:100%;
     }
     .labor-card::before{
@@ -268,7 +266,7 @@
 
     @media (max-width: 1200px) {
       .hero-content { margin-left: 4cm; }
-      .practice-container { max-width: 1000px; }
+      .areas-container { max-width: 1000px; }
     }
     @media (max-width: 900px) {
       .hero-content { margin-left: 2cm; }
@@ -276,14 +274,7 @@
       .areas-title {
         flex: unset; width: 100%; padding: 32px 18px 16px 18px; font-size: 2em; align-items: center; text-align: center; margin-left: 0 !important;
       }
-      .areas-cards {
-        padding: 18px 10px 32px 10px;
-        flex-direction: column;
-      }
-      .areas-cards .labor-card, .areas-cards .card {
-        flex: 1 1 100%;
-        max-width: 100%;
-      }
+      .areas-cards { padding: 18px 10px 32px 10px; grid-template-columns:1fr; }
       .vision-section { padding: 50px 0 40px 0; }
       .vision-title { font-size: 2em; }
       .vision-text { font-size: 1em; }
@@ -373,18 +364,18 @@
 
     <!-- SECCIÓN ÁREAS DE PRÁCTICA -->
     <section class="areas-section" id="areas">
-      <div class="areas-container practice-container">
+      <div class="areas-container">
         <div class="areas-title">
           <span class="areas-title-bold">ÁREAS DE</span> <span class="areas-title-normal">PRÁCTICA</span>
         </div>
         <div class="areas-cards">
-          <a href="derecho.html" class="labor-card card" style="--bg:url('img/fiscalia.png')">
+          <a href="derecho.html" class="labor-card" style="--bg:url('img/fiscalia.png')">
             <div class="labor-card-content">
               <div class="labor-card-title">Derecho</div>
               <div class="labor-card-btn">Ingresar</div>
             </div>
           </a>
-          <a href="contabilidad.html" class="labor-card card" style="--bg:url('img/donacionescambio.png')">
+          <a href="contabilidad.html" class="labor-card" style="--bg:url('img/donacionescambio.png')">
             <div class="labor-card-content">
               <div class="labor-card-title">Contabilidad</div>
               <div class="labor-card-btn">Ingresar</div>
