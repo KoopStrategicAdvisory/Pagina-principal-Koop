@@ -188,16 +188,35 @@
     }
     .areas-title-bold { font-weight: 700; color: #ee9626; }
     .areas-title-normal { font-weight: 300; color: #4877b1; }
-    .areas-list {
-      flex: 1 1 64%; background: #fff; display: flex; gap: 40px; padding: 40px 40px 40px 24px; box-sizing: border-box;
+    .areas-cards{
+      flex: 1 1 64%; background:#fff; box-sizing:border-box;
+      display:grid; gap:22px; padding:40px 40px 40px 24px;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
     }
-    .areas-col { flex: 1 1 0; display: flex; flex-direction: column; gap: 18px; }
-    .area-item { display: flex; align-items: flex-start; }
-    .area-bullet { width: 12px; height: 12px; margin-top: 6px; margin-right: 12px; border-radius: 3px; background: #2998ff; flex-shrink: 0; }
-    .area-name { font-weight: 700; color: #23395d; margin-bottom: 2px; letter-spacing: 0.02em; font-size: 1.09em; }
-    .area-name a { color: inherit; text-decoration: none; transition: color 0.2s; }
-    .area-name a:hover { color: #ee9626; }
-    .area-desc { color: #4877b1; font-size: 1em; font-weight: 400; letter-spacing: 0.01em; }
+
+    .labor-card{
+      position:relative; border-radius:14px; overflow:hidden;
+      min-height:300px; background:#ccc; display:block; text-decoration:none;
+    }
+    .labor-card::before{
+      content:""; position:absolute; inset:0;
+      background:var(--bg, url('Imagen gigante centro int.JPG')) center/cover no-repeat;
+    }
+    .labor-card::after{ content:""; position:absolute; inset:0; background:rgba(35,57,93,.55); }
+    .labor-card-content{
+      position:relative; z-index:2; color:#fff; text-align:left;
+      padding:18px; height:100%; display:flex; flex-direction:column; justify-content:flex-end;
+    }
+    .labor-card-title{
+      font-size:1.35rem; font-weight:800; line-height:1.2; margin:2px 0 6px;
+      text-shadow:0 3px 18px rgba(0,0,0,.35);
+    }
+    .labor-card-btn{
+      align-self:flex-start; background:var(--koop-acento); color:#fff;
+      padding:8px 20px; border-radius:30px; font-weight:700; font-size:.95rem;
+      margin-top:10px; transition:background .2s;
+    }
+    .labor-card-btn:hover{ background:#c67616; }
 
     .vision-section { width: 100%; background: #06325a; padding: 90px 0 80px 0; display: flex; justify-content: center; align-items: center; box-sizing: border-box; }
     .vision-container { max-width: 980px; margin: 0 auto; text-align: center; color: #fff; }
@@ -253,9 +272,7 @@
       .areas-title {
         flex: unset; width: 100%; padding: 32px 18px 16px 18px; font-size: 2em; align-items: center; text-align: center; margin-left: 0 !important;
       }
-      .areas-list { flex-direction: column !important; gap: 20px !important; padding: 18px 10px 32px 10px; }
-      .areas-col { width: 100% !important; }
-      .area-item { width: 95%; margin-bottom: 12px; }
+      .areas-cards { padding: 18px 10px 32px 10px; grid-template-columns:1fr; }
       .vision-section { padding: 50px 0 40px 0; }
       .vision-title { font-size: 2em; }
       .vision-text { font-size: 1em; }
@@ -290,9 +307,7 @@
     @media (max-width: 540px) {
       .hero-content { margin-left: 8px; max-width: 99vw; }
       .areas-title { font-size: 1.28em; padding: 18px 8px 8px 8px; }
-      .areas-list { flex-direction: column !important; gap: 12px !important; padding: 12px 2vw; }
-      .areas-col { width: 100% !important; }
-      .area-item { width: 100%; min-width: unset; margin-bottom: 10px; }
+      .areas-cards { gap: 12px !important; padding: 12px 2vw; }
       .vision-title { font-size: 1.1em; }
       .full-img { height: 90vw; min-height: 170px; max-height: 270px; }
       .full-img-section { min-height: 170px; }
@@ -351,25 +366,19 @@
         <div class="areas-title">
           <span class="areas-title-bold">ÁREAS DE</span> <span class="areas-title-normal">PRÁCTICA</span>
         </div>
-        <div class="areas-list">
-          <!-- Columna Izquierda -->
-          <div class="areas-col">
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="derecho-penal.html">DERECHO PENAL</a></div><div class="area-desc">Explore nuestros servicios especializados en materia penal.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="tramites-notariales.html">TRÁMITES NOTARIALES</a></div><div class="area-desc">Su trámite notarial en tiempo récord y sin errores. Descubra cómo.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="derecho-administrativo.html">DERECHO ADMINISTRATIVO</a></div><div class="area-desc">Asesoría en trámites y procedimientos administrativos.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="auditoria.html">AUDITORÍA & REVISORÍA FISCAL</a></div><div class="area-desc">Supervisión independiente y aseguramiento financiero y contable.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="resolucion-disputas.html">RESOLUCIÓN DE DISPUTAS</a></div><div class="area-desc">Soluciones efectivas en arbitraje, conciliación y mediación.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="impuestos.html">IMPUESTOS</a></div><div class="area-desc">Consultoría tributaria y planeación fiscal para empresas y personas.</div></div></div>
-          </div>
-          <!-- Columna Derecha -->
-          <div class="areas-col">
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="derecho-laboral.html">DERECHO LABORAL</a></div><div class="area-desc">Conozca aquí los trámites y servicios en derecho laboral.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="derecho-familia.html">DERECHO DE FAMILIA</a></div><div class="area-desc">Conozca nuestros servicios en divorcios, custodia y demás asuntos de familia.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="acciones-de-tutela.html">ACCIONES DE TUTELA</a></div><div class="area-desc">Acompañamiento en la interposición y seguimiento de acciones de tutela.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="insolvencia.html">INSOLVENCIA</a></div><div class="area-desc">Acompañamiento en procesos de insolvencia empresarial y reorganización.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="planeacion-patrimonial.html">PLANEACIÓN PATRIMONIAL</a></div><div class="area-desc">Estructuración, protección y gestión de patrimonios familiares y empresariales.</div></div></div>
-            <div class="area-item"><div class="area-bullet"></div><div><div class="area-name"><a href="contratacion-publica.html">CONTRATACIÓN PÚBLICA</a></div><div class="area-desc">Asesoría integral en procesos contractuales estatales y licitaciones.</div></div></div>
-          </div>
+        <div class="areas-cards">
+          <a href="derecho.html" class="labor-card" style="--bg:url('img/fiscalia.png')">
+            <div class="labor-card-content">
+              <div class="labor-card-title">Derecho</div>
+              <div class="labor-card-btn">Ingresar</div>
+            </div>
+          </a>
+          <a href="contabilidad.html" class="labor-card" style="--bg:url('img/donacionescambio.png')">
+            <div class="labor-card-content">
+              <div class="labor-card-title">Contabilidad</div>
+              <div class="labor-card-btn">Ingresar</div>
+            </div>
+          </a>
         </div>
       </div>
     </section>
