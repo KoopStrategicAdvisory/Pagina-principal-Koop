@@ -369,13 +369,13 @@
           <span class="areas-title-bold">ÁREAS DE</span> <span class="areas-title-normal">PRÁCTICA</span>
         </div>
         <div class="areas-cards">
-          <a href="derecho.html" class="labor-card" style="--bg:url('img/fiscalia.png')">
+          <a href="derecho.html" class="labor-card" style="--bg:url('img/paloquemao.png')" data-images="img/paloquemao.png,img/saladecasacionlaboral.png,img/tramitesnotariales.png">
             <div class="labor-card-content">
               <div class="labor-card-title">Derecho</div>
               <div class="labor-card-btn">Ingresar</div>
             </div>
           </a>
-          <a href="contabilidad.html" class="labor-card" style="--bg:url('img/donacionescambio.png')">
+          <a href="contabilidad.html" class="labor-card" style="--bg:url('img/auditoria.svg')" data-images="img/auditoria.svg,img/impuestos.svg,img/planeacion-patrimonial.svg">
             <div class="labor-card-content">
               <div class="labor-card-title">Contabilidad</div>
               <div class="labor-card-btn">Ingresar</div>
@@ -581,6 +581,20 @@
         e.preventDefault();
         if (overlay) overlay.classList.add('is-active');
         setTimeout(() => { window.location.href = a.href; }, 600);
+      });
+    })();
+
+    // ===== Carrusel de imágenes en áreas =====
+    (function () {
+      const cards = document.querySelectorAll('.labor-card[data-images]');
+      cards.forEach(card => {
+        const imgs = card.dataset.images.split(',').map(s => s.trim()).filter(Boolean);
+        if (imgs.length < 2) return;
+        let idx = 0;
+        setInterval(() => {
+          idx = (idx + 1) % imgs.length;
+          card.style.setProperty('--bg', `url('${imgs[idx]}')`);
+        }, 4000);
       });
     })();
   </script>
