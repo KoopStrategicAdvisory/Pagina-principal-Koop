@@ -203,10 +203,18 @@
     .labor-card::before{
       content:""; position:absolute; inset:0;
       background:var(--bg, url('Imagen gigante centro int.JPG')) center/cover no-repeat;
+      z-index:0;
     }
-    .labor-card::after{ content:""; position:absolute; inset:0; background:rgba(35,57,93,.55); }
+    .labor-card::after{
+      content:""; position:absolute; inset:0;
+      background:rgba(35,57,93,.55); z-index:2;
+    }
+    .labor-card-fade{
+      position:absolute; inset:0; background:center/cover no-repeat;
+      opacity:0; transition:opacity 1s ease; z-index:1; pointer-events:none;
+    }
     .labor-card-content{
-      position:relative; z-index:2; color:#fff; text-align:left;
+      position:relative; z-index:3; color:#fff; text-align:left;
       padding:18px; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:flex-start;
     }
     .labor-card-title{
@@ -592,9 +600,18 @@
         if (imgs.length < 2) return;
         let idx = 0;
         setInterval(() => {
-          idx = (idx + 1) % imgs.length;
-          card.style.setProperty('--bg', `url('${imgs[idx]}')`);
-        }, 4000);
+          const next = (idx + 1) % imgs.length;
+          const overlay = document.createElement('div');
+          overlay.className = 'labor-card-fade';
+          overlay.style.backgroundImage = `url('${imgs[next]}')`;
+          card.appendChild(overlay);
+          requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+          setTimeout(() => {
+            card.style.setProperty('--bg', `url('${imgs[next]}')`);
+            overlay.remove();
+            idx = next;
+          }, 1000);
+        }, 3000);
       });
     })();
   </script>
