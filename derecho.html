@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Koop Strategic Advisory | Propiedad Intelectual</title>
+  <title>Koop Strategic Advisory | Derecho</title>
   <!-- Fuentes -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -90,7 +90,7 @@
     .hero-section {
       height: clamp(280px, 44vh, 500px);
       min-height: 280px; width: 100%; position: relative; display: block;
-      background: url('img/propiedad-intelectual.svg') center center/cover no-repeat;
+      background: url('img/paloquemao.png') center 90%/100% no-repeat;
       margin-top: var(--nav-h); overflow: hidden; z-index: 1;
     }
     /* Franja azul de ancho completo, centrada verticalmente */
@@ -190,7 +190,6 @@
       grid-template-columns: 1.2fr 1fr 1fr 1fr; gap:28px; position: relative; z-index:1;
     }
     .footer-brand{ display:flex; flex-direction:column; gap:14px; }
-    /* Logo gráfico eliminado; solo texto de marca */
     .footer-logo{ display:flex; align-items:center; gap:10px; }
     .footer-logo .brand-text{ font-weight:800; letter-spacing:.04em; color:#fff; font-size:1.05rem; }
     .footer-copy{ font-size:.92rem; color:#cfe0ff; line-height:1.5; }
@@ -220,10 +219,8 @@
     .footer-contact{ font-size:.95rem; color:#cfe0ff; display:grid; gap:8px; }
     .footer-contact .item{ display:flex; gap:10px; align-items:flex-start; }
 
-    /* Tamaño base de TODOS los íconos (contacto, botones, etc.) */
     .icon{ width:22px; height:22px; display:inline-block; vertical-align:middle; }
 
-    /* Redes sociales: solo un poco más grandes (24px) y en naranja corporativo */
     .footer-social{ display:flex; gap:16px; margin-top:8px; }
     .footer-social a{ color: var(--koop-acento); display:inline-flex; }
     .footer-social .icon{ width:40px; height:40px; }
@@ -248,6 +245,25 @@
 
     @media (max-width: 980px){ .footer-top{ grid-template-columns: 1fr 1fr; } }
     @media (max-width: 560px){ .footer-top{ grid-template-columns: 1fr; padding:44px 14px 20px; } }
+
+    /* ======================================================
+       FIX HERO EN MÓVILES (imagen completa, sin recortes)
+       ====================================================== */
+@media (max-width: 540px){
+  .hero-section{
+    height: 75vh;         /* altura generosa en móvil */
+    min-height: 420px;    /* salvaguarda en pantallas bajas */
+
+    background-image: url('img/paloquemao.png?v=20250810-2');
+    background-position: center;  /* centrada para que el recorte sea equilibrado */
+    background-size: cover;       /* se expande y llena el área, sin bandas */
+    background-repeat: no-repeat;
+    background-color: #141b2d;    /* color de fondo por si hay retardo al cargar */
+  }
+
+  .hero-overlay{ height: 84px; }
+  .hero-headline{ font-size: clamp(1.9rem, 7.2vw, 2.6rem); }
+}
   </style>
 </head>
 <body>
@@ -267,7 +283,6 @@
         <a href="index.html#inicio">INICIO</a>
         <a href="index.html#areas">ÁREAS DE PRÁCTICA</a>
         <a href="index.html#vision">NUESTRA VISIÓN</a>
-        <a href="index.html#abogados">ABOGADOS</a>
         <a href="index.html#contacto">CONTACTO</a>
       </div>
     </div>
@@ -276,70 +291,44 @@
   <!-- HERO -->
   <section class="hero-section" id="inicio">
     <div class="hero-overlay" aria-hidden="true"></div>
-    <div class="hero-text" aria-label="Propiedad Intelectual">
-      <div class="hero-headline">Propiedad Intelectual</div>
+    <div class="hero-text" aria-label="Área de Derecho">
+      <div class="hero-headline">Área de Derecho</div>
     </div>
   </section>
 
   <!-- SECCIÓN CARDS -->
-  <section class="labor-cards-section" id="servicios-propiedad-intelectual">
+  <section class="labor-cards-section" id="areas-derecho">
     <div class="labor-cards-container">
-      <div class="labor-tag">SERVICIOS DE PROPIEDAD INTELECTUAL</div>
-      <h2 class="labor-title">Cómo te ayudamos</h2>
-      <p class="labor-sub">Registro, protección y defensa de marcas, patentes y derechos de autor.</p>
+      <div class="labor-tag">ÁREAS DE DERECHO</div>
+      <h2 class="labor-title">Confíe su caso a manos profesionales y con experiencia.</h2>
+      <p class="labor-sub">Asesoría integral en diversas ramas del derecho.</p>
 
       <div class="labor-grid">
-        <!-- 1. Registro de marcas -->
-        <a href="#marcas" class="labor-card" style="--bg:url('img/Acompañamiento.png')">
+        <a href="derecho-penal.html" class="labor-card" style="--bg:url('img/Audiencias.png')">
           <div class="labor-card-content">
-            <span class="labor-badge">SERVICIO</span>
-            <div class="labor-card-title"><span class="labor-dot"></span>Registro de marcas</div>
-            <div class="labor-card-desc">Búsqueda y trámite de signos distintivos.</div>
+            <div class="labor-card-title"><span class="labor-dot"></span>Derecho Penal</div>
+            <div class="labor-card-desc">Defensa y asesoría en procesos penales.</div>
           </div>
         </a>
 
-        <!-- 2. Patentes y modelos de utilidad -->
-        <a href="#patentes" class="labor-card" style="--bg:url('img/Victimas.png')">
+        <a href="derecho-laboral.html" class="labor-card" style="--bg:url('Despidoinjustificado.jpg')">
           <div class="labor-card-content">
-            <span class="labor-badge">SERVICIO</span>
-            <div class="labor-card-title"><span class="labor-dot"></span>Patentes y modelos de utilidad</div>
-            <div class="labor-card-desc">Protección de invenciones y desarrollos.</div>
+            <div class="labor-card-title"><span class="labor-dot"></span>Derecho Laboral</div>
+            <div class="labor-card-desc">Soluciones en derecho laboral y seguridad social.</div>
           </div>
         </a>
 
-        <!-- 3. Derechos de autor -->
-        <a href="#autor" class="labor-card" style="--bg:url('img/donacionescambio.png')">
+        <a href="tramites-notariales.html" class="labor-card" style="--bg:url('img/donacionescambio.png')">
           <div class="labor-card-content">
-            <span class="labor-badge">SERVICIO</span>
-            <div class="labor-card-title"><span class="labor-dot"></span>Derechos de autor</div>
-            <div class="labor-card-desc">Resguardo de obras artísticas y literarias.</div>
+            <div class="labor-card-title"><span class="labor-dot"></span>Trámites notariales</div>
+            <div class="labor-card-desc">Gestiones notariales rápidas y seguras.</div>
           </div>
         </a>
 
-        <!-- 4. Licenciamiento y franquicias -->
-        <a href="#licencias" class="labor-card" style="--bg:url('img/sucesionescambio.png')">
+        <a href="derecho-administrativo.html" class="labor-card" style="--bg:url('img/sucesionescambio.png')">
           <div class="labor-card-content">
-            <span class="labor-badge">SERVICIO</span>
-            <div class="labor-card-title"><span class="labor-dot"></span>Licenciamiento y franquicias</div>
-            <div class="labor-card-desc">Negociación y estructuración de contratos.</div>
-          </div>
-        </a>
-
-        <!-- 5. Secretos industriales -->
-        <a href="#secretos" class="labor-card" style="--bg:url('img/Audiencias.png')">
-          <div class="labor-card-content">
-            <span class="labor-badge">SERVICIO</span>
-            <div class="labor-card-title"><span class="labor-dot"></span>Secretos industriales</div>
-            <div class="labor-card-desc">Estrategias de confidencialidad y protección.</div>
-          </div>
-        </a>
-
-        <!-- 6. Litigios de PI -->
-        <a href="#litigios" class="labor-card" style="--bg:url('img/capitulaciones.png')">
-          <div class="labor-card-content">
-            <span class="labor-badge">SERVICIO</span>
-            <div class="labor-card-title"><span class="labor-dot"></span>Litigios de PI</div>
-            <div class="labor-card-desc">Defensa frente a infracciones y competencia desleal.</div>
+            <div class="labor-card-title"><span class="labor-dot"></span>Derecho Administrativo</div>
+            <div class="labor-card-desc">Asesoría en procedimientos y litigios administrativos.</div>
           </div>
         </a>
       </div>
@@ -354,24 +343,21 @@
       <!-- Columna Marca + CTA -->
       <div class="footer-brand">
         <div class="footer-logo">
-          <!-- Logo gráfico eliminado; solo texto -->
           <div class="brand-text">KOOP STRATEGIC ADVISORY</div>
         </div>
         <p class="footer-copy">
-          Estudio jurídico & contable. Valoramos y resguardamos tus activos intangibles.
+          Estudio jurídico & contable. Litigio estratégico, cumplimiento y soluciones 360° para la gestión del riesgo laboral.
         </p>
         <div class="footer-cta">
-          <h4>¿Necesitas una asesoría en propiedad intelectual?</h4>
+          <h4>¿Necesitas una asesoría laboral hoy?</h4>
           <div class="btns">
-            <a class="btn btn-whatsapp" href="https://wa.me/573503965755?text=Cordial%20Saludo%20Koop,%20deseo%20asesor%C3%ADa%20en%20propiedad%20intelectual%20sobre%20el%20siguiente%20tema:" target="_blank" rel="noopener">
-              <!-- Ícono WhatsApp (22px) -->
+            <a class="btn btn-whatsapp" href="https://wa.me/573503965755?text=Cordial Saludo%20Koop,%20deseo%20asesor%C3%ADa%20laboral%20sobre%20el%20siguiente%20tema:" target="_blank" rel="noopener">
               <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M20.52 3.48A11.78 11.78 0 0 0 12.04 0C5.5 0 .2 5.3.2 11.84c0 2.08.55 4.1 1.6 5.9L0 24l6.43-1.67a11.75 11.75 0 0 0 5.6 1.43h.01c6.54 0 11.84-5.3 11.84-11.84 0-3.16-1.23-6.12-3.36-8.44ZM12.04 21.3a9.4 9.4 0 0 1-4.8-1.33l-.35-.21-3.81.99 1.02-3.73-.24-.38a9.4 9.4 0 1 1 8.18 4.66Zm5.46-7.06c-.3-.15-1.77-.87-2.04-.97-.27-.1-.46-.15-.65.15-.19.3-.75.97-.92 1.17-.17.2-.33.23-.62.08-.3-.15-1.24-.46-2.36-1.46-.87-.77-1.46-1.72-1.63-2.07-.17-.35-.02-.46.13-.62.13-.13.3-.35.45-.53.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.53-.08-.15-.62-1.49-.87-2.04-.23-.5-.47-.43-.65-.44h-.55c-.2 0-.53.08-.8.38-.27.3-1.05 1.02-1.05 2.48s1.08 2.88 1.24 3.08c.15.2 2.13 3.26 5.16 4.33.72.25 1.26.4 1.69.51.72.18 1.37.16 1.88.1.57-.07 1.77-.73 2.01-1.44.24-.71.24-1.31.17-1.44-.07-.13-.27-.2-.56-.35Z"/>
               </svg>
               WhatsApp
             </a>
-            <a class="btn btn-mail" href="mailto:direccionjuridicakoop@hotmail.com?subject=Asesor%C3%ADa%20Propiedad Intelectual%20Koop">
-              <!-- ícono mail (22px) -->
+            <a class="btn btn-mail" href="mailto:direccionjuridicakoop@hotmail.com?subject=Asesor%C3%ADa%20Laboral%20Koop">
               <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v.2l10 5.9L22 6.2V6a2 2 0 0 0-2-2Zm0 4.1-8 4.8-8-4.8V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8.1Z"/></svg>
               Escríbenos
             </a>
@@ -379,32 +365,26 @@
         </div>
       </div>
 
-      <!-- Enlaces rápidos -->
       <div class="footer-col">
         <h5>Enlaces rápidos</h5>
         <ul class="footer-list">
           <li><a href="index.html#inicio">Inicio</a></li>
           <li><a href="index.html#areas">Áreas de práctica</a></li>
           <li><a href="index.html#vision">Nuestra visión</a></li>
-          <li><a href="index.html#abogados">Abogados</a></li>
           <li><a href="index.html#contacto">Contacto</a></li>
         </ul>
       </div>
 
-      <!-- Servicios de Familia -->
       <div class="footer-col">
-        <h5>Servicios de familia</h5>
+        <h5>Áreas de Derecho</h5>
         <ul class="footer-list">
-          <li><a href="#divorcio">Divorcio y separación</a></li>
-          <li><a href="#custodia">Custodia y patria potestad</a></li>
-          <li><a href="#alimentos">Alimentos y pensión alimentaria</a></li>
-          <li><a href="#sociedad">Liquidación de sociedad conyugal</a></li>
-          <li><a href="#adopciones">Adopciones</a></li>
-          <li><a href="#capitulaciones">Capitulaciones matrimoniales</a></li>
+          <li><a href="derecho-penal.html">Derecho penal</a></li>
+          <li><a href="derecho-laboral.html">Derecho laboral</a></li>
+          <li><a href="tramites-notariales.html">Trámites notariales</a></li>
+          <li><a href="derecho-administrativo.html">Derecho administrativo</a></li>
         </ul>
       </div>
 
-      <!-- Contacto + Redes -->
       <div class="footer-col">
         <h5>Contacto</h5>
         <div class="footer-contact">
@@ -423,19 +403,16 @@
         </div>
 
         <div class="footer-social" aria-label="Redes sociales">
-          <!-- Instagram -->
           <a aria-label="Instagram" href="https://www.instagram.com/koopstrategicadvisory/" target="_blank" rel="noopener" title="Instagram">
             <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5Zm8.75 2a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
             </svg>
           </a>
-          <!-- Facebook -->
           <a aria-label="Facebook" href="https://www.facebook.com/profile.php?id=61579034631401" target="_blank" rel="noopener" title="Facebook">
             <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.48 2 2 6.48 2 12.07c0 4.99 3.66 9.13 8.44 9.93v-7.03H7.9v-2.9h2.54v-2.21c0-2.5 1.49-3.88 3.77-3.88 1.09 0 2.24.19 2.24.19v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.9h-2.34V22c4.78-.8 8.44-4.94 8.44-9.93z"/>
             </svg>
           </a>
-          <!-- TikTok -->
           <a aria-label="TikTok" href="https://www.tiktok.com/@koopstrategicadvisory" target="_blank" rel="noopener" title="TikTok">
             <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12.75 2a6.5 6.5 0 0 0 6.5 6.5h.25V6a4.5 4.5 0 0 1-4.5-4.5H12.75v13a2.75 2.75 0 1 1-2.75-2.75 2.75 2.75 0 0 1 1.25.29V8.75a6.5 6.5 0 1 0 5.25 6.36V9.77a8.01 8.01 0 0 1-4.75-2.27V2h-1.75z"/>
