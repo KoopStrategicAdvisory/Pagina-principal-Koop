@@ -87,40 +87,6 @@
       @keyframes fadeIn { from { opacity: 0; transform: translateY(-12px);} to { opacity: 1; transform: translateY(0);} }
     }
 
-    /* ===== HERO ===== */
-    .hero-section {
-      height: clamp(280px, 44vh, 500px);
-      min-height: 280px; width: 100%; position: relative; display: block;
-      background: url('img/auditoria.svg') center center/cover no-repeat;
-      margin-top: var(--nav-h); overflow: hidden; z-index: 1;
-    }
-    /* Franja azul de ancho completo, centrada verticalmente */
-    .hero-overlay {
-      position: absolute; top: 50%; left: 0; width: 100%;
-      height: 100px; background: rgba(35,57,93,0.92);
-      transform: translateY(-50%); z-index: 1;
-      border-top: 1px solid rgba(255,255,255,.06);
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-    /* Texto centrado y por encima de la franja */
-    .hero-text{
-      position: absolute; inset: 0;
-      z-index: 2; display: flex; align-items: center; justify-content: center;
-      text-align: center; padding: 0 16px;
-    }
-    .hero-headline{
-      font-family: 'Dancing Script', cursive;
-      font-weight: 700; letter-spacing: .02em; line-height: 1.1;
-      font-size: clamp(2rem, 6vw, 4rem);
-      color: #ffffff; text-shadow: 0 3px 18px rgba(0,0,0,.35);
-    }
-    @media (max-width: 520px){
-      .hero-headline{ font-size: clamp(1.8rem, 7vw, 2.6rem); }
-      .hero-overlay{ height: 84px; }
-    }
-    @media (max-width: 900px) { .hero-section { height: clamp(260px, 48vh, 520px); } }
-    @media (max-width: 540px) { .hero-section { height: clamp(220px, 44vh, 480px); } }
-
     /* ===== SECCIÓN CARDS ===== */
     .labor-cards-section{
       width:100%;
@@ -131,9 +97,15 @@
       max-width:1200px; margin:0 auto; text-align:center; color: var(--koop-azul);
     }
     .labor-tag{
-      display:inline-block; background: var(--koop-acento); color:#1f2b3d;
-      font-weight:700; letter-spacing:.06em; font-size:.85rem;
-      padding:8px 14px; border-radius:6px; margin-bottom:18px;
+      display:inline-block;
+      background: var(--koop-acento);
+      color:#1f2b3d;
+      font-weight:800;
+      letter-spacing:.06em;
+      border-radius:6px;
+      margin: 28px 0 18px;
+      padding: 12px 22px;
+      font-size: clamp(1.2rem, 1rem + 1vw, 1.9rem);
     }
     .labor-title{
       font-size:2rem; font-weight:800; margin:6px 0 8px; color: var(--koop-azul);
@@ -169,9 +141,19 @@
     .labor-card-desc{ font-size:.95rem; color:#d9e9ff; line-height:1.35; }
     .labor-dot{ width:10px; height:10px; border-radius:3px; background:var(--koop-bullet); display:inline-block; margin-right:8px; transform: translateY(-1px); }
 
-    @media (max-width: 1100px){ .labor-grid{ grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 820px){ .labor-grid{ grid-template-columns: repeat(2, 1fr); } .labor-title{ font-size:1.7rem; } }
-    @media (max-width: 520px){ .labor-grid{ grid-template-columns: 1fr; } .labor-cards-section{ padding: 44px 12px 52px; } .labor-sub{ font-size:1rem; } }
+      @media (max-width: 1100px){ .labor-grid{ grid-template-columns: repeat(3, 1fr); } }
+      @media (max-width: 820px){ .labor-grid{ grid-template-columns: repeat(2, 1fr); } .labor-title{ font-size:1.7rem; } }
+      /* En móviles, aumentamos solo el padding superior para que la navbar fija no tape el título */
+      @media (max-width: 700px){
+        .labor-cards-section{ padding-top: 96px; }
+        .labor-tag{ font-size: clamp(1.5rem, 1.2rem + 2.5vw, 2.1rem); padding: 14px 24px; margin-top: 24px; }
+      }
+      @media (max-width: 520px){
+        /* mantén tus márgenes laterales originales, pero asegura espacio arriba */
+        .labor-cards-section{ padding-top: 96px; padding-left: 12px; padding-right: 12px; }
+      }
+      /* Cuando se navega por ancla, evita que la navbar tape el inicio de la sección */
+      #subareas-contabilidad{ scroll-margin-top: calc(var(--nav-h) + 24px); }
 
     /* ===== FOOTER ===== */
     footer{
@@ -273,18 +255,10 @@
     </div>
   </nav>
 
-  <!-- HERO -->
-  <section class="hero-section" id="inicio">
-    <div class="hero-overlay" aria-hidden="true"></div>
-    <div class="hero-text" aria-label="Área de Contabilidad">
-      <div class="hero-headline">Área de Contabilidad</div>
-    </div>
-  </section>
-
   <!-- SECCIÓN CARDS -->
   <section class="labor-cards-section" id="subareas-contabilidad">
     <div class="labor-cards-container">
-      <div class="labor-tag">SUBÁREAS CONTABLES</div>
+      <div class="labor-tag">CONTABILIDAD</div>
       <h2 class="labor-title">Cómo te ayudamos</h2>
       <p class="labor-sub">Selecciona la especialidad contable que necesitas.</p>
 
