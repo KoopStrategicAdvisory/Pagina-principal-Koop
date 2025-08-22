@@ -518,10 +518,8 @@
     const areasToggle = document.getElementById('areas-toggle');
     if(areasToggle){
       areasToggle.addEventListener('click', (e)=>{
-        if(window.innerWidth <= 700){
-          e.preventDefault();
-          areasToggle.parentElement.classList.toggle('open');
-        }
+        e.preventDefault();
+        areasToggle.parentElement.classList.toggle('open');
       });
     }
 
