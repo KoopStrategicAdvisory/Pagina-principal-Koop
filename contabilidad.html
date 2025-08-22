@@ -82,7 +82,9 @@
   background: #fff; padding: 16px 24px; box-shadow: 0 4px 18px #0002;
   border-radius: 8px; z-index: 100; gap: 32px;
 }
-.dropdown:hover .dropdown-content { display: flex; }
+@media (hover: hover) {
+  .dropdown:hover .dropdown-content { display: flex; }
+}
 .dropdown-group { display: flex; flex-direction: column; }
 .dropdown-title { font-weight:700; color:#23395d; margin-bottom:8px; }
 .dropdown-content a { color:#23395d; text-decoration:none; margin:4px 0; }
