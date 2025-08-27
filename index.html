@@ -158,6 +158,33 @@
     .nav-menu a { color: #23395d; text-decoration: none; font-weight: 500; font-size: 1em; letter-spacing: .02em; transition: color .2s; }
     .nav-menu a:hover { color: var(--koop-acento); }
 
+.dropdown { position: relative; }
+.drop-btn { display: flex; align-items: center; }
+.drop-btn::after { content: "\25BE"; margin-left: 4px; font-size: .8em; }
+.dropdown-content {
+  display: none; position: absolute; top: calc(100% + 10px); left: 0;
+  background: #fff; padding: 16px 24px; box-shadow: 0 4px 18px #0002;
+  border-radius: 8px; z-index: 100; gap: 32px;
+}
+@media (hover: hover) {
+  .dropdown:hover .dropdown-content { display: flex; }
+}
+.dropdown-group { display: flex; flex-direction: column; }
+.dropdown-title { font-weight:700; color:#23395d; margin-bottom:8px; }
+.dropdown-content a { color:#23395d; text-decoration:none; margin:4px 0; }
+@media (max-width:700px){
+  .dropdown-content{position:static; box-shadow:none; padding:0; gap:0; display:none; flex-direction:column;}
+  .dropdown.open .dropdown-content{display:flex;}
+  .dropdown-content a{padding:6px 0;}
+}
+
+
+
+
+
+
+
+
     .hero-section {
       min-height: 100vh; width: 100%; position: relative; display: flex; align-items: center; justify-content: flex-start;
       background: url('Imagen gigante centro int.JPG') center center/cover no-repeat;
@@ -348,7 +375,30 @@
         <div class="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
         <div class="nav-menu" id="nav-menu">
           <a href="index.html#inicio">INICIO</a>
-          <a href="index.html#areas">ÁREAS DE PRÁCTICA</a>
+          <div class="dropdown">
+            <a href="index.html#areas" class="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</a>
+            <div class="dropdown-content">
+              <div class="dropdown-group">
+                <span class="dropdown-title">Derecho</span>
+                <a href="derecho-laboral.html">Derecho Laboral</a>
+                <a href="derecho-penal.html">Derecho Penal</a>
+                <a href="tramites-notariales.html">Trámites notariales</a>
+                <a href="derecho-administrativo.html">Derecho Administrativo</a>
+                <a href="derecho-familia.html">Derecho de Familia</a>
+                <a href="contratacion-publica.html">Contratación Pública</a>
+                <a href="resolucion-disputas.html">Resolución de Disputas</a>
+                <a href="acciones-de-tutela.html">Acciones de Tutela</a>
+                <a href="insolvencia.html">Insolvencia</a>
+              </div>
+              <div class="dropdown-group">
+                <span class="dropdown-title">Contabilidad</span>
+                <a href="contabilidad.html">Contabilidad</a>
+                <a href="auditoria.html">Auditoría</a>
+                <a href="impuestos.html">Impuestos</a>
+                <a href="planeacion-patrimonial.html">Planeación Patrimonial</a>
+              </div>
+            </div>
+          </div>
           <a href="index.html#vision">NUESTRA VISIÓN</a>
           <a href="index.html#contacto">CONTACTO</a>
         </div>
@@ -377,13 +427,13 @@
           <span class="areas-title-bold">ÁREAS DE</span> <span class="areas-title-normal">PRÁCTICA</span>
         </div>
         <div class="areas-cards">
-          <a href="derecho.html" class="labor-card" style="--bg:url('img/paloquemao.png')" data-images="img/paloquemao.png,img/saladecasacionlaboral.png,img/tramitesnotariales.png">
+          <a href="derecho.html" class="labor-card" style="--bg:url('img/paloquemao.png')" data-images="img/paloquemao.png,img/saladecasacionlaboral.png,img/tramitesnotariales.png,img/sexuales.png,img/fiscalia.png">
             <div class="labor-card-content">
               <div class="labor-card-title">Derecho</div>
               <div class="labor-card-btn">Ingresar</div>
             </div>
           </a>
-          <a href="contabilidad.html" class="labor-card" style="--bg:url('img/auditoria.svg')" data-images="img/auditoria.svg,img/impuestos.svg,img/planeacion-patrimonial.svg">
+          <a href="contabilidad.html" class="labor-card" style="--bg:url('img/auditoria.svg')" data-images="img/auditoria.jpg,img/impuestos-en-colombia.jpg,img/que_es_la_contabilidad.jpeg">
             <div class="labor-card-content">
               <div class="labor-card-title">Contabilidad</div>
               <div class="labor-card-btn">Ingresar</div>
@@ -453,8 +503,20 @@
     const navMenu = document.getElementById('nav-menu');
     if (menuToggle && navMenu) {
       menuToggle.onclick = () => navMenu.classList.toggle('open');
-      navMenu.querySelectorAll('a').forEach(link => link.onclick = () => navMenu.classList.remove('open'));
+            navMenu.querySelectorAll('a').forEach(link => {
+        if(!link.classList.contains('drop-btn')){
+          link.onclick = () => navMenu.classList.remove('open');
+        }
+      });
     }
+    const areasToggle = document.getElementById('areas-toggle');
+    if(areasToggle){
+      areasToggle.addEventListener('click', (e)=>{
+        e.preventDefault();
+        areasToggle.parentElement.classList.toggle('open');
+      });
+    }
+
 
     // ===== Splash + Fade in contenido (obedece la decisión del <head>) =====
     (function () {
