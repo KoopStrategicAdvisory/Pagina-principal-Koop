@@ -1,1 +1,4 @@
 node_modules/
+
+vite-dev*.log
+
