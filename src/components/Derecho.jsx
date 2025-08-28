@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/derecho.html?raw';
 
 const Derecho = () => (
-  <OldPageLoader page="derecho" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default Derecho;

@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/planeacion-patrimonial.html?raw';
 
 const PlaneacionPatrimonial = () => (
-  <OldPageLoader page="planeacion-patrimonial" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default PlaneacionPatrimonial;

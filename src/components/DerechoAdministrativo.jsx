@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/derecho-administrativo.html?raw';
 
 const DerechoAdministrativo = () => (
-  <OldPageLoader page="derecho-administrativo" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default DerechoAdministrativo;

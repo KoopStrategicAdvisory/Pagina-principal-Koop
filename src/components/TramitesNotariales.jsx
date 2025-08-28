@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/tramites-notariales.html?raw';
 
 const TramitesNotariales = () => (
-  <OldPageLoader page="tramites-notariales" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default TramitesNotariales;
