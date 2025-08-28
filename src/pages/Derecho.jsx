@@ -14,7 +14,7 @@ const Derecho = () => {
       <nav className="navbar">
         <div className="navbar-content">
           <a href="index.html" className="logo">
-            <img src="Koop Logo.png" alt="Logo Koop" className="logo-img" />
+            <img src="/Koop Logo.png" alt="Logo Koop" className="logo-img" />
             <div className="logo-text">KOOP STRATEGIC ADVISORY</div>
           </a>
           <div className="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
@@ -58,7 +58,7 @@ const Derecho = () => {
           <p className="labor-sub">Asesoría integral en diversas ramas del derecho.</p>
     
           <div className="labor-grid">
-            <a href="derecho-penal.html" className="labor-card" style={{ '--bg': 'url(\'img/Audiencias.png\')' }}>
+            <a href="derecho-penal.html" className="labor-card" style={{ '--bg': 'url(\'/img/Audiencias.png\')' }}>
               <div className="labor-card-content">
                 <div className="labor-card-title"><span className="labor-dot"></span>Derecho Penal</div>
                 <div className="labor-card-desc">Defensa y asesoría en procesos penales.</div>

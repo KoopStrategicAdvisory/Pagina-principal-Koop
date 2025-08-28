@@ -11,7 +11,7 @@ const Privacidad = () => {
       <nav className="navbar">
         <div className="navbar-content">
           <a href="index.html" className="logo">
-            <img src="Koop Logo.png" alt="Logo Koop" className="logo-img" / />
+            <img src="/Koop Logo.png" alt="Logo Koop" className="logo-img" / />
             <div className="logo-text">KOOP STRATEGIC ADVISORY</div>
           </a>
           <div className="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>

@@ -23,7 +23,7 @@ const Index = () => {
       <div id="splash" className="splash" aria-hidden="true">
         <div className="splash__frame">
           {/* usa %20 por el espacio en el nombre */}
-          <img id="splashLogo" className="splash__logo" src="Koop%20Logo.png" alt="Koop Strategic Advisory" />
+          <img id="splashLogo" className="splash__logo" src="/Koop%20Logo.png" alt="Koop Strategic Advisory" />
         </div>
       </div>
     
@@ -32,7 +32,7 @@ const Index = () => {
         <nav className="navbar">
           <div className="navbar-content">
             <a href="index.html" className="logo">
-              <img src="Koop Logo.png" alt="Logo Koop" className="logo-img" />
+              <img src="/Koop Logo.png" alt="Logo Koop" className="logo-img" />
               <div className="logo-text">KOOP STRATEGIC ADVISORY</div>
             </a>
             <div className="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
@@ -90,13 +90,13 @@ const Index = () => {
               <span className="areas-title-bold">ÁREAS DE</span> <span className="areas-title-normal">PRÁCTICA</span>
             </div>
             <div className="areas-cards">
-              <a href="derecho.html" className="labor-card" style={{ '--bg': 'url(\'img/paloquemao.png\')' }} data-images="img/paloquemao.png,img/saladecasacionlaboral.png,img/tramitesnotariales.png,img/sexuales.png,img/fiscalia.png">
+              <a href="derecho.html" className="labor-card" style={{ '--bg': 'url(\'/img/paloquemao.png\')' }} data-images="/img/paloquemao.png,/img/saladecasacionlaboral.png,/img/tramitesnotariales.png,/img/sexuales.png,/img/fiscalia.png">
                 <div className="labor-card-content">
                   <div className="labor-card-title">Derecho</div>
                   <div className="labor-card-btn">Ingresar</div>
                 </div>
               </a>
-              <a href="contabilidad.html" className="labor-card" style={{ '--bg': 'url(\'img/auditoria.svg\')' }} data-images="img/auditoria.jpg,img/impuestos-en-colombia.jpg,img/que_es_la_contabilidad.jpeg">
+              <a href="contabilidad.html" className="labor-card" style={{ '--bg': 'url(\'/img/auditoria.svg\')' }} data-images="/img/auditoria.jpg,/img/impuestos-en-colombia.jpg,/img/que_es_la_contabilidad.jpeg">
                 <div className="labor-card-content">
                   <div className="labor-card-title">Contabilidad</div>
                   <div className="labor-card-btn">Ingresar</div>
