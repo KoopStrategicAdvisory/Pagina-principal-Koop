@@ -1,7 +1,12 @@
 import React from 'react';
+import extractStylesFromHtml from '../utils/extractStylesFromHtml';
+import pageHtml from '../../old/derecho.html?raw';
 
-const Derecho = () => (
+const Derecho = () => {
+  const pageCss = extractStylesFromHtml(pageHtml);
+  return (
   <>
+    <style>{pageCss}</style>
     {/* Overlay de transición */}
       <div className="page-transition" aria-hidden="true"></div>
     
@@ -239,6 +244,7 @@ const Derecho = () => (
         })();
       </script>
   </>
-);
+  );
+};
 
 export default Derecho;

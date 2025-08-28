@@ -1,7 +1,12 @@
 import React from 'react';
+import extractStylesFromHtml from '../utils/extractStylesFromHtml';
+import pageHtml from '../../old/tramites-notariales.html?raw';
 
-const TramitesNotariales = () => (
+const TramitesNotariales = () => {
+  const pageCss = extractStylesFromHtml(pageHtml);
+  return (
   <>
+    <style>{pageCss}</style>
     {/* Overlay de transición */}
       <div className="page-transition" aria-hidden="true"></div>
     
@@ -296,6 +301,7 @@ const TramitesNotariales = () => (
         })();
       </script>
   </>
-);
+  );
+};
 
 export default TramitesNotariales;

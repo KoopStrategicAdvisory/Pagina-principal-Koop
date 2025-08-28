@@ -1,7 +1,12 @@
 import React from 'react';
+import extractStylesFromHtml from '../utils/extractStylesFromHtml';
+import pageHtml from '../../old/contabilidad.html?raw';
 
-const Contabilidad = () => (
+const Contabilidad = () => {
+  const pageCss = extractStylesFromHtml(pageHtml);
+  return (
   <>
+    <style>{pageCss}</style>
     {/* Overlay de transición */}
       <div className="page-transition" aria-hidden="true"></div>
     
@@ -270,6 +275,7 @@ const Contabilidad = () => (
         })();
       </script>
   </>
-);
+  );
+};
 
 export default Contabilidad;

@@ -1,7 +1,12 @@
 import React from 'react';
+import extractStylesFromHtml from '../utils/extractStylesFromHtml';
+import pageHtml from '../../old/impuestos.html?raw';
 
-const Impuestos = () => (
+const Impuestos = () => {
+  const pageCss = extractStylesFromHtml(pageHtml);
+  return (
   <>
+    <style>{pageCss}</style>
     {/* Overlay de transición */}
       <div className="page-transition" aria-hidden="true"></div>
     
@@ -305,6 +310,7 @@ const Impuestos = () => (
         })();
       </script>
   </>
-);
+  );
+};
 
 export default Impuestos;

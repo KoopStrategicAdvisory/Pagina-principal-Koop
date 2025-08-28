@@ -1,7 +1,12 @@
 import React from 'react';
+import extractStylesFromHtml from '../utils/extractStylesFromHtml';
+import pageHtml from '../../old/planeacion-patrimonial.html?raw';
 
-const PlaneacionPatrimonial = () => (
+const PlaneacionPatrimonial = () => {
+  const pageCss = extractStylesFromHtml(pageHtml);
+  return (
   <>
+    <style>{pageCss}</style>
     {/* Overlay de transición */}
       <div className="page-transition" aria-hidden="true"></div>
     
@@ -305,6 +310,7 @@ const PlaneacionPatrimonial = () => (
         })();
       </script>
   </>
-);
+  );
+};
 
 export default PlaneacionPatrimonial;

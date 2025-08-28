@@ -1,7 +1,12 @@
 import React from 'react';
+import extractStylesFromHtml from '../utils/extractStylesFromHtml';
+import pageHtml from '../../old/resolucion-disputas.html?raw';
 
-const ResolucionDisputas = () => (
+const ResolucionDisputas = () => {
+  const pageCss = extractStylesFromHtml(pageHtml);
+  return (
   <>
+    <style>{pageCss}</style>
     {/* Overlay de transición */}
       <div className="page-transition" aria-hidden="true"></div>
     
@@ -305,6 +310,7 @@ const ResolucionDisputas = () => (
         })();
       </script>
   </>
-);
+  );
+};
 
 export default ResolucionDisputas;

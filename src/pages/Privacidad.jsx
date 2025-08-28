@@ -1,7 +1,12 @@
 import React from 'react';
+import extractStylesFromHtml from '../utils/extractStylesFromHtml';
+import pageHtml from '../../old/privacidad.html?raw';
 
-const Privacidad = () => (
+const Privacidad = () => {
+  const pageCss = extractStylesFromHtml(pageHtml);
+  return (
   <>
+    <style>{pageCss}</style>
     <div className="page-transition"></div>
       <nav className="navbar">
         <div className="navbar-content">
@@ -101,6 +106,7 @@ const Privacidad = () => (
         })();
       </script>
   </>
-);
+  );
+};
 
 export default Privacidad;

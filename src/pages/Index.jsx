@@ -3,15 +3,19 @@ import useMenu from '../hooks/useMenu';
 import useSplash from '../hooks/useSplash';
 import usePageTransition from '../hooks/usePageTransition';
 import useCardsCarousel from '../hooks/useCardsCarousel';
+import extractStylesFromHtml from '../utils/extractStylesFromHtml';
+import pageHtml from '../../old/index.html?raw';
 
 const Index = () => {
   useMenu();
   useSplash();
   usePageTransition();
   useCardsCarousel();
+  const pageCss = extractStylesFromHtml(pageHtml);
 
   return (
   <>
+    <style>{pageCss}</style>
     {/* Overlay de transición (debajo del splash) */}
       <div className="page-transition" aria-hidden="true"></div>
     
