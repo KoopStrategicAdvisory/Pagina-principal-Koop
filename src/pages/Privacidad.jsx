@@ -59,7 +59,7 @@ const Privacidad = () => {
           <div className="footer-right"><a href="privacidad.html">Política de Privacidad</a></div>
         </div>
       </footer>
-      <script>
+      {/*
         const menuToggle = document.getElementById('menu-toggle');
         const navMenu = document.getElementById('nav-menu');
         if (menuToggle && navMenu) {
@@ -107,7 +107,7 @@ const Privacidad = () => {
             setTimeout(() => { window.location.href = a.href; }, 600);
           });
         })();
-      </script>
+      */}
   </>
   );
 };

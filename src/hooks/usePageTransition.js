@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function usePageTransition() {
+  const navigate = useNavigate();
   useEffect(() => {
     const overlay = document.querySelector('.page-transition');
 
@@ -36,7 +38,14 @@ export default function usePageTransition() {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
       e.preventDefault();
       if (overlay) overlay.classList.add('is-active');
-      setTimeout(() => { window.location.href = a.href; }, 600);
+      setTimeout(() => {
+        try {
+          const url = new URL(a.href, window.location.href);
+          navigate(url.pathname + url.search + url.hash);
+        } catch (_) {
+          window.location.href = a.href;
+        }
+      }, 600);
     };
 
     document.addEventListener('click', onDocClick);
@@ -48,4 +57,3 @@ export default function usePageTransition() {
     };
   }, []);
 }
-

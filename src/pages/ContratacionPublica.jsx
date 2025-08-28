@@ -236,7 +236,7 @@ const ContratacionPublica = () => {
         </div>
       </footer>
     
-      <script>
+      {/*
         // Menú móvil
         const menuToggle = document.getElementById('menu-toggle');
         const navMenu = document.getElementById('nav-menu');
@@ -311,7 +311,7 @@ const ContratacionPublica = () => {
             setTimeout(() => { window.location.href = a.href; }, 600);
           });
         })();
-      </script>
+      */}
   </>
   );
 };

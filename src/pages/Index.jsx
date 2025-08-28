@@ -34,13 +34,13 @@ const Index = () => {
       <div id="app">
         <nav className="navbar">
           <div className="navbar-content">
-            <a href="index.html" className="logo">
+            <a href="/" className="logo">
               <img src="/Koop Logo.png" alt="Logo Koop" className="logo-img" />
               <div className="logo-text">KOOP STRATEGIC ADVISORY</div>
             </a>
             <div className="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
             <div className="nav-menu" id="nav-menu">
-              <a href="index.html#inicio">INICIO</a>
+              <a href="/#inicio">INICIO</a>
               <div className="dropdown">
                 <a href="index.html#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</a>
                 <div className="dropdown-content">

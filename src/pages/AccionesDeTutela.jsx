@@ -236,7 +236,7 @@ const AccionesDeTutela = () => {
         </div>
       </footer>
     
-      <script>
+      {/*
         // Menú móvil
         const menuToggle = document.getElementById('menu-toggle');
         const navMenu = document.getElementById('nav-menu');
@@ -311,7 +311,7 @@ const AccionesDeTutela = () => {
             setTimeout(() => { window.location.href = a.href; }, 600);
           });
         })();
-      </script>
+      */}
   </>
   );
 };
