@@ -120,7 +120,7 @@ const Index = () => {
     
         {/* SECCIÓN IMAGEN COMPLETA */}
         <section className="full-img-section">
-          <img src="Corte suprema de justicia de colombia.jpg" alt="Equipo empresarial Koop" className="full-img" />
+          <img src="/Corte suprema de justicia de colombia.jpg" alt="Equipo empresarial Koop" className="full-img" />
         </section>
     
         {/* SECCIÓN CONTÁCTANOS MODERNA */}
