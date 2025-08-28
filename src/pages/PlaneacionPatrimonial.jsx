@@ -2,8 +2,12 @@ import React from 'react';
 import extractStylesFromHtml from '../utils/extractStylesFromHtml';
 import pageHtml from '../../old/planeacion-patrimonial.html?raw';
 import useNormalizeAssets from '../hooks/useNormalizeAssets';
+import useMenu from '../hooks/useMenu';
+import usePageTransition from '../hooks/usePageTransition';
 
 const PlaneacionPatrimonial = () => {
+  useMenu();
+  usePageTransition();
   const pageCss = extractStylesFromHtml(pageHtml)
     .replace(/url\(\s*(['\"]?)img\//gi, 'url($1/img/');
   useNormalizeAssets();

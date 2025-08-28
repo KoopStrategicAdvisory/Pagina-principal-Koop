@@ -32,6 +32,28 @@ export default function usePageTransition() {
       return true;
     }
 
+    const mapLegacy = (pathname) => {
+      const map = {
+        '/index.html': '/',
+        '/derecho.html': '/derecho',
+        '/contabilidad.html': '/contabilidad',
+        '/auditoria.html': '/auditoria',
+        '/contratacion-publica.html': '/contratacion-publica',
+        '/derecho-administrativo.html': '/derecho-administrativo',
+        '/derecho-familia.html': '/derecho-familia',
+        '/derecho-laboral.html': '/derecho-laboral',
+        '/derecho-penal.html': '/derecho-penal',
+        '/impuestos.html': '/impuestos',
+        '/insolvencia.html': '/insolvencia',
+        '/planeacion-patrimonial.html': '/planeacion-patrimonial',
+        '/privacidad.html': '/privacidad',
+        '/resolucion-disputas.html': '/resolucion-disputas',
+        '/tramites-notariales.html': '/tramites-notariales',
+        '/acciones-de-tutela.html': '/acciones-de-tutela',
+      };
+      return map[pathname] || pathname;
+    };
+
     const onDocClick = (e) => {
       const a = e.target && e.target.closest ? e.target.closest('a') : null;
       if (!a || !shouldIntercept(a)) return;
@@ -41,7 +63,8 @@ export default function usePageTransition() {
       setTimeout(() => {
         try {
           const url = new URL(a.href, window.location.href);
-          navigate(url.pathname + url.search + url.hash);
+          const mapped = mapLegacy(url.pathname) + url.search + url.hash;
+          navigate(mapped);
         } catch (_) {
           window.location.href = a.href;
         }
