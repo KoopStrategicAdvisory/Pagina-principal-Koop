@@ -11,6 +11,11 @@ export default function extractStylesFromHtml(html) {
     if (!css.trim()) continue;
     styles.push(css.trim());
   }
-  return styles.join('\n\n');
+  const combined = styles.join('\n\n');
+  // Normalize asset URLs:
+  // 1) url('img/...') -> url('/img/...')
+  // 2) url('File.jpg') -> url('/File.jpg') for common image extensions
+  return combined
+    .replace(/url\(\s*(['\"]?)img\//gi, 'url($1/img/')
+    .replace(/url\(\s*(['\"]?)(?!\/|https?:|data:)([^'"\)]+?\.(?:png|jpe?g|svg|gif|webp|ico))/gi, 'url($1/$2)');
 }
-
