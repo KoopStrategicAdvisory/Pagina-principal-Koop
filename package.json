@@ -1,12 +1,19 @@
 {
   "name": "pagina-principal-koop",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "echo 'No tests specified'"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^5.0.0"
   }
 }
