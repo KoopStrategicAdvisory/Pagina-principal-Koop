@@ -1,9 +1,12 @@
 import React from 'react';
 import extractStylesFromHtml from '../utils/extractStylesFromHtml';
 import pageHtml from '../../old/tramites-notariales.html?raw';
+import useNormalizeAssets from '../hooks/useNormalizeAssets';
 
 const TramitesNotariales = () => {
-  const pageCss = extractStylesFromHtml(pageHtml);
+  const pageCss = extractStylesFromHtml(pageHtml)
+    .replace(/url\(\s*(['\"]?)img\//gi, 'url($1/img/');
+  useNormalizeAssets();
   return (
   <>
     <style>{pageCss}</style>

@@ -3,6 +3,7 @@ import useMenu from '../hooks/useMenu';
 import useSplash from '../hooks/useSplash';
 import usePageTransition from '../hooks/usePageTransition';
 import useCardsCarousel from '../hooks/useCardsCarousel';
+import useNormalizeAssets from '../hooks/useNormalizeAssets';
 import extractStylesFromHtml from '../utils/extractStylesFromHtml';
 import pageHtml from '../../old/index.html?raw';
 
@@ -11,7 +12,9 @@ const Index = () => {
   useSplash();
   usePageTransition();
   useCardsCarousel();
-  const pageCss = extractStylesFromHtml(pageHtml);
+  const pageCss = extractStylesFromHtml(pageHtml)
+    .replace(/url\(\s*(['\"]?)img\//gi, 'url($1/img/');
+  useNormalizeAssets();
 
   return (
   <>
