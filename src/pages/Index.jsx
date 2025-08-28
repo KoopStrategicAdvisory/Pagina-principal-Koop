@@ -1,6 +1,16 @@
 import React from 'react';
+import useMenu from '../hooks/useMenu';
+import useSplash from '../hooks/useSplash';
+import usePageTransition from '../hooks/usePageTransition';
+import useCardsCarousel from '../hooks/useCardsCarousel';
 
-const Index = () => (
+const Index = () => {
+  useMenu();
+  useSplash();
+  usePageTransition();
+  useCardsCarousel();
+
+  return (
   <>
     {/* Overlay de transición (debajo del splash) */}
       <div className="page-transition" aria-hidden="true"></div>
@@ -146,7 +156,7 @@ const Index = () => (
         </footer>
       </div> {/* /#app */}
     
-      <script>
+      {/*
         // ===== Menú móvil =====
         const menuToggle = document.getElementById('menu-toggle');
         const navMenu = document.getElementById('nav-menu');
@@ -325,8 +335,9 @@ const Index = () => (
             }, 3000);
           });
         })();
-      </script>
+      */}
   </>
-);
+  );
+};
 
 export default Index;
