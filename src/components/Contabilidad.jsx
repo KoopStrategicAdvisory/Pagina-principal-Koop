@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/contabilidad.html?raw';
 
 const Contabilidad = () => (
-  <OldPageLoader page="contabilidad" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default Contabilidad;

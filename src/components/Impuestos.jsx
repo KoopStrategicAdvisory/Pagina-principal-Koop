@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/impuestos.html?raw';
 
 const Impuestos = () => (
-  <OldPageLoader page="impuestos" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default Impuestos;

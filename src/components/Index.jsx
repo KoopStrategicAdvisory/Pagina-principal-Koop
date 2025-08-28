@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/index.html?raw';
 
 const Index = () => (
-  <OldPageLoader page="index" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default Index;

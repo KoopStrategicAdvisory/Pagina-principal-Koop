@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/privacidad.html?raw';
 
 const Privacidad = () => (
-  <OldPageLoader page="privacidad" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default Privacidad;

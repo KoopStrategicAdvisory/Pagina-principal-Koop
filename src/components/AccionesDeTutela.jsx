@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/acciones-de-tutela.html?raw';
 
 const AccionesDeTutela = () => (
-  <OldPageLoader page="acciones-de-tutela" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default AccionesDeTutela;

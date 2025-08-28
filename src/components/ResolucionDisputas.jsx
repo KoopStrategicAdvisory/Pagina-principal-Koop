@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/resolucion-disputas.html?raw';
 
 const ResolucionDisputas = () => (
-  <OldPageLoader page="resolucion-disputas" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default ResolucionDisputas;

@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/insolvencia.html?raw';
 
 const Insolvencia = () => (
-  <OldPageLoader page="insolvencia" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default Insolvencia;

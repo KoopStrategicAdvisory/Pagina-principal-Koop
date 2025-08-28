@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/auditoria.html?raw';
 
 const Auditoria = () => (
-  <OldPageLoader page="auditoria" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default Auditoria;

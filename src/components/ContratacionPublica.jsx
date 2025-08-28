@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/contratacion-publica.html?raw';
 
 const ContratacionPublica = () => (
-  <OldPageLoader page="contratacion-publica" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default ContratacionPublica;

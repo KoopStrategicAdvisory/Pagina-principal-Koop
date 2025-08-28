@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Koop Strategic Advisory | Estudio Jurídico & Contable</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Fallback si JS está desactivado -->
+  <noscript>
+    <style>
+      #splash{display:none!important}
+      #app{opacity:1!important}
+      .page-transition{display:none!important}
+    </style>
+  </noscript>
+
+  <!-- Decisión temprana: mostrar u omitir splash según ruta y referrer -->
+  <script>
+  (() => {
+    // Tipo de navegación (address bar/bookmark, click, reload, BFCache)
+    const nav = performance.getEntriesByType('navigation')[0];
+    const navType = nav ? nav.type : 'navigate'; // 'navigate' | 'reload' | 'back_forward'
+
+    // ¿Estamos en home? (raíz o index)
+    const isRoot = location.pathname === '/' || /index(\.html?)?$/i.test(location.pathname);
+
+    // ¿Viene de página interna del mismo host?
+    let fromInternal = false;
+    try {
+      fromInternal = !!document.referrer && new URL(document.referrer).hostname === location.hostname;
+    } catch(e){}
+
+    // Política: mostrar splash solo en aterrizaje externo a home.
+    const showOnReload = false; // pon true si quieres mostrar también en F5 de home
+    const shouldShowSplash =
+      isRoot && ( (!fromInternal && navType === 'navigate') || (isRoot && navType === 'reload' && showOnReload) );
+
+    if (!shouldShowSplash) {
+      document.documentElement.classList.add('skip-splash');
+    }
+
+    // Si volvemos con BFCache y no debe mostrarse, asegúralo
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted && !shouldShowSplash) {
+        document.documentElement.classList.add('skip-splash');
+      }
+    }, { once: true });
+  })();
+  </script>
+
+  <style>
+    :root{
+      --nav-h: 64px;
+      --koop-azul:#23395d;
+      --koop-azul-claro:#e9f0fa;
+      --koop-acento:#ee9626;
+      --koop-bullet:#2998ff;
+      --gris-100:#f5f7fb;
+      --gris-300:#c9d3e6;
+      --gris-500:#8fa1bf;
+      --negro:#0e1320;
+    }
+
+    html, body {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      height: 100%;
+    }
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: #141b2d; /* Fondo azul visible inmediatamente al salir del splash */
+      color: #fff;
+    }
+
+    /* Si ya decidimos saltar el splash, ocúltalo y muestra la app */
+    html.skip-splash #splash { display: none !important; }
+    html.skip-splash #app { opacity: 1 !important; }
+
+    /* =========================
+       TRANSICIÓN ENTRE PÁGINAS
+       ========================= */
+    .page-transition{
+      position: fixed;
+      inset: 0;
+      background: #141b2d; /* mismo color de fondo/base */
+      z-index: 9998;       /* debajo del splash (9999) */
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .6s ease;
+    }
+    .page-transition.is-active{
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* =========================
+       SPLASH
+       ========================= */
+    .splash{
+      position:fixed; inset:0; background:#fff;
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999; transition: opacity .8s ease; /* fade-out del splash */
+    }
+    .splash--hide{ opacity:0; pointer-events:none; }
+    .splash__frame{
+      width: clamp(260px, 34vw, 540px);
+      min-height: 90px;
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+      background:#fff;
+    }
+    .splash__logo{
+      width: 100%;
+      height: auto;
+      display:block;
+      opacity:0;                          /* fade-in desde invisible */
+      transition: opacity 2.5s ease, transform 2.5s ease;
+      transform: scale(var(--overscan, 1.08)); /* “come” el borde transparente del PNG */
+      user-select:none; -webkit-user-drag:none;
+      image-rendering: -webkit-optimize-contrast;
+    }
+    .splash__logo.is-visible{ opacity:1; }
+
+    /* ===== Contenido visible pero arrancando transparente (se anima por JS) ===== */
+    #app { opacity: 0; }
+
+    /* =========================
+       ESTILOS DE TU SITIO
+       ========================= */
+    /* ===== NAVBAR ===== */
+    .navbar {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 40px; background: #fff;
+      position: fixed; top: 0; left: 0;
+      z-index: 100; box-shadow: 0 2px 8px #0001; height: var(--nav-h);
+    }
+    .navbar-content {
+      width: 100%; max-width: 1200px;
+      display: flex; align-items: center; justify-content: space-between; position: relative;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-img { width: 100px; height: 100px; object-fit: contain; }
+    .logo-text { font-weight: 700; color: #23395d; font-size: 1.23em; letter-spacing: 0.05em; }
+    .menu-toggle {
+      display: none; flex-direction: column; justify-content: center;
+      cursor: pointer; width: 36px; height: 36px; margin-left: 12px; z-index: 20;
+    }
+    .menu-toggle span { height: 4px; background: #23395d; margin: 5px 0; border-radius: 2px; transition: .4s; display: block; }
+    .nav-menu { display: flex; gap: 36px; align-items: center; justify-content: center; }
+    .nav-menu a { color: #23395d; text-decoration: none; font-weight: 500; font-size: 1em; letter-spacing: .02em; transition: color .2s; }
+    .nav-menu a:hover { color: var(--koop-acento); }
+
+.dropdown { position: relative; }
+.drop-btn { display: flex; align-items: center; }
+.drop-btn::after { content: "\25BE"; margin-left: 4px; font-size: .8em; }
+.dropdown-content {
+  display: none; position: absolute; top: calc(100% + 10px); left: 0;
+  background: #fff; padding: 16px 24px; box-shadow: 0 4px 18px #0002;
+  border-radius: 8px; z-index: 100; gap: 32px;
+}
+@media (hover: hover) {
+  .dropdown:hover .dropdown-content { display: flex; }
+}
+.dropdown-group { display: flex; flex-direction: column; }
+.dropdown-title { font-weight:700; color:#23395d; margin-bottom:8px; }
+.dropdown-content a { color:#23395d; text-decoration:none; margin:4px 0; }
+@media (max-width:700px){
+  .dropdown-content{position:static; box-shadow:none; padding:0; gap:0; display:none; flex-direction:column;}
+  .dropdown.open .dropdown-content{display:flex;}
+  .dropdown-content a{padding:6px 0;}
+}
+
+
+
+
+
+
+
+
+    .hero-section {
+      min-height: 100vh; width: 100%; position: relative; display: flex; align-items: center; justify-content: flex-start;
+      background: url('Imagen gigante centro int.JPG') center center/cover no-repeat;
+      margin-top: 64px; box-sizing: border-box;
+    }
+    .hero-overlay {
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 1;
+      background: linear-gradient(to right, rgba(35,57,93,.90) 0%, rgba(35,57,93,.60) 45%, rgba(35,57,93,.30) 82%, rgba(35,57,93,0) 100%);
+    }
+    .hero-content { position: relative; z-index: 2; max-width: 540px; color: #fff; margin-left: 11.5cm; text-align: left; }
+    .hero-title { font-size: 2.7em; font-weight: 700; margin-bottom: 10px; line-height: 1.15; text-shadow: 0 4px 24px #23395d66; }
+    .hero-subtitle { font-size: 2em; font-weight: 300; letter-spacing: 0.03em; margin-bottom: 16px; color: #b4cff6; }
+    .hero-desc { font-size: 1.15em; color: #eef6ff; margin-bottom: 24px; }
+    .cta-btn {
+      background: #ee9626; color: #fff; padding: 14px 38px; border-radius: 30px; font-weight: bold; font-size: 1.08em;
+      border: none; cursor: pointer; box-shadow: 0 2px 16px #ee96262f; transition: background 0.2s;
+    }
+    .cta-btn:hover { background: #c67616; }
+
+    .areas-section {
+      width: 100%; background: linear-gradient(90deg, #e9f0fa 36%, #fff 36%); display: flex; justify-content: center; align-items: stretch;
+      padding: 0; box-sizing: border-box;
+    }
+    .areas-container { display: flex; flex-direction: row; width: 100%; max-width: 1200px; min-height: 500px; }
+    .areas-title {
+      flex: 0 0 36%; background: #e9f0fa; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+      padding: 60px 40px; font-size: 2.3em; font-weight: 400; color: #1d3557; letter-spacing: 0.02em; margin-left: 4cm;
+    }
+    .areas-title-bold { font-weight: 700; color: #ee9626; }
+    .areas-title-normal { font-weight: 300; color: #4877b1; }
+    .areas-cards{
+      flex: 1 1 64%; background:#fff; box-sizing:border-box;
+      display:grid; gap:16px; padding:24px;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      height:100%;
+    }
+
+    .labor-card{
+      position:relative; border-radius:14px; overflow:hidden;
+      min-height:300px; background:#ccc; display:block; text-decoration:none;
+      height:100%;
+    }
+    .labor-card::before{
+      content:""; position:absolute; inset:0;
+      background:var(--bg, url('Imagen gigante centro int.JPG')) center/cover no-repeat;
+      z-index:0;
+    }
+    .labor-card::after{
+      content:""; position:absolute; inset:0;
+      background:rgba(35,57,93,.55); z-index:2;
+    }
+    .labor-card-fade{
+      position:absolute; inset:0; background:center/cover no-repeat;
+      opacity:0; transition:opacity 1s ease; z-index:1; pointer-events:none;
+    }
+    .labor-card-content{
+      position:relative; z-index:3; color:#fff; text-align:left;
+      padding:18px; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:flex-start;
+    }
+    .labor-card-title{
+      font-size:1.35rem; font-weight:800; line-height:1.2; margin:2px 0 6px;
+      text-shadow:0 3px 18px rgba(0,0,0,.35);
+    }
+    .labor-card-btn{
+      align-self:flex-end; background:var(--koop-acento); color:#fff;
+      padding:8px 20px; border-radius:30px; font-weight:700; font-size:.95rem;
+      margin-top:10px; margin-bottom:1.5cm; transition:background .2s;
+    }
+    .labor-card-btn:hover{ background:#c67616; }
+
+    .vision-section { width: 100%; background: #06325a; padding: 90px 0 80px 0; display: flex; justify-content: center; align-items: center; box-sizing: border-box; }
+    .vision-container { max-width: 980px; margin: 0 auto; text-align: center; color: #fff; }
+    .vision-title { font-size: 2.8em; font-weight: 400; margin-bottom: 32px; letter-spacing: 0.01em; }
+    .vision-bold { font-weight: 700; letter-spacing: 0.02em; }
+    .vision-text { font-size: 1.18em; line-height: 1.6; color: #f5faff; }
+    .vision-text p { margin-bottom: 22px; }
+
+    .full-img-section {
+      width: 100%; min-height: 418px; margin: 0; padding: 0; overflow: hidden; background: #222;
+      display: flex; align-items: stretch; justify-content: center; box-sizing: border-box;
+    }
+    .full-img {
+      width: 100%; min-height: 418px; height: 38vw; max-height: 600px; object-fit: cover; object-position: center;
+      display: block; margin: 0 auto; user-select: none; -webkit-user-drag: none; pointer-events: none;
+    }
+
+    .contact-section {
+      width: 100%; min-height: 400px; position: relative; background: url(Img2_Atrio.jpg) center center/cover no-repeat;
+      display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 1; box-sizing: border-box;
+    }
+    .contact-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(33, 56, 99, 0.84); z-index: 1; }
+    .contact-modern { justify-content: center; align-items: center; min-height: 400px; background: none; padding: 0; display: flex; width: 100%; }
+    .contact-modern-content {
+      width: 100%; max-width: 480px; margin: 0 auto; padding: 70px 20px 60px 20px; background: rgba(33, 56, 99, 0.86);
+      border-radius: 30px; text-align: center; box-shadow: 0 8px 32px #1123452f; position: relative; z-index: 2;
+    }
+    .contact-title { font-size: 2.6em; font-weight: 700; margin-bottom: 14px; color: #fff; }
+    .contact-name { font-size: 1.6em; font-weight: 400; margin-bottom: 30px; color: #c9e7ff; letter-spacing: 0.03em; }
+    .contact-social-modern { display: flex; justify-content: center; align-items: center; gap: 38px; margin-bottom: 22px; margin-top: 6px; }
+    .contact-social-modern .social-icon img { width: 54px; height: 54px; filter: brightness(0) invert(1); transition: transform 0.20s, filter 0.20s; }
+    .contact-social-modern .social-icon:hover img { transform: scale(1.17) rotate(-6deg); filter: brightness(0) invert(1) drop-shadow(0 4px 22px #ee9626aa); }
+    .contact-modern-text { margin-top: 14px; color: #c9e7ff; font-size: 1.15em; letter-spacing: 0.02em; }
+
+    .site-footer {
+      width: 100%; background: #353e49; padding: 18px 0 14px 0; border-top: 2px solid #2a3038;
+      color: #f5f5f5; font-size: 1em; margin-top: 0; box-sizing: border-box;
+    }
+    .footer-container {
+      max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 40px;
+    }
+    .footer-left { color: #f5f5f5; letter-spacing: 0.01em; }
+    .footer-right a { color: #b4cff6; text-decoration: underline; transition: color 0.2s; }
+    .footer-right a:hover { color: #ee9626; }
+
+    @media (max-width: 1200px) {
+      .hero-content { margin-left: 4cm; }
+      .areas-container { max-width: 1000px; }
+    }
+    @media (max-width: 900px) {
+      .hero-content { margin-left: 2cm; }
+      .areas-container { flex-direction: column; min-height: unset; }
+      .areas-title {
+        flex: unset; width: 100%; padding: 32px 18px 16px 18px; font-size: 2em; align-items: center; text-align: center; margin-left: 0 !important;
+      }
+      .areas-cards { padding: 18px 10px 32px 10px; grid-template-columns:1fr; }
+      .vision-section { padding: 50px 0 40px 0; }
+      .vision-title { font-size: 2em; }
+      .vision-text { font-size: 1em; }
+      .full-img { height: 52vw; min-height: 220px; max-height: 350px; }
+      .full-img-section { min-height: 220px; }
+    }
+    @media (max-width: 700px) {
+      .navbar { height: var(--nav-h); padding: 0 10px; }
+      .logo-img { width: 56px; height: 56px; }
+      .logo-text { font-size: .95em; }
+      .menu-toggle { display: flex; margin-left: 25px; }
+      .nav-menu {
+        display: none; position: absolute; top: var(--nav-h); left: 0; right: 0; background: #fff;
+        flex-direction: column; align-items: center; gap: 18px; padding: 24px 0 18px; z-index: 99; box-shadow: 0 6px 24px #0002;
+      }
+      .nav-menu.open { display: flex; animation: fadeIn .25s; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(-12px);} to { opacity: 1; transform: translateY(0);} }
+      .hero-content { margin-left: 20px; }
+      .nav-menu a { font-size: 1.1em; }
+      .vision-container { padding: 0 18px; }
+      .vision-title { font-size: 2em; }
+      .vision-text { font-size: 1em; }
+      .full-img { height: 72vw; min-height: 200px; max-height: 350px; }
+      .full-img-section { min-height: 200px; }
+      .contact-modern-content { padding: 32px 8px 30px 8px; max-width: 97vw; border-radius: 16px; }
+      .contact-title { font-size: 1.6em; }
+      .contact-name { font-size: 1em; }
+      .contact-social-modern .social-icon img { width: 38px; height: 38px; }
+      .contact-modern-text { font-size: 1em; }
+      .footer-container { flex-direction: column; gap: 8px; padding: 0 16px; text-align: center; }
+    }
+    @media (max-width: 540px) {
+      .hero-content { margin-left: 8px; max-width: 99vw; }
+      .areas-title { font-size: 1.28em; padding: 18px 8px 8px 8px; }
+      .areas-cards { gap: 12px !important; padding: 12px 2vw; }
+      .vision-title { font-size: 1.1em; }
+      .full-img { height: 90vw; min-height: 170px; max-height: 270px; }
+      .full-img-section { min-height: 170px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Overlay de transición (debajo del splash) -->
+  <div class="page-transition" aria-hidden="true"></div>
+
+  <!-- ===== SPLASH ===== -->
+  <div id="splash" class="splash" aria-hidden="true">
+    <div class="splash__frame">
+      <!-- usa %20 por el espacio en el nombre -->
+      <img id="splashLogo" class="splash__logo" src="Koop%20Logo.png" alt="Koop Strategic Advisory">
+    </div>
+  </div>
+
+  <!-- ===== CONTENIDO REAL ===== -->
+  <div id="app">
+    <nav class="navbar">
+      <div class="navbar-content">
+        <a href="index.html" class="logo">
+          <img src="Koop Logo.png" alt="Logo Koop" class="logo-img">
+          <div class="logo-text">KOOP STRATEGIC ADVISORY</div>
+        </a>
+        <div class="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
+        <div class="nav-menu" id="nav-menu">
+          <a href="index.html#inicio">INICIO</a>
+          <div class="dropdown">
+            <a href="index.html#areas" class="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</a>
+            <div class="dropdown-content">
+              <div class="dropdown-group">
+                <span class="dropdown-title">Derecho</span>
+                <a href="derecho-laboral.html">Derecho Laboral</a>
+                <a href="derecho-penal.html">Derecho Penal</a>
+                <a href="tramites-notariales.html">Trámites notariales</a>
+                <a href="derecho-administrativo.html">Derecho Administrativo</a>
+                <a href="derecho-familia.html">Derecho de Familia</a>
+                <a href="contratacion-publica.html">Contratación Pública</a>
+                <a href="resolucion-disputas.html">Resolución de Disputas</a>
+                <a href="acciones-de-tutela.html">Acciones de Tutela</a>
+                <a href="insolvencia.html">Insolvencia</a>
+              </div>
+              <div class="dropdown-group">
+                <span class="dropdown-title">Contabilidad</span>
+                <a href="contabilidad.html">Contabilidad</a>
+                <a href="auditoria.html">Auditoría</a>
+                <a href="impuestos.html">Impuestos</a>
+                <a href="planeacion-patrimonial.html">Planeación Patrimonial</a>
+              </div>
+            </div>
+          </div>
+          <a href="index.html#vision">NUESTRA VISIÓN</a>
+          <a href="index.html#contacto">CONTACTO</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="hero-section" id="inicio">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="hero-box">
+          <div class="hero-title">Servicios Jurídicos y Contables <br> de alta calidad</div>
+          <div class="hero-subtitle">Especialistas en Ley Comercial,<br> Litigación, Insolvencia y Acciones de Tutela</div>
+          <div class="hero-desc">
+            Equipo experto en derecho empresarial, penal y contable. <br>
+            Brindamos consultoría estratégica para empresas y personas naturales.
+          </div>
+          <a href="#contacto"><button class="cta-btn">Solicita tu consulta</button></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN ÁREAS DE PRÁCTICA -->
+    <section class="areas-section" id="areas">
+      <div class="areas-container">
+        <div class="areas-title">
+          <span class="areas-title-bold">ÁREAS DE</span> <span class="areas-title-normal">PRÁCTICA</span>
+        </div>
+        <div class="areas-cards">
+          <a href="derecho.html" class="labor-card" style="--bg:url('/old/img/paloquemao.png')" data-images="img/paloquemao.png,img/saladecasacionlaboral.png,img/tramitesnotariales.png,img/sexuales.png,img/fiscalia.png">
+            <div class="labor-card-content">
+              <div class="labor-card-title">Derecho</div>
+              <div class="labor-card-btn">Ingresar</div>
+            </div>
+          </a>
+          <a href="contabilidad.html" class="labor-card" style="--bg:url('/old/img/auditoria.svg')" data-images="img/auditoria.jpg,img/impuestos-en-colombia.jpg,img/que_es_la_contabilidad.jpeg">
+            <div class="labor-card-content">
+              <div class="labor-card-title">Contabilidad</div>
+              <div class="labor-card-btn">Ingresar</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN NUESTRA VISIÓN -->
+    <section class="vision-section" id="vision">
+      <div class="vision-container">
+        <h2 class="vision-title"><span class="vision-bold">NUESTRA</span> VISIÓN</h2>
+        <div class="vision-text">
+          <p>En Koop Strategic Advisory, nuestra visión es consolidarnos como la firma de referencia en servicios jurídicos, contables y de consultoría empresarial, reconocidos por nuestra ética, innovación y excelencia. Nos apasiona acompañar a empresas y personas en la toma de decisiones estratégicas que les permitan crecer, proteger sus intereses y transformar sus proyectos en resultados sostenibles.</p>
+          <p>Trabajamos bajo un enfoque multidisciplinario, integrando conocimientos legales, contables y de auditoría para ofrecer soluciones integrales y personalizadas. Nuestro equipo está comprometido con la actualización permanente, la confianza y el trato directo con cada cliente.</p>
+          <p>Buscamos construir relaciones de largo plazo basadas en la transparencia, el profesionalismo y el valor agregado, contribuyendo activamente al desarrollo empresarial y a la construcción de una sociedad más justa y eficiente.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN IMAGEN COMPLETA -->
+    <section class="full-img-section">
+      <img src="Corte suprema de justicia de colombia.jpg" alt="Equipo empresarial Koop" class="full-img">
+    </section>
+
+    <!-- SECCIÓN CONTÁCTANOS MODERNA -->
+    <section class="contact-section" id="contacto">
+      <div class="contact-overlay"></div>
+      <div class="contact-container contact-modern">
+        <div class="contact-modern-content">
+          <div class="contact-title" style="text-align:center;">CONTÁCTANOS</div>
+          <div class="contact-name" style="text-align:center; color:#fff;">KOOP STRATEGIC ADVISORY</div>
+          <div class="contact-social contact-social-modern">
+            <a href="https://www.instagram.com/koopstrategicadvisory/" target="_blank" class="social-icon instagram" title="Instagram">
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" alt="Instagram">
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=61579034631401" target="_blank" class="social-icon facebook" title="Facebook">
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/facebook.svg" alt="Facebook">
+            </a>
+            <a href="https://tiktok.com/" target="_blank" class="social-icon tiktok" title="TikTok">
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/tiktok.svg" alt="TikTok">
+            </a>
+            <a href="https://wa.me/573503965755" target="_blank" class="social-icon whatsapp" title="WhatsApp">
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/whatsapp.svg" alt="WhatsApp">
+            </a>
+          </div>
+          <div class="contact-modern-text">Atendemos consultas por cualquiera de nuestras redes sociales.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div class="footer-left">© 2024 Creado por Koop Strategic Advisory</div>
+        <div class="footer-right">
+          <a href="privacidad.html" target="_blank">Política de Privacidad</a>
+        </div>
+      </div>
+    </footer>
+  </div> <!-- /#app -->
+
+  <script>
+    // ===== Menú móvil =====
+    const menuToggle = document.getElementById('menu-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    if (menuToggle && navMenu) {
+      menuToggle.onclick = () => navMenu.classList.toggle('open');
+            navMenu.querySelectorAll('a').forEach(link => {
+        if(!link.classList.contains('drop-btn')){
+          link.onclick = () => navMenu.classList.remove('open');
+        }
+      });
+    }
+    const areasToggle = document.getElementById('areas-toggle');
+    if(areasToggle){
+      areasToggle.addEventListener('click', (e)=>{
+        e.preventDefault();
+        areasToggle.parentElement.classList.toggle('open');
+      });
+    }
+
+
+    // ===== Splash + Fade in contenido (obedece la decisión del <head>) =====
+    (function () {
+      const splash = document.getElementById('splash');
+      const logo   = document.getElementById('splashLogo');
+      const app    = document.getElementById('app');
+
+      // ¿Debemos saltar el splash?
+      const skip = document.documentElement.classList.contains('skip-splash');
+      if (skip) {
+        try { splash && splash.remove(); } catch(e){}
+        if (app) app.style.opacity = '1';
+        return;
+      }
+
+      const MIN_VISIBLE_MS = 2500; // duración del fade-in del logo
+      const FADE_MS = 800;         // fade-out del splash
+      const t0 = performance.now();
+
+      function revealLogo() {
+        if (logo) { void logo.offsetWidth; logo.classList.add('is-visible'); }
+      }
+
+      function fadeInApp() {
+        if (!app) return;
+        app.style.opacity = '0';
+        void app.offsetHeight;
+
+        if (app.animate) {
+          const anim = app.animate(
+            [{ opacity: 0 }, { opacity: 1 }],
+            { duration: 800, easing: 'ease', fill: 'forwards' }
+          );
+          anim.onfinish = () => { app.style.opacity = '1'; };
+        } else {
+          app.style.transition = 'opacity 0.8s ease';
+          requestAnimationFrame(() => { app.style.opacity = '1'; });
+        }
+      }
+
+      function hideSplashThenShowApp() {
+        const elapsed = performance.now() - t0;
+        const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
+        setTimeout(() => {
+          if (splash) splash.classList.add('splash--hide');
+          setTimeout(() => {
+            try { splash && splash.remove(); } catch(e){}
+            fadeInApp();
+          }, FADE_MS);
+        }, wait);
+      }
+
+      async function start() {
+        try {
+          if (logo && 'decode' in logo) { await logo.decode(); }
+          else if (logo && !logo.complete) {
+            await new Promise(res => logo.addEventListener('load', res, { once: true }));
+          }
+        } catch(e) {}
+
+        revealLogo();
+        hideSplashThenShowApp();
+      }
+
+      // Volver desde caché del historial → no re-mostrar splash
+      window.addEventListener('pageshow', (e) => {
+        if (e.persisted) {
+          try { splash && splash.remove(); } catch(e){}
+          if (app) { app.style.opacity = '1'; }
+        }
+      });
+
+      start();
+
+      // Kill-switch por si algún evento no disparó
+      setTimeout(() => {
+        const s = document.getElementById('splash');
+        if (s && document.body.contains(s)) {
+          s.classList.add('splash--hide');
+          setTimeout(() => { try { s.remove(); } catch(e){} fadeInApp(); }, 800);
+        }
+      }, 7000);
+    })();
+
+    // ===== Transición de salida hacia otras páginas internas =====
+    (function () {
+      const overlay = document.querySelector('.page-transition');
+      
+      // Asegurar que el overlay esté oculto al cargar la página
+      function hideOverlay() {
+        if (overlay) {
+          overlay.classList.remove('is-active');
+        }
+      }
+      
+      // Ocultar overlay inmediatamente al cargar
+      hideOverlay();
+      
+      // Ocultar overlay cuando se restaura desde BFCache
+      window.addEventListener('pageshow', (e) => {
+        if (e.persisted) {
+          hideOverlay();
+        }
+      });
+      
+      // Ocultar overlay cuando se hace focus en la ventana
+      window.addEventListener('focus', hideOverlay);
+      
+      function shouldIntercept(link) {
+        // Ignora anclas, target=_blank, tel:, mailto:
+        if (!link.href) return false;
+        if (link.target && link.target.toLowerCase() === '_blank') return false;
+        const href = link.getAttribute('href');
+        if (!href) return false;
+        if (href.startsWith('#')) return false;
+        if (href.startsWith('mailto:') || href.startsWith('tel:')) return false;
+
+        const url = new URL(link.href, window.location.href);
+        if (url.hostname !== window.location.hostname) return false; // externo
+        // Si es misma página (misma ruta), no interceptar
+        if (url.pathname === window.location.pathname && url.hash) return false;
+        return true;
+      }
+
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest('a');
+        if (!a || !shouldIntercept(a)) return;
+
+        // Respeta modificadores (Cmd/Ctrl click abre nueva pestaña)
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
+        e.preventDefault();
+        if (overlay) overlay.classList.add('is-active');
+        setTimeout(() => { window.location.href = a.href; }, 600);
+      });
+    })();
+
+    // ===== Carrusel de imágenes en áreas =====
+    (function () {
+      const cards = document.querySelectorAll('.labor-card[data-images]');
+      cards.forEach(card => {
+        const imgs = card.dataset.images.split(',').map(s => s.trim()).filter(Boolean);
+        if (imgs.length < 2) return;
+        let idx = 0;
+        setInterval(() => {
+          const next = (idx + 1) % imgs.length;
+          const overlay = document.createElement('div');
+          overlay.className = 'labor-card-fade';
+          overlay.style.backgroundImage = `url('${imgs[next]}')`;
+          card.appendChild(overlay);
+          requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+          setTimeout(() => {
+            card.style.setProperty('--bg', `url('${imgs[next]}')`);
+            overlay.remove();
+            idx = next;
+          }, 1000);
+        }, 3000);
+      });
+    })();
+  </script>
+</body>
+</html>

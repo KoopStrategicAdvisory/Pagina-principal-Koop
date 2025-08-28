@@ -1,8 +1,8 @@
 import React from 'react';
-import OldPageLoader from './OldPageLoader.jsx';
+import html from '../html/derecho-familia.html?raw';
 
 const DerechoFamilia = () => (
-  <OldPageLoader page="derecho-familia" />
+  <div dangerouslySetInnerHTML={{ __html: html }} />
 );
 
 export default DerechoFamilia;
