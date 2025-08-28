@@ -15,7 +15,10 @@ export default function extractStylesFromHtml(html) {
   // Normalize asset URLs:
   // 1) url('img/...') -> url('/img/...')
   // 2) url('File.jpg') -> url('/File.jpg') for common image extensions
+  // 1) Keep original closing ) and quotes intact
+  // 2) Avoid duplicating closing ) by matching it and reconstructing
   return combined
     .replace(/url\(\s*(['\"]?)img\//gi, 'url($1/img/')
-    .replace(/url\(\s*(['\"]?)(?!\/|https?:|data:)([^'"\)]+?\.(?:png|jpe?g|svg|gif|webp|ico))/gi, 'url($1/$2)');
+    .replace(/url\(\s*(['\"]?)(?!\/|https?:|data:)([^'"\)]+?\.(?:png|jpe?g|svg|gif|webp|ico))\1\s*\)/gi,
+      (m, q, p) => `url(${q}/${p}${q})`);
 }
