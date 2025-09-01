@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>404</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      /*
+        SPA fallback for GitHub Pages.
+        Redirects 404s to index preserving the path in a query param so the app can route client-side.
+        Source: https://github.com/rafgraph/spa-github-pages
+      */
+      (function(location) {
+        var l = location;
+        var repoBase = '/Pagina-principal-Koop';
+        if (l.pathname.startsWith(repoBase + '/')) {
+          var path = l.pathname.slice(repoBase.length);
+          l.replace(repoBase + '/index.html?p=' + encodeURIComponent(path + l.search + l.hash));
+        }
+      })(window.location);
+    </script>
+  </head>
+  <body></body>
+  </html>
+

@@ -53,6 +53,9 @@ html.route-fade-in #root {
 
 /* Mobile typography improvements for home hero */
 @media (max-width: 700px) {
+  /* Reframe the video on mobile so more of the scene is visible
+     while keeping full-bleed cover (no height reduction) */
+  .hero--home .hero-video { object-position: center 30% !important; }
   .hero--home .hero-content { max-width: 92vw; margin: 0 auto !important; padding: 0 12px; text-align: center !important; }
   .hero--home .hero-box { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .hero--home .hero-title {
@@ -85,6 +88,11 @@ html.route-fade-in #root {
     padding: 10px 16px;
     border-radius: 10px;
   }
+}
+
+@media (max-width: 540px) {
+  /* Slightly more upward framing on very small screens */
+  .hero--home .hero-video { object-position: center 25% !important; }
 }
 
 /* Hide deprecated nav links across pages */
