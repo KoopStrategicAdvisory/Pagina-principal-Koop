@@ -4,12 +4,13 @@ import pageHtml from '../../old/contabilidad.html?raw';
 import useNormalizeAssets from '../hooks/useNormalizeAssets';
 import useMenu from '../hooks/useMenu';
 import usePageTransition from '../hooks/usePageTransition';
+import { Link } from 'react-router-dom';
 
 const Contabilidad = () => {
   useMenu();
   usePageTransition();
   const pageCss = extractStylesFromHtml(pageHtml)
-    .replace(/url\(\s*(['\"]?)img\//gi, 'url($1/img/');
+    .replace(/url\(\s*(['"]?)img\//gi, 'url($1/img/');
   useNormalizeAssets();
   return (
   <>
@@ -20,39 +21,39 @@ const Contabilidad = () => {
       {/* NAV */}
       <nav className="navbar">
         <div className="navbar-content">
-          <a href="index.html" className="logo">
+          <Link to="/" className="logo">
             <img src="/Koop Logo.png" alt="Logo Koop" className="logo-img" />
             <div className="logo-text">KOOP STRATEGIC ADVISORY</div>
-          </a>
+          </Link>
           <div className="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
           <div className="nav-menu" id="nav-menu">
-              <a href="index.html#inicio">INICIO</a>
+              <Link to="/#inicio">INICIO</Link>
               <div className="dropdown">
-                <a href="index.html#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</a>
+                <Link to="/#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</Link>
                 <div className="dropdown-content">
                   <div className="dropdown-group">
                     <span className="dropdown-title">Derecho</span>
-                    <a href="derecho-laboral.html">Derecho Laboral</a>
-                    <a href="derecho-penal.html">Derecho Penal</a>
-                    <a href="tramites-notariales.html">Trámites notariales</a>
-                    <a href="derecho-administrativo.html">Derecho Administrativo</a>
-                    <a href="derecho-familia.html">Derecho de Familia</a>
-                    <a href="contratacion-publica.html">Contratación Pública</a>
-                    <a href="resolucion-disputas.html">Resolución de Disputas</a>
-                    <a href="acciones-de-tutela.html">Acciones de Tutela</a>
-                    <a href="insolvencia.html">Insolvencia</a>
+                    <Link to="/derecho-laboral">Derecho Laboral</Link>
+                    <Link to="/derecho-penal">Derecho Penal</Link>
+                    <Link to="/tramites-notariales">Trámites notariales</Link>
+                    <Link to="/derecho-administrativo">Derecho Administrativo</Link>
+                    <Link to="/derecho-familia">Derecho de Familia</Link>
+                    <Link to="/contratacion-publica">Contratación Pública</Link>
+                    <Link to="/resolucion-disputas">Resolución de Disputas</Link>
+                    <Link to="/acciones-de-tutela">Acciones de Tutela</Link>
+                    <Link to="/insolvencia">Insolvencia</Link>
                   </div>
                   <div className="dropdown-group">
                     <span className="dropdown-title">Contabilidad</span>
-                    <a href="contabilidad.html">Contabilidad</a>
-                    <a href="auditoria.html">Auditoría</a>
-                    <a href="impuestos.html">Impuestos</a>
-                    <a href="planeacion-patrimonial.html">Planeación Patrimonial</a>
+                    <Link to="/contabilidad">Contabilidad</Link>
+                    <Link to="/auditoria">Auditoría</Link>
+                    <Link to="/impuestos">Impuestos</Link>
+                    <Link to="/planeacion-patrimonial">Planeación Patrimonial</Link>
                   </div>
                 </div>
               </div>
-              <a href="index.html#vision">NUESTRA VISIÓN</a>
-              <a href="index.html#contacto">CONTACTO</a>
+              <Link to="/#vision">NUESTRA VISIÓN</Link>
+              <Link to="/#contacto">CONTACTO</Link>
             </div>
         </div>
       </nav>
@@ -66,7 +67,7 @@ const Contabilidad = () => {
     
           <div className="labor-grid">
             {/* Auditoría y Revisoría Fiscal */}
-            <a href="auditoria.html" className="labor-card" style={{ '--bg': 'url(\'img/auditoria.jpg\')' }}>
+            <a href="/auditoria" className="labor-card" style={{ '--bg': 'url(\'img/auditoria.jpg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SUBÁREA</span>
                 <div className="labor-card-title"><span className="labor-dot"></span>Auditoría y Revisoría Fiscal</div>
@@ -75,7 +76,7 @@ const Contabilidad = () => {
             </a>
     
             {/* Impuestos y Planeación Tributaria */}
-            <a href="impuestos.html" className="labor-card" style={{ '--bg': 'url(\'img/impuestos-en-colombia.jpg\')' }}>
+            <a href="/impuestos" className="labor-card" style={{ '--bg': 'url(\'img/impuestos-en-colombia.jpg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SUBÁREA</span>
                 <div className="labor-card-title"><span className="labor-dot"></span>Impuestos y Planeación Tributaria</div>
@@ -84,10 +85,10 @@ const Contabilidad = () => {
             </a>
     
             {/* Planeación Patrimonial */}
-            <a href="planeacion-patrimonial.html" className="labor-card" style={{ '--bg': 'url(\'img/que_es_la_contabilidad.jpeg\')' }}>
+            <a href="/planeacion-patrimonial" className="labor-card" style={{ '--bg': 'url(\'img/que_es_la_contabilidad.jpeg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SUBÁREA</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Planeación Patrimonial</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Asesoría contable</div>
                 <div className="labor-card-desc">Protección y optimización del patrimonio.</div>
               </div>
             </a>
@@ -132,23 +133,20 @@ const Contabilidad = () => {
           <div className="footer-col">
             <h5>Enlaces rápidos</h5>
             <ul className="footer-list">
-              <li><a href="index.html#inicio">Inicio</a></li>
-              <li><a href="index.html#areas">Áreas de práctica</a></li>
-              <li><a href="index.html#vision">Nuestra visión</a></li>
-              <li><a href="index.html#contacto">Contacto</a></li>
+              <li><Link to="/#inicio">Inicio</Link></li>
+              <li><Link to="/#areas">Áreas de práctica</Link></li>
+              <li><Link to="/#vision">Nuestra visión</Link></li>
+              <li><Link to="/#contacto">Contacto</Link></li>
             </ul>
           </div>
     
           {/* Servicios de Familia */}
           <div className="footer-col">
-            <h5>Servicios de familia</h5>
+            <h5>Servicios contables</h5>
             <ul className="footer-list">
-              <li><a href="#divorcio">Divorcio y separación</a></li>
-              <li><a href="#custodia">Custodia y patria potestad</a></li>
-              <li><a href="#alimentos">Alimentos y pensión alimentaria</a></li>
-              <li><a href="#sociedad">Liquidación de sociedad conyugal</a></li>
-              <li><a href="#adopciones">Adopciones</a></li>
-              <li><a href="#capitulaciones">Capitulaciones matrimoniales</a></li>
+              <li><a href="/auditoria">Auditoría y Revisoría Fiscal</a></li>
+              <li><a href="/impuestos">Impuestos y Planeación Tributaria</a></li>
+              <li><a href="/planeacion-patrimonial">Asesoría Contable</a></li>
             </ul>
           </div>
     
@@ -172,7 +170,7 @@ const Contabilidad = () => {
     
             <div className="footer-social" aria-label="Redes sociales">
               {/* Instagram */}
-              <a aria-label="Instagram" href="https://www.instagram.com/koopstrategicadvisory/" target="_blank" rel="noopener" title="Instagram">
+              <a aria-label="Instagram" href="https://www.instagram.com/kooplawyers/" target="_blank" rel="noopener" title="Instagram">
                 <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5Zm8.75 2a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
                 </svg>
@@ -197,7 +195,7 @@ const Contabilidad = () => {
           <div className="wrap">
             <div>© <span id="year"></span> Koop Strategic Advisory. Todos los derechos reservados.</div>
             <div className="mini-links">
-              <a href="politica-privacidad.html">Política de privacidad</a>
+              <a href="/privacidad">Política de privacidad</a>
               <a href="terminos.html">Términos y condiciones</a>
               <a href="#inicio">Volver arriba ↑</a>
             </div>

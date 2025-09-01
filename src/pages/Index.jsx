@@ -2,6 +2,7 @@ import React from 'react';
 import useMenu from '../hooks/useMenu';
 import useSplash from '../hooks/useSplash';
 import usePageTransition from '../hooks/usePageTransition';
+import { Link } from 'react-router-dom';
 import useCardsCarousel from '../hooks/useCardsCarousel';
 import useNormalizeAssets from '../hooks/useNormalizeAssets';
 import extractStylesFromHtml from '../utils/extractStylesFromHtml';
@@ -13,7 +14,7 @@ const Index = () => {
   usePageTransition();
   useCardsCarousel();
   const pageCss = extractStylesFromHtml(pageHtml)
-    .replace(/url\(\s*(['\"]?)img\//gi, 'url($1/img/');
+    .replace(/url\(\s*(['"]?)img\//gi, 'url($1/img/');
   useNormalizeAssets();
 
   return (
@@ -34,54 +35,66 @@ const Index = () => {
       <div id="app">
         <nav className="navbar">
           <div className="navbar-content">
-            <a href="/" className="logo">
+            <Link to="/" className="logo">
               <img src="/Koop Logo.png" alt="Logo Koop" className="logo-img" />
               <div className="logo-text">KOOP STRATEGIC ADVISORY</div>
-            </a>
-            <div className="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
+            </Link>
+          <div className="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
             <div className="nav-menu" id="nav-menu">
-              <a href="/#inicio">INICIO</a>
+              <Link to="/#inicio">INICIO</Link>
               <div className="dropdown">
-                <a href="index.html#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</a>
+                <Link to="/#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</Link>
                 <div className="dropdown-content">
                   <div className="dropdown-group">
                     <span className="dropdown-title">Derecho</span>
-                    <a href="derecho-laboral.html">Derecho Laboral</a>
-                    <a href="derecho-penal.html">Derecho Penal</a>
-                    <a href="tramites-notariales.html">Trámites notariales</a>
-                    <a href="derecho-administrativo.html">Derecho Administrativo</a>
-                    <a href="derecho-familia.html">Derecho de Familia</a>
-                    <a href="contratacion-publica.html">Contratación Pública</a>
-                    <a href="resolucion-disputas.html">Resolución de Disputas</a>
-                    <a href="acciones-de-tutela.html">Acciones de Tutela</a>
-                    <a href="insolvencia.html">Insolvencia</a>
+                    <Link to="/derecho-laboral">Derecho Laboral</Link>
+                    <Link to="/derecho-penal">Derecho Penal</Link>
+                    <Link to="/tramites-notariales">Trámites notariales</Link>
+                    <Link to="/derecho-administrativo">Derecho Administrativo</Link>
+                    <Link to="/derecho-familia">Derecho de Familia</Link>
+                    <Link to="/contratacion-publica">Contratación Pública</Link>
+                    <Link to="/resolucion-disputas">Resolución de Disputas</Link>
+                    <Link to="/acciones-de-tutela">Acciones de Tutela</Link>
+                    <Link to="/insolvencia">Insolvencia</Link>
                   </div>
                   <div className="dropdown-group">
                     <span className="dropdown-title">Contabilidad</span>
-                    <a href="contabilidad.html">Contabilidad</a>
-                    <a href="auditoria.html">Auditoría</a>
-                    <a href="impuestos.html">Impuestos</a>
-                    <a href="planeacion-patrimonial.html">Planeación Patrimonial</a>
+                    <Link to="/contabilidad">Contabilidad</Link>
+                    <Link to="/auditoria">Auditoría</Link>
+                    <Link to="/impuestos">Impuestos</Link>
+                    <Link to="/planeacion-patrimonial">Planeación Patrimonial</Link>
                   </div>
                 </div>
               </div>
-              <a href="index.html#vision">NUESTRA VISIÓN</a>
-              <a href="index.html#contacto">CONTACTO</a>
+              <Link to="/#vision">NUESTRA VISIÓN</Link>
+              <Link to="/#contacto">CONTACTO</Link>
             </div>
           </div>
         </nav>
     
-        <div className="hero-section" id="inicio">
+        <div className="hero-section hero--home" id="inicio">
+          {/* Video de fondo del hero */}
+          <video
+            className="hero-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster="/Imagen%20gigante%20centro%20int.JPG"
+          >
+            <source src="/KoopCentroInternacional.mp4" type="video/mp4" />
+          </video>
           <div className="hero-overlay"></div>
           <div className="hero-content">
             <div className="hero-box">
-              <div className="hero-title">Servicios Jurídicos y Contables <br /> de alta calidad</div>
-              <div className="hero-subtitle">Especialistas en Ley Comercial,<br /> Litigación, Insolvencia y Acciones de Tutela</div>
+              <div className="hero-title">KOOP es Bogotá: Excelencia académica y seriedad</div>
+              <div className="hero-subtitle">Expertos en Derecho Administrativo,<br /> Penal, Laboral y Médico</div>
               <div className="hero-desc">
-                Equipo experto en derecho empresarial, penal y contable. <br />
+                Equipo de abogados y contadores con experiencia. <br />
                 Brindamos consultoría estratégica para empresas y personas naturales.
               </div>
-              <a href="#contacto"><button className="cta-btn">Solicita tu consulta</button></a>
+              <a className="cta-btn" href="#contacto">Solicita tu consulta</a>
             </div>
           </div>
         </div>
@@ -93,13 +106,13 @@ const Index = () => {
               <span className="areas-title-bold">ÁREAS DE</span> <span className="areas-title-normal">PRÁCTICA</span>
             </div>
             <div className="areas-cards">
-              <a href="derecho.html" className="labor-card" style={{ '--bg': 'url(\'/img/paloquemao.png\')' }} data-images="/img/paloquemao.png,/img/saladecasacionlaboral.png,/img/tramitesnotariales.png,/img/sexuales.png,/img/fiscalia.png">
+              <a href="/derecho" className="labor-card" style={{ '--bg': 'url(\'/img/paloquemao.png\')' }} data-images="/img/paloquemao.png,/img/saladecasacionlaboral.png,/img/tramitesnotariales.png,/img/sexuales.png,/img/fiscalia.png">
                 <div className="labor-card-content">
                   <div className="labor-card-title">Derecho</div>
                   <div className="labor-card-btn">Ingresar</div>
                 </div>
               </a>
-              <a href="contabilidad.html" className="labor-card" style={{ '--bg': 'url(\'/img/auditoria.svg\')' }} data-images="/img/auditoria.jpg,/img/impuestos-en-colombia.jpg,/img/que_es_la_contabilidad.jpeg">
+              <a href="/contabilidad" className="labor-card" style={{ '--bg': 'url(\'/img/auditoria.jpg\')' }} data-images="/img/auditoria.jpg,/img/impuestos-en-colombia.jpg,/img/que_es_la_contabilidad.jpeg">
                 <div className="labor-card-content">
                   <div className="labor-card-title">Contabilidad</div>
                   <div className="labor-card-btn">Ingresar</div>
@@ -134,16 +147,16 @@ const Index = () => {
               <div className="contact-title" style={{ textAlign: 'center' }}>CONTÁCTANOS</div>
               <div className="contact-name" style={{ textAlign: 'center', color: '#fff' }}>KOOP STRATEGIC ADVISORY</div>
               <div className="contact-social contact-social-modern">
-                <a href="https://www.instagram.com/koopstrategicadvisory/" target="_blank" className="social-icon instagram" title="Instagram">
+                <a href="https://www.instagram.com/kooplawyers/" target="_blank" className="social-icon instagram" title="Instagram">
                   <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" alt="Instagram" />
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61579034631401" target="_blank" className="social-icon facebook" title="Facebook">
                   <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/facebook.svg" alt="Facebook" />
                 </a>
-                <a href="https://tiktok.com/" target="_blank" className="social-icon tiktok" title="TikTok">
+                <a href="https://www.tiktok.com/@koop.co" target="_blank" className="social-icon tiktok" title="TikTok">
                   <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/tiktok.svg" alt="TikTok" />
                 </a>
-                <a href="https://wa.me/573503965755" target="_blank" className="social-icon whatsapp" title="WhatsApp">
+                <a href="https://wa.me/573137213878" target="_blank" className="social-icon whatsapp" title="WhatsApp">
                   <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/whatsapp.svg" alt="WhatsApp" />
                 </a>
               </div>
@@ -157,7 +170,7 @@ const Index = () => {
           <div className="footer-container">
             <div className="footer-left">© 2024 Creado por Koop Strategic Advisory</div>
             <div className="footer-right">
-              <a href="privacidad.html" target="_blank">Política de Privacidad</a>
+              <a href="/privacidad" target="_blank">Política de Privacidad</a>
             </div>
           </div>
         </footer>

@@ -6,9 +6,32 @@ export default function useSplash() {
     const logo = document.getElementById('splashLogo');
     const app = document.getElementById('app');
 
-    const skip = document.documentElement.classList.contains('skip-splash');
+    // Nunca elimines nodos gestionados por React: solo escóndelos
+    const hardHideSplash = () => {
+      if (!splash) return;
+      try {
+        splash.classList.add('splash--hide');
+        splash.setAttribute('aria-hidden', 'true');
+        splash.style.display = 'none';
+        splash.style.pointerEvents = 'none';
+      } catch (_) {}
+    };
+
+    // Asegura visibilidad inicial del splash (por si quedó oculto entre navegaciones)
+    try {
+      if (splash) {
+        splash.classList.remove('splash--hide');
+        splash.removeAttribute('aria-hidden');
+        splash.style.display = '';
+        splash.style.pointerEvents = '';
+      }
+    } catch (_) {}
+
+    // Saltar splash si ya se mostró en esta sesión o si el documento lo indica
+    const visited = (() => { try { return sessionStorage.getItem('koop_hasVisited') === '1'; } catch (_) { return false; } })();
+    const skip = visited || document.documentElement.classList.contains('skip-splash');
     if (skip) {
-      try { splash && splash.remove(); } catch (_) {}
+      hardHideSplash();
       if (app) app.style.opacity = '1';
       return undefined;
     }
@@ -42,10 +65,14 @@ export default function useSplash() {
       const elapsed = performance.now() - t0;
       const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
       setTimeout(() => {
+        // Inicia el fade-in del contenido antes de ocultar el splash
+        // para lograr un crossfade y evitar destello.
+        fadeInApp();
         if (splash) splash.classList.add('splash--hide');
         setTimeout(() => {
-          try { splash && splash.remove(); } catch (_) {}
-          fadeInApp();
+          hardHideSplash();
+          try { sessionStorage.setItem('koop_hasVisited', '1'); } catch (_) {}
+          document.documentElement.classList.add('skip-splash');
         }, FADE_MS);
       }, wait);
     }
@@ -64,7 +91,7 @@ export default function useSplash() {
 
     const onPageShow = (e) => {
       if (e.persisted) {
-        try { splash && splash.remove(); } catch (_) {}
+        hardHideSplash();
         if (app) { app.style.opacity = '1'; }
       }
     };
@@ -75,8 +102,13 @@ export default function useSplash() {
     const killId = setTimeout(() => {
       const s = document.getElementById('splash');
       if (s && document.body.contains(s)) {
-        s.classList.add('splash--hide');
-        setTimeout(() => { try { s.remove(); } catch (_) {} fadeInApp(); }, 800);
+        try {
+          s.classList.add('splash--hide');
+          s.setAttribute('aria-hidden', 'true');
+          s.style.display = 'none';
+          s.style.pointerEvents = 'none';
+        } catch (_) {}
+        // No vuelvas a llamar a fadeInApp aquí para evitar un 2º fade.
       }
     }, 7000);
 
@@ -86,4 +118,3 @@ export default function useSplash() {
     };
   }, []);
 }
-

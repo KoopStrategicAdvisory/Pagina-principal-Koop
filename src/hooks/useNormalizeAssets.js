@@ -33,6 +33,6 @@ export default function useNormalizeAssets() {
       const next = parts.join(',');
       if (next !== val) el.setAttribute('data-images', next);
     });
-  }, []);
+  }, [location.pathname, location.search, location.hash]);
 }
 

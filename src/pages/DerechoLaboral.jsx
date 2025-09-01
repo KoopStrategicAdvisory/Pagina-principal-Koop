@@ -4,12 +4,20 @@ import pageHtml from '../../old/derecho-laboral.html?raw';
 import useNormalizeAssets from '../hooks/useNormalizeAssets';
 import useMenu from '../hooks/useMenu';
 import usePageTransition from '../hooks/usePageTransition';
+import { Link } from 'react-router-dom';
+// Imágenes específicas de la página (provenientes de old/)
+import imgDespido from '../Images/Despidoinjustificado.jpg';
+import imgLiquidaciones from '../Images/liquidaciones.jpeg';
+import imgAcoso from '../Images/acoso.jpg';
+import imgPensiones from '../Images/pensiones.jpg';
+import imgReintegro from '../Images/reintegro.png';
+import imgContratoRealidad from '../Images/contratorealidad.png';
 
 const DerechoLaboral = () => {
   useMenu();
   usePageTransition();
   const pageCss = extractStylesFromHtml(pageHtml)
-    .replace(/url\(\s*(['\"]?)img\//gi, 'url($1/img/');
+    .replace(/url\(\s*(['"]?)img\//gi, 'url($1/img/');
   useNormalizeAssets();
   return (
   <>
@@ -20,39 +28,39 @@ const DerechoLaboral = () => {
       {/* NAV */}
       <nav className="navbar">
         <div className="navbar-content">
-          <a href="index.html" className="logo">
+          <Link to="/" className="logo">
             <img src="/Koop Logo.png" alt="Logo Koop" className="logo-img" />
             <div className="logo-text">KOOP STRATEGIC ADVISORY</div>
-          </a>
+          </Link>
           <div className="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
           <div className="nav-menu" id="nav-menu">
-              <a href="index.html#inicio">INICIO</a>
+              <Link to="/#inicio">INICIO</Link>
               <div className="dropdown">
-                <a href="index.html#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</a>
+                <Link to="/#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</Link>
                 <div className="dropdown-content">
                   <div className="dropdown-group">
                     <span className="dropdown-title">Derecho</span>
-                    <a href="derecho-laboral.html">Derecho Laboral</a>
-                    <a href="derecho-penal.html">Derecho Penal</a>
-                    <a href="tramites-notariales.html">Trámites notariales</a>
-                    <a href="derecho-administrativo.html">Derecho Administrativo</a>
-                    <a href="derecho-familia.html">Derecho de Familia</a>
-                    <a href="contratacion-publica.html">Contratación Pública</a>
-                    <a href="resolucion-disputas.html">Resolución de Disputas</a>
-                    <a href="acciones-de-tutela.html">Acciones de Tutela</a>
-                    <a href="insolvencia.html">Insolvencia</a>
+                    <Link to="/derecho-laboral">Derecho Laboral</Link>
+                    <Link to="/derecho-penal">Derecho Penal</Link>
+                    <Link to="/tramites-notariales">Trámites notariales</Link>
+                    <Link to="/derecho-administrativo">Derecho Administrativo</Link>
+                    <Link to="/derecho-familia">Derecho de Familia</Link>
+                    <Link to="/contratacion-publica">Contratación Pública</Link>
+                    <Link to="/resolucion-disputas">Resolución de Disputas</Link>
+                    <Link to="/acciones-de-tutela">Acciones de Tutela</Link>
+                    <Link to="/insolvencia">Insolvencia</Link>
                   </div>
                   <div className="dropdown-group">
                     <span className="dropdown-title">Contabilidad</span>
-                    <a href="contabilidad.html">Contabilidad</a>
-                    <a href="auditoria.html">Auditoría</a>
-                    <a href="impuestos.html">Impuestos</a>
-                    <a href="planeacion-patrimonial.html">Planeación Patrimonial</a>
+                    <Link to="/contabilidad">Contabilidad</Link>
+                    <Link to="/auditoria">Auditoría</Link>
+                    <Link to="/impuestos">Impuestos</Link>
+                    <Link to="/planeacion-patrimonial">Planeación Patrimonial</Link>
                   </div>
                 </div>
               </div>
-              <a href="index.html#vision">NUESTRA VISIÓN</a>
-              <a href="index.html#contacto">CONTACTO</a>
+              <Link to="/#vision">NUESTRA VISIÓN</Link>
+              <Link to="/#contacto">CONTACTO</Link>
             </div>
         </div>
       </nav>
@@ -74,25 +82,25 @@ const DerechoLaboral = () => {
     
           <div className="labor-grid">
             {/* 1. Despido injustificado */}
-            <a href="#despido" className="labor-card" style={{ '--bg': 'url(\'Despidoinjustificado.jpg\')' }}>
+            <a href="#contratorealidad" className="labor-card" style={{ '--bg': `url(${imgContratoRealidad})` }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Despido injustificado</div>
-                <div className="labor-card-desc">Acciones, indemnizaciones y negociación estratégica.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Contrato realidad</div>
+                <div className="labor-card-desc">Reconocimiento del vínculo laboral y prestaciones.</div>
               </div>
             </a>
     
             {/* 2. Liquidaciones y prestaciones */}
-            <a href="#liquidaciones" className="labor-card" style={{ '--bg': 'url(\'liquidaciones.jpeg\')' }}>
+            <a href="#liquidaciones" className="labor-card" style={{ '--bg': `url(${imgLiquidaciones})` }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Liquidaciones y prestaciones</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Mora en el pago de la liquidación</div>
                 <div className="labor-card-desc">Cálculo, reclamación y verificación de pagos.</div>
               </div>
             </a>
     
             {/* 3. Acoso laboral */}
-            <a href="#acoso" className="labor-card" style={{ '--bg': 'url(\'acoso.jpg\')' }}>
+            <a href="#acoso" className="labor-card" style={{ '--bg': `url(${imgAcoso})` }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
                 <div className="labor-card-title"><span className="labor-dot"></span>Acoso laboral</div>
@@ -101,7 +109,7 @@ const DerechoLaboral = () => {
             </a>
     
             {/* 4. Pensiones y seguridad social */}
-            <a href="#pensiones" className="labor-card" style={{ '--bg': 'url(\'pensiones.jpg\')' }}>
+            <a href="#pensiones" className="labor-card" style={{ '--bg': `url(${imgPensiones})` }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
                 <div className="labor-card-title"><span className="labor-dot"></span>Pensiones y seguridad social</div>
@@ -110,7 +118,7 @@ const DerechoLaboral = () => {
             </a>
     
             {/* 5. Reintegro laboral */}
-            <a href="#reintegro" className="labor-card" style={{ '--bg': 'url(\'reintegro.png\')' }}>
+            <a href="#reintegro" className="labor-card" style={{ '--bg': `url(${imgDespido})` }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
                 <div className="labor-card-title"><span className="labor-dot"></span>Reintegro laboral</div>
@@ -118,17 +126,14 @@ const DerechoLaboral = () => {
               </div>
             </a>
     
-            {/* 6. Contrato realidad */}
-            <a href="#contratorealidad" className="labor-card" style={{ '--bg': 'url(\'contratorealidad.png\')' }}>
-              <div className="labor-card-content">
-                <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Contrato realidad</div>
-                <div className="labor-card-desc">Reconocimiento del vínculo laboral y prestaciones.</div>
-              </div>
-            </a>
+            {/* 6. Continuar agregando */}
+
+
+            
           </div>
         </div>
       </section>
+      
     
       {/* ===== FOOTER ===== */}
       <footer>
@@ -167,10 +172,10 @@ const DerechoLaboral = () => {
           <div className="footer-col">
             <h5>Enlaces rápidos</h5>
             <ul className="footer-list">
-              <li><a href="index.html#inicio">Inicio</a></li>
-              <li><a href="index.html#areas">Áreas de práctica</a></li>
-              <li><a href="index.html#vision">Nuestra visión</a></li>
-              <li><a href="index.html#contacto">Contacto</a></li>
+              <li><Link to="/#inicio">Inicio</Link></li>
+              <li><Link to="/#areas">Áreas de práctica</Link></li>
+              <li><Link to="/#vision">Nuestra visión</Link></li>
+              <li><Link to="/#contacto">Contacto</Link></li>
             </ul>
           </div>
     
@@ -207,7 +212,7 @@ const DerechoLaboral = () => {
     
             <div className="footer-social" aria-label="Redes sociales">
               {/* Instagram */}
-              <a aria-label="Instagram" href="https://www.instagram.com/koopstrategicadvisory/" target="_blank" rel="noopener" title="Instagram">
+              <a aria-label="Instagram" href="https://www.instagram.com/kooplawyers/" target="_blank" rel="noopener" title="Instagram">
                 <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5Zm8.75 2a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
                 </svg>
@@ -232,7 +237,7 @@ const DerechoLaboral = () => {
           <div className="wrap">
             <div>© <span id="year"></span> Koop Strategic Advisory. Todos los derechos reservados.</div>
             <div className="mini-links">
-              <a href="politica-privacidad.html">Política de privacidad</a>
+              <a href="/privacidad">Política de privacidad</a>
               <a href="terminos.html">Términos y condiciones</a>
               <a href="#inicio">Volver arriba ↑</a>
             </div>
