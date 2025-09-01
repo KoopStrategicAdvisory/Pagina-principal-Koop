@@ -16,7 +16,8 @@ import TramitesNotariales from './pages/TramitesNotariales.jsx';
 import AccionesDeTutela from './pages/AccionesDeTutela.jsx';
 
 function App() {
-  const basename = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
+  const rawBase = import.meta.env.BASE_URL || '/';
+  const basename = rawBase === '/' ? undefined : rawBase.replace(/\/+$/, '/');
   return (
     <BrowserRouter basename={basename}>
       <Routes>
