@@ -10,13 +10,9 @@
         Redirects 404s to index preserving the path in a query param so the app can route client-side.
         Source: https://github.com/rafgraph/spa-github-pages
       */
-      (function(location) {
-        var l = location;
-        var repoBase = '/Pagina-principal-Koop';
-        if (l.pathname.startsWith(repoBase + '/')) {
-          var path = l.pathname.slice(repoBase.length);
-          l.replace(repoBase + '/index.html?p=' + encodeURIComponent(path + l.search + l.hash));
-        }
+      (function(l){
+        var redirect = '/index.html?p=' + encodeURIComponent(l.pathname + l.search + l.hash);
+        l.replace(redirect);
       })(window.location);
     </script>
   </head>

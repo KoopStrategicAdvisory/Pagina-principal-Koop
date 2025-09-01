@@ -13,20 +13,7 @@
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      // SPA fallback for GitHub Pages: convert ?p=/route to proper path
-      (function() {
-        try {
-          var params = new URLSearchParams(window.location.search);
-          var p = params.get('p');
-          if (p) {
-            var repoBase = '/Pagina-principal-Koop';
-            var next = repoBase + (p.startsWith('/') ? p : '/' + p);
-            window.history.replaceState(null, '', next);
-          }
-        } catch (e) {}
-      })();
-    </script>
+    
     <script type="module" src="./src/main.jsx"></script>
   </body>
 </html>
