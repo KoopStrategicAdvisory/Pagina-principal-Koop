@@ -6,8 +6,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "predeploy": "vite build",
-    "deploy": "gh-pages -d dist -b gh-pages",
+    "build:gh": "vite build --mode ghpages",
+    "predeploy": "vite build --mode ghpages",
+    "deploy": "gh-pages -d dist -b gh-pages -m 'Deploy to gh-pages'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
