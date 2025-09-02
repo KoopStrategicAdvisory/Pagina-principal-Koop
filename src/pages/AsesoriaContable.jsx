@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import extractStylesFromHtml from '../utils/extractStylesFromHtml';
 import pageHtml from '../../old/planeacion-patrimonial.html?raw';
 import useNormalizeAssets from '../hooks/useNormalizeAssets';
@@ -6,7 +6,7 @@ import useMenu from '../hooks/useMenu';
 import usePageTransition from '../hooks/usePageTransition';
 import { Link } from 'react-router-dom';
 
-const PlaneacionPatrimonial = () => {
+const AsesoriaContable = () => {
   useMenu();
   usePageTransition();
   const pageCss = extractStylesFromHtml(pageHtml)
@@ -32,7 +32,7 @@ const PlaneacionPatrimonial = () => {
                 <Link to="/#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</Link>
                 <div className="dropdown-content">
                   <div className="dropdown-group">
-                    <span className="dropdown-title">Derecho</span>
+                    <Link to="/derecho" className="dropdown-title">Derecho</Link>
                     <Link to="/derecho-laboral">Derecho Laboral</Link>
                     <Link to="/derecho-penal">Derecho Penal</Link>
                     <Link to="/tramites-notariales">Trámites notariales</Link>
@@ -44,11 +44,11 @@ const PlaneacionPatrimonial = () => {
                     <Link to="/insolvencia">Insolvencia</Link>
                   </div>
                   <div className="dropdown-group">
-                    <span className="dropdown-title">Contabilidad</span>
-                    <Link to="/contabilidad">Contabilidad</Link>
+                    <Link to="/contabilidad" className="dropdown-title">Contabilidad</Link>
+                    
                     <Link to="/auditoria">Auditoría</Link>
                     <Link to="/impuestos">Impuestos</Link>
-                    <Link to="/planeacion-patrimonial">Planeación Patrimonial</Link>
+                    <Link to="/asesoria-contable">Asesoría Contable</Link>
                   </div>
                 </div>
               </div>
@@ -61,15 +61,15 @@ const PlaneacionPatrimonial = () => {
       {/* HERO */}
       <section className="hero-section" id="inicio">
         <div className="hero-overlay" aria-hidden="true"></div>
-        <div className="hero-text" aria-label="Planeación Patrimonial">
-          <div className="hero-headline">Planeación Patrimonial</div>
+        <div className="hero-text" aria-label="Asesoría Contable">
+          <div className="hero-headline">Asesoría Contable</div>
         </div>
       </section>
     
       {/* SECCIÓN CARDS */}
       <section className="labor-cards-section" id="servicios-planeacion">
         <div className="labor-cards-container">
-          <div className="labor-tag">SERVICIOS DE PLANEACIÓN PATRIMONIAL</div>
+          <div className="labor-tag">SERVICIOS DE Asesoría Contable</div>
           <h2 className="labor-title">Cómo te ayudamos</h2>
           <p className="labor-sub">Estructuración, protección y gestión de patrimonios familiares y empresariales.</p>
     
@@ -146,7 +146,7 @@ const PlaneacionPatrimonial = () => {
               Estudio jurídico & contable. Continuidad y eficiencia para tu legado.
             </p>
             <div className="footer-cta">
-              <h4>¿Necesitas una asesoría en planeación patrimonial?</h4>
+              <h4>¿Necesitas una asesoría en Asesoría Contable?</h4>
               <div className="btns">
                 <a className="btn btn-whatsapp" href="https://wa.me/573137213878?text=Cordial%20Saludo%20Koop,%20deseo%20asesor%C3%ADa%20en%20planeaci%C3%B3n%20patrimonial%20sobre%20el%20siguiente%20tema:" target="_blank" rel="noopener">
                   {/* Ícono WhatsApp (22px) */}
@@ -321,4 +321,4 @@ const PlaneacionPatrimonial = () => {
   );
 };
 
-export default PlaneacionPatrimonial;
+export default AsesoriaContable;

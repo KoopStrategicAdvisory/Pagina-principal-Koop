@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import extractStylesFromHtml from '../utils/extractStylesFromHtml';
 import pageHtml from '../../old/contabilidad.html?raw';
 import useNormalizeAssets from '../hooks/useNormalizeAssets';
@@ -32,7 +32,7 @@ const Contabilidad = () => {
                 <Link to="/#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</Link>
                 <div className="dropdown-content">
                   <div className="dropdown-group">
-                    <span className="dropdown-title">Derecho</span>
+                    <Link to="/derecho" className="dropdown-title">Derecho</Link>
                     <Link to="/derecho-laboral">Derecho Laboral</Link>
                     <Link to="/derecho-penal">Derecho Penal</Link>
                     <Link to="/tramites-notariales">Trámites notariales</Link>
@@ -44,11 +44,11 @@ const Contabilidad = () => {
                     <Link to="/insolvencia">Insolvencia</Link>
                   </div>
                   <div className="dropdown-group">
-                    <span className="dropdown-title">Contabilidad</span>
-                    <Link to="/contabilidad">Contabilidad</Link>
+                    <Link to="/contabilidad" className="dropdown-title">Contabilidad</Link>
+                    
                     <Link to="/auditoria">Auditoría</Link>
                     <Link to="/impuestos">Impuestos</Link>
-                    <Link to="/planeacion-patrimonial">Planeación Patrimonial</Link>
+                    <Link to="/asesoria-contable">Asesoría Contable</Link>
                   </div>
                 </div>
               </div>
@@ -84,11 +84,11 @@ const Contabilidad = () => {
               </div>
             </a>
     
-            {/* Planeación Patrimonial */}
-            <a href="/planeacion-patrimonial" className="labor-card" style={{ '--bg': 'url(\'img/que_es_la_contabilidad.jpeg\')' }}>
+            {/* Asesoría Contable */}
+            <a href="/asesoria-contable" className="labor-card" style={{ '--bg': 'url(\'img/que_es_la_contabilidad.jpeg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SUBÁREA</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Asesoría contable</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Asesoría Contable</div>
                 <div className="labor-card-desc">Protección y optimización del patrimonio.</div>
               </div>
             </a>
@@ -111,7 +111,7 @@ const Contabilidad = () => {
               Estudio jurídico & contable. Soluciones integrales para tu empresa.
             </p>
             <div className="footer-cta">
-              <h4>¿Necesitas una asesoría contable?</h4>
+              <h4>¿Necesitas una Asesoría Contable?</h4>
               <div className="btns">
                 <a className="btn btn-whatsapp" href="https://wa.me/573137213878?text=Cordial%20Saludo%20Koop,%20deseo%20consultar%20los%20servicios%20contables:" target="_blank" rel="noopener">
                   {/* Ícono WhatsApp (22px) */}
@@ -146,7 +146,7 @@ const Contabilidad = () => {
             <ul className="footer-list">
               <li><a href="/auditoria">Auditoría y Revisoría Fiscal</a></li>
               <li><a href="/impuestos">Impuestos y Planeación Tributaria</a></li>
-              <li><a href="/planeacion-patrimonial">Asesoría Contable</a></li>
+              <li><a href="/asesoria-contable">Asesoría Contable</a></li>
             </ul>
           </div>
     

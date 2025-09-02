@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import useMenu from '../hooks/useMenu';
 import useSplash from '../hooks/useSplash';
 import usePageTransition from '../hooks/usePageTransition';
@@ -46,7 +46,7 @@ const Index = () => {
                 <Link to="/#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</Link>
                 <div className="dropdown-content">
                   <div className="dropdown-group">
-                    <span className="dropdown-title">Derecho</span>
+                  <Link to="/derecho" className="dropdown-title">Derecho</Link>
                     <Link to="/derecho-laboral">Derecho Laboral</Link>
                     <Link to="/derecho-penal">Derecho Penal</Link>
                     <Link to="/tramites-notariales">Trámites notariales</Link>
@@ -58,11 +58,11 @@ const Index = () => {
                     <Link to="/insolvencia">Insolvencia</Link>
                   </div>
                   <div className="dropdown-group">
-                    <span className="dropdown-title">Contabilidad</span>
-                    <Link to="/contabilidad">Contabilidad</Link>
+                  <Link to="/contabilidad" className="dropdown-title">Contabilidad</Link>
+                    
                     <Link to="/auditoria">Auditoría</Link>
                     <Link to="/impuestos">Impuestos</Link>
-                    <Link to="/planeacion-patrimonial">Planeación Patrimonial</Link>
+                    <Link to="/asesoria-contable">Asesoría Contable</Link>
                   </div>
                 </div>
               </div>
@@ -81,8 +81,7 @@ const Index = () => {
             loop
             playsInline
             preload="auto"
-            poster="/Imagen%20gigante%20centro%20int.JPG"
-          >
+            >
             <source src="/KoopCentroInternacional.mp4" type="video/mp4" />
           </video>
           <div className="hero-overlay"></div>
@@ -94,7 +93,7 @@ const Index = () => {
                 Equipo de abogados y contadores con experiencia. <br />
                 Brindamos consultoría estratégica para empresas y personas naturales.
               </div>
-              <a className="cta-btn" href="#contacto">Solicita tu consulta</a>
+              <a className="cta-btn" href="https://wa.me/573137213878?text=Hola%20,%20deseo%20agendar%20cita%20:">Solicita tu consulta</a>
             </div>
           </div>
         </div>
@@ -156,7 +155,7 @@ const Index = () => {
                 <a href="https://www.tiktok.com/@koop.co" target="_blank" className="social-icon tiktok" title="TikTok">
                   <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/tiktok.svg" alt="TikTok" />
                 </a>
-                <a href="https://wa.me/573137213878" target="_blank" className="social-icon whatsapp" title="WhatsApp">
+                <a href="https://wa.me/573137213878?text=Hola%20,%20deseo%20agendar%20cita%20" target="_blank" className="social-icon whatsapp" title="WhatsApp">
                   <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/whatsapp.svg" alt="WhatsApp" />
                 </a>
               </div>
@@ -361,3 +360,4 @@ const Index = () => {
 };
 
 export default Index;
+

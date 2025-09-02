@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import extractStylesFromHtml from '../utils/extractStylesFromHtml';
 import pageHtml from '../../old/privacidad.html?raw';
 import useNormalizeAssets from '../hooks/useNormalizeAssets';
@@ -29,7 +29,7 @@ const Privacidad = () => {
               <Link to="/#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</Link>
                 <div className="dropdown-content">
                 <div className="dropdown-group">
-                  <span className="dropdown-title">Derecho</span>
+                  <Link to="/derecho" className="dropdown-title">Derecho</Link>
                   <Link to="/derecho-laboral">Derecho Laboral</Link>
                   <Link to="/derecho-penal">Derecho Penal</Link>
                   <Link to="/tramites-notariales">Trámites notariales</Link>
@@ -41,11 +41,11 @@ const Privacidad = () => {
                   <Link to="/insolvencia">Insolvencia</Link>
                 </div>
                 <div className="dropdown-group">
-                  <span className="dropdown-title">Contabilidad</span>
-                  <Link to="/contabilidad">Contabilidad</Link>
+                  <Link to="/contabilidad" className="dropdown-title">Contabilidad</Link>
+                  
                   <Link to="/auditoria">Auditoría</Link>
                   <Link to="/impuestos">Impuestos</Link>
-                  <Link to="/planeacion-patrimonial">Planeación Patrimonial</Link>
+                  <Link to="/asesoria-contable">Asesoría Contable</Link>
                 </div>
               </div>
             </div>

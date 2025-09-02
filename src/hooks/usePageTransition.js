@@ -18,7 +18,9 @@ export default function usePageTransition() {
       '/derecho-laboral.html': '/derecho-laboral',
       '/derecho-penal.html': '/derecho-penal',
       '/impuestos.html': '/impuestos',
-      '/planeacion-patrimonial.html': '/planeacion-patrimonial',
+      '/planeacion-patrimonial.html': '/asesoria-contable',
+      // compatibilidad: ruta antigua sin .html
+      '/planeacion-patrimonial': '/asesoria-contable',
       '/privacidad.html': '/privacidad',
       '/politica-privacidad.html': '/privacidad',
       '/tramites-notariales.html': '/tramites-notariales',
@@ -182,4 +184,28 @@ export default function usePageTransition() {
     // Normalize anchors after navigation
     try { normalizeAnchors(); } catch (_) {}
   }, [location.pathname, location.search, location.hash]);
+
+  // If navigation includes a hash (e.g., /#contacto), scroll to that section after mount
+  useEffect(() => {
+    if (!location.hash) return undefined;
+    const id = (location.hash || '').replace(/^#/, '');
+    const scrollToHash = () => {
+      try {
+        const el = document.getElementById(id) || document.querySelector(location.hash);
+        if (el && el.scrollIntoView) {
+          el.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
+          return true;
+        }
+      } catch (_) {}
+      return false;
+    };
+
+    // Try immediately and with a few retries in case content takes a moment to render
+    if (scrollToHash()) return undefined;
+    const raf = requestAnimationFrame(scrollToHash);
+    const t1 = setTimeout(scrollToHash, 0);
+    const t2 = setTimeout(scrollToHash, 120);
+    const t3 = setTimeout(scrollToHash, 300);
+    return () => { cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [location.pathname, location.hash]);
 }

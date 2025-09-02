@@ -1,23 +1,25 @@
 {
-  "name": "pagina-principal-koop",
-  "version": "0.0.0",
-  "private": true,
-  "homepage": "https://koopstrategicadvisory.github.io/Pagina-principal-Koop",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.0.0",
-    "vite": "^5.0.0",
-    "gh-pages": "^6.1.0"
-  }
+    "name": "pagina-principal-koop",
+    "version": "0.0.0",
+    "private": true,
+    "homepage": "https://koopstrategicadvisory.github.io/Pagina-principal-Koop",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d dist",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "postbuild": "node scripts/postbuild-404.js"
+    },
+    "dependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^6.30.1"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "^4.0.0",
+        "gh-pages": "^6.1.0",
+        "vite": "^5.0.0"
+    }
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import extractStylesFromHtml from '../utils/extractStylesFromHtml';
 import pageHtml from '../../old/derecho-administrativo.html?raw';
 import useNormalizeAssets from '../hooks/useNormalizeAssets';
@@ -32,7 +32,7 @@ const DerechoAdministrativo = () => {
                 <Link to="/#areas" className="drop-btn" id="areas-toggle">ÁREAS DE PRÁCTICA</Link>
                 <div className="dropdown-content">
                   <div className="dropdown-group">
-                    <span className="dropdown-title">Derecho</span>
+                    <Link to="/derecho" className="dropdown-title">Derecho</Link>
                     <Link to="/derecho-laboral">Derecho Laboral</Link>
                     <Link to="/derecho-penal">Derecho Penal</Link>
                     <Link to="/tramites-notariales">Trámites notariales</Link>
@@ -44,11 +44,11 @@ const DerechoAdministrativo = () => {
                     <Link to="/insolvencia">Insolvencia</Link>
                   </div>
                   <div className="dropdown-group">
-                    <span className="dropdown-title">Contabilidad</span>
-                    <Link to="/contabilidad">Contabilidad</Link>
+                    <Link to="/contabilidad" className="dropdown-title">Contabilidad</Link>
+                    
                     <Link to="/auditoria">Auditoría</Link>
                     <Link to="/impuestos">Impuestos</Link>
-                    <Link to="/planeacion-patrimonial">Planeación Patrimonial</Link>
+                    <Link to="/asesoria-contable">Asesoría Contable</Link>
                   </div>
                 </div>
               </div>
@@ -61,7 +61,7 @@ const DerechoAdministrativo = () => {
       {/* HERO */}
 <section 
   className="hero-section" id="inicio"
-  style={{ backgroundImage: "url('/public/img/consejo-deestado.avif')", backgroundPosition: "center 80%",  }} >
+  style={{ backgroundImage: "url('/img/Consejo-deestado.avif')", backgroundPosition: "center 80%",  }} >
   <div className="hero-overlay" aria-hidden="true"></div> 
   <div className="hero-text" aria-label="Derecho Administrativo">
     <div className="hero-headline">Derecho Administrativo</div>

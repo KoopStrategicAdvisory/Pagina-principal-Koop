@@ -1,5 +1,6 @@
 import React from 'react';
 import './styles/overrides.css';
+import './styles/menu-mobile-uniform.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index.jsx';
 import Derecho from './pages/Derecho.jsx';
@@ -10,7 +11,7 @@ import DerechoFamilia from './pages/DerechoFamilia.jsx';
 import DerechoLaboral from './pages/DerechoLaboral.jsx';
 import DerechoPenal from './pages/DerechoPenal.jsx';
 import Impuestos from './pages/Impuestos.jsx';
-import PlaneacionPatrimonial from './pages/PlaneacionPatrimonial.jsx';
+import AsesoriaContable from './pages/AsesoriaContable.jsx';
 import Privacidad from './pages/Privacidad.jsx';
 import TramitesNotariales from './pages/TramitesNotariales.jsx';
 import AccionesDeTutela from './pages/AccionesDeTutela.jsx';
@@ -28,7 +29,9 @@ function App() {
         <Route path="/derecho-laboral" element={<DerechoLaboral />} />
         <Route path="/derecho-penal" element={<DerechoPenal />} />
         <Route path="/impuestos" element={<Impuestos />} />
-        <Route path="/planeacion-patrimonial" element={<PlaneacionPatrimonial />} />
+        <Route path="/asesoria-contable" element={<AsesoriaContable />} />
+        {/* Mantener ruta antigua para compatibilidad */}
+        <Route path="/planeacion-patrimonial" element={<Navigate to="/asesoria-contable" replace />} />
         <Route path="/privacidad" element={<Privacidad />} />
         <Route path="/tramites-notariales" element={<TramitesNotariales />} />
         <Route path="/acciones-de-tutela" element={<AccionesDeTutela />} />
@@ -42,7 +45,7 @@ function App() {
         <Route path="/derecho-laboral.html" element={<Navigate to="/derecho-laboral" replace />} />
         <Route path="/derecho-penal.html" element={<Navigate to="/derecho-penal" replace />} />
         <Route path="/impuestos.html" element={<Navigate to="/impuestos" replace />} />
-        <Route path="/planeacion-patrimonial.html" element={<Navigate to="/planeacion-patrimonial" replace />} />
+        <Route path="/planeacion-patrimonial.html" element={<Navigate to="/asesoria-contable" replace />} />
         <Route path="/privacidad.html" element={<Navigate to="/privacidad" replace />} />
         <Route path="/tramites-notariales.html" element={<Navigate to="/tramites-notariales" replace />} />
         <Route path="/acciones-de-tutela.html" element={<Navigate to="/acciones-de-tutela" replace />} />

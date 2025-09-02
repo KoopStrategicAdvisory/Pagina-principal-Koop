@@ -39,6 +39,13 @@ html.route-fade-in #root {
 
 /* Hero video background on home */
 .hero--home { position: relative; }
+/* Asegurar que no se muestre ninguna imagen de fondo heredada */
+.hero-section.hero--home,
+.hero--home {
+  background: none !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+}
 .hero--home .hero-video {
   position: absolute;
   inset: 0;
@@ -99,3 +106,84 @@ html.route-fade-in #root {
   .navbar .nav-menu > a,
   .navbar .drop-btn { font-weight: 400 !important; }
 }
+
+/* Fallback de acento (por si el HTML legacy no define la variable) */
+:root { --koop-acento: #ee9626; }
+
+/* Dropdown: azul translúcido con mejor contraste (desktop) */
+.navbar .dropdown-content {
+  background: rgba(22, 46, 95, 0.50) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.50);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.navbar .dropdown-content .dropdown-title,
+.navbar .dropdown-content .dropdown-title span {
+  color: var(--koop-acento) !important;
+  opacity: 1;
+}
+
+.navbar .dropdown-content a {
+  color: #ffffff !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.navbar .dropdown-content a:hover,
+.navbar .dropdown-content a:focus,
+.navbar .dropdown-content a:active,
+.navbar .dropdown-content a:focus-visible {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  color: #10a89d !important; /* turquesa */
+  outline: none !important;
+}
+
+/* Excepción: los títulos del dropdown (Derecho / Contabilidad) en naranja + negrilla */
+.navbar .dropdown-content a.dropdown-title,
+.navbar .dropdown-content a.dropdown-title:hover,
+.navbar .dropdown-content a.dropdown-title:focus,
+.navbar .dropdown-content a.dropdown-title:active,
+.navbar .dropdown-content a.dropdown-title:focus-visible {
+  color: var(--koop-acento) !important;
+  font-weight: 700 !important;
+  background: transparent !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Mobile uniform translucent dropdown (same as desktop) */
+@media (max-width: 700px) {
+  .navbar .nav-menu,
+  .navbar .nav-menu.open {
+    background: rgba(22, 46, 95, 0.72) !important;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 10px 28px rgba(0,0,0,.28);
+  }
+  /* Keep inner panels transparent to avoid double backgrounds */
+  .navbar .nav-menu .dropdown-content,
+  .navbar .nav-menu .dropdown-content * {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+  }
+  .navbar .nav-menu a,
+  .navbar .nav-menu .drop-btn {
+    color: #ffffff !important;
+    background: transparent !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+}
+
