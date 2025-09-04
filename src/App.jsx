@@ -18,7 +18,7 @@ import AccionesDeTutela from './pages/AccionesDeTutela.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Panel from './pages/Panel.jsx';
-import Dashboard from './pages/Dashboard.jsx';
+import Dashboard from '../client/src/pages/Dashboard.jsx';
 import MisCasos from './pages/MisCasos.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
@@ -50,7 +50,8 @@ function App() {
       <>
         {!hideNavbar && <Navbar />}
         <Routes>
-          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Index />} />
+          {/* Index siempre accesible, incluso autenticado */}
+          <Route path="/" element={<Index />} />
           <Route path="/derecho" element={<Derecho />} />
           <Route path="/contabilidad" element={<Contabilidad />} />
           <Route path="/auditoria" element={<Auditoria />} />
@@ -66,9 +67,15 @@ function App() {
           <Route path="/tramites-notariales" element={<TramitesNotariales />} />
           <Route path="/acciones-de-tutela" element={<AccionesDeTutela />} />
           
-          {/* Auth */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* Auth: si ya est1s autenticado, redirige fuera de login/registro */}
+          <Route
+            path="/login"
+            element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+          />
+          <Route
+            path="/register"
+            element={isAuthenticated ? <Navigate to="/" replace /> : <Register />}
+          />
           <Route
             path="/panel"
             element={

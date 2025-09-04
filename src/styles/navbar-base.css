@@ -53,12 +53,23 @@
 .navbar .dropdown-content a { color:#23395d; text-decoration:none; margin:4px 0; }
 
 @media (max-width:700px){
+  :root { --nav-h: 88px; }
+  .navbar { height: var(--nav-h); padding: 6px 16px; align-items: center; }
   .navbar .menu-toggle { display: flex; }
-  .navbar .logo-text { display: none; }
+  /* Nombre completo en móvil (permitir salto de línea) */
+  .navbar .logo-text {
+    display: block;
+    font-size: clamp(0.9rem, 4.4vw, 1.05rem);
+    white-space: normal;
+    line-height: 1.1;
+    max-width: 70vw;
+  }
+  /* Reducir un poco el logo para dar espacio al texto */
+  .navbar .logo-img { height: 36px; max-height: 36px; }
   .navbar .nav-menu {
     position: fixed; top: var(--nav-h); left: 0; right: 0;
     flex-direction: column; align-items: flex-start; gap: 14px;
-    padding: 16px 20px; display: none;
+    padding: 16px 20px; display: none; z-index: 90;
   }
   .navbar .nav-menu.open { display: flex; }
   .navbar .dropdown-content{ position: static; box-shadow:none; padding:0; gap:0; display:none; flex-direction:column; }
