@@ -189,3 +189,8 @@ html.route-fade-in #root {
     box-shadow: none !important;
   }
 }
+
+/* Unificar tipografda global con la usada en la navbar */
+html, body {
+  font-family: 'Montserrat', Arial, sans-serif;
+}

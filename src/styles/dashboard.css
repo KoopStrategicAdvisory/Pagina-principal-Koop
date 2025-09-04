@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
+/* Use global Montserrat (loaded in index.html) */
 
 .dash-page {
   min-height: 100vh;
@@ -10,7 +10,7 @@
   color: #ffffff;
   padding: 16px;
   padding-top: calc(16px + var(--nav-h, 64px));
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Montserrat', Arial, sans-serif;
 }
 
 .dash-card {

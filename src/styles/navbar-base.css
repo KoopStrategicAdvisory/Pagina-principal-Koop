@@ -13,7 +13,13 @@
   display: flex; align-items: center; justify-content: space-between; position: relative;
 }
 .navbar .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.navbar .logo-img { width: 100px; height: 100px; object-fit: contain; }
+.navbar .logo-img {
+  height: calc(var(--nav-h) - 16px);
+  max-height: calc(var(--nav-h) - 16px);
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
 .navbar .logo-text { font-weight: 700; color: #23395d; font-size: 1.23em; letter-spacing: 0.05em; }
 
 .navbar .menu-toggle {
@@ -48,6 +54,7 @@
 
 @media (max-width:700px){
   .navbar .menu-toggle { display: flex; }
+  .navbar .logo-text { display: none; }
   .navbar .nav-menu {
     position: fixed; top: var(--nav-h); left: 0; right: 0;
     flex-direction: column; align-items: flex-start; gap: 14px;
