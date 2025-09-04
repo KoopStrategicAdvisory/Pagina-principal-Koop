@@ -9,6 +9,7 @@
   background: linear-gradient(135deg, #0d1b2a, #1b263b);
   color: #ffffff;
   padding: 16px;
+  padding-top: calc(16px + var(--nav-h, 64px));
   font-family: 'Poppins', sans-serif;
 }
 

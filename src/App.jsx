@@ -19,8 +19,10 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Panel from './pages/Panel.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import MisCasos from './pages/MisCasos.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { useAuth } from './context/AuthContext.jsx';
 import api from './api/axios';
 import Navbar from './components/Navbar.jsx';
 
@@ -41,13 +43,14 @@ function App() {
 
   const Shell = () => {
     const location = useLocation();
+    const { isAuthenticated } = useAuth();
     const p = location.pathname.toLowerCase();
-    const hideNavbar = p.startsWith('/login') || p.startsWith('/register') || p.startsWith('/dashboard'); 
+    const hideNavbar = p.startsWith('/login') || p.startsWith('/register');
     return (
       <>
         {!hideNavbar && <Navbar />}
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Index />} />
           <Route path="/derecho" element={<Derecho />} />
           <Route path="/contabilidad" element={<Contabilidad />} />
           <Route path="/auditoria" element={<Auditoria />} />
@@ -79,6 +82,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mis-casos"
+            element={
+              <ProtectedRoute>
+                <MisCasos />
               </ProtectedRoute>
             }
           />
