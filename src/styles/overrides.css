@@ -110,6 +110,9 @@ html.route-fade-in #root {
 /* Fallback de acento (por si el HTML legacy no define la variable) */
 :root { --koop-acento: #ee9626; }
 
+/* Hide legacy in-page navbars when using global Navbar */
+.navbar.legacy { display: none !important; }
+
 /* Dropdown: azul translúcido con mejor contraste (desktop) */
 .navbar .dropdown-content {
   background: rgba(22, 46, 95, 0.50) !important;
@@ -186,4 +189,3 @@ html.route-fade-in #root {
     box-shadow: none !important;
   }
 }
-

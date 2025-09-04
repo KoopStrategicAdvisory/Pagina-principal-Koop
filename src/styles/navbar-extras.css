@@ -1,0 +1,51 @@
+/* Uppercase + animated rainbow wave for "CLIENTE KOOP" */
+.koop-cta {
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  text-decoration: none;
+}
+
+.koop-cta .letter {
+  display: inline-block;
+  transition: transform 220ms ease, color 220ms ease;
+  will-change: transform, color;
+}
+
+.koop-cta:hover .letter,
+.koop-cta:focus .letter {
+  animation: koopWave 900ms ease-in-out calc(var(--i) * 60ms) infinite,
+             koopRainbow 2400ms linear calc(var(--i) * 80ms) infinite;
+}
+
+@keyframes koopWave {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Brand rainbow: 0d5573, f5b891, fc771c, 10a89d, 14385a, 142444 */
+@keyframes koopRainbow {
+  0%   { color: #0d5573; }
+  16%  { color: #f5b891; }
+  33%  { color: #fc771c; }
+  50%  { color: #10a89d; }
+  66%  { color: #14385a; }
+  83%  { color: #142444; }
+  100% { color: #0d5573; }
+}
+
+/* Subtle emphasis on non-hover (desktop) */
+@media (hover: hover) {
+  .koop-cta { opacity: 0.95; }
+  .koop-cta:hover, .koop-cta:focus { opacity: 1; }
+}
+
+/* Mobile safe: reduce strong motion on very small screens */
+@media (max-width: 480px) {
+  .koop-cta .letter { transition-duration: 160ms; }
+}
+

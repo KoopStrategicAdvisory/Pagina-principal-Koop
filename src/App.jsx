@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './styles/overrides.css';
 import './styles/menu-mobile-uniform.css';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Index from './pages/Index.jsx';
 import Derecho from './pages/Derecho.jsx';
 import Contabilidad from './pages/Contabilidad.jsx';
@@ -15,42 +15,109 @@ import AsesoriaContable from './pages/AsesoriaContable.jsx';
 import Privacidad from './pages/Privacidad.jsx';
 import TramitesNotariales from './pages/TramitesNotariales.jsx';
 import AccionesDeTutela from './pages/AccionesDeTutela.jsx';
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
+import Panel from './pages/Panel.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
+import api from './api/axios';
+import Navbar from './components/Navbar.jsx';
 
 function App() {
+  // Test /api/ping using Axios instance
+  const [pong, setPong] = useState(null);
+  const testPing = async () => {
+    try {
+      const { data } = await api.get('/ping');
+      setPong(data);
+    } catch (err) {
+      console.error(err);
+      setPong({ error: true, message: err?.message || 'error' });
+    }
+  };
+
+  //Acá se manipula el navbar para que no aparezca en login, register y dashboard
+
+  const Shell = () => {
+    const location = useLocation();
+    const p = location.pathname.toLowerCase();
+    const hideNavbar = p.startsWith('/login') || p.startsWith('/register') || p.startsWith('/dashboard'); 
+    return (
+      <>
+        {!hideNavbar && <Navbar />}
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/derecho" element={<Derecho />} />
+          <Route path="/contabilidad" element={<Contabilidad />} />
+          <Route path="/auditoria" element={<Auditoria />} />
+          <Route path="/derecho-administrativo" element={<DerechoAdministrativo />} />
+          <Route path="/derecho-familia" element={<DerechoFamilia />} />
+          <Route path="/derecho-laboral" element={<DerechoLaboral />} />
+          <Route path="/derecho-penal" element={<DerechoPenal />} />
+          <Route path="/impuestos" element={<Impuestos />} />
+          <Route path="/asesoria-contable" element={<AsesoriaContable />} />
+          {/* Mantener ruta antigua para compatibilidad */}
+          <Route path="/planeacion-patrimonial" element={<Navigate to="/asesoria-contable" replace />} />
+          <Route path="/privacidad" element={<Privacidad />} />
+          <Route path="/tramites-notariales" element={<TramitesNotariales />} />
+          <Route path="/acciones-de-tutela" element={<AccionesDeTutela />} />
+          
+          {/* Auth */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/panel"
+            element={
+              <ProtectedRoute>
+                <Panel />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          {/* Legacy .html paths -> redirect to SPA routes */}
+          <Route path="/index.html" element={<Navigate to="/" replace />} />
+          <Route path="/derecho.html" element={<Navigate to="/derecho" replace />} />
+          <Route path="/contabilidad.html" element={<Navigate to="/contabilidad" replace />} />
+          <Route path="/auditoria.html" element={<Navigate to="/auditoria" replace />} />
+          <Route path="/derecho-administrativo.html" element={<Navigate to="/derecho-administrativo" replace />} />
+          <Route path="/derecho-familia.html" element={<Navigate to="/derecho-familia" replace />} />
+          <Route path="/derecho-laboral.html" element={<Navigate to="/derecho-laboral" replace />} />
+          <Route path="/derecho-penal.html" element={<Navigate to="/derecho-penal" replace />} />
+          <Route path="/impuestos.html" element={<Navigate to="/impuestos" replace />} />
+          <Route path="/planeacion-patrimonial.html" element={<Navigate to="/asesoria-contable" replace />} />
+          <Route path="/privacidad.html" element={<Navigate to="/privacidad" replace />} />
+          <Route path="/tramites-notariales.html" element={<Navigate to="/tramites-notariales" replace />} />
+          <Route path="/acciones-de-tutela.html" element={<Navigate to="/acciones-de-tutela" replace />} />
+        </Routes>
+      </>
+    );
+  };
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/derecho" element={<Derecho />} />
-        <Route path="/contabilidad" element={<Contabilidad />} />
-        <Route path="/auditoria" element={<Auditoria />} />
-        <Route path="/derecho-administrativo" element={<DerechoAdministrativo />} />
-        <Route path="/derecho-familia" element={<DerechoFamilia />} />
-        <Route path="/derecho-laboral" element={<DerechoLaboral />} />
-        <Route path="/derecho-penal" element={<DerechoPenal />} />
-        <Route path="/impuestos" element={<Impuestos />} />
-        <Route path="/asesoria-contable" element={<AsesoriaContable />} />
-        {/* Mantener ruta antigua para compatibilidad */}
-        <Route path="/planeacion-patrimonial" element={<Navigate to="/asesoria-contable" replace />} />
-        <Route path="/privacidad" element={<Privacidad />} />
-        <Route path="/tramites-notariales" element={<TramitesNotariales />} />
-        <Route path="/acciones-de-tutela" element={<AccionesDeTutela />} />
-        {/* Legacy .html paths -> redirect to SPA routes */}
-        <Route path="/index.html" element={<Navigate to="/" replace />} />
-        <Route path="/derecho.html" element={<Navigate to="/derecho" replace />} />
-        <Route path="/contabilidad.html" element={<Navigate to="/contabilidad" replace />} />
-        <Route path="/auditoria.html" element={<Navigate to="/auditoria" replace />} />
-        <Route path="/derecho-administrativo.html" element={<Navigate to="/derecho-administrativo" replace />} />
-        <Route path="/derecho-familia.html" element={<Navigate to="/derecho-familia" replace />} />
-        <Route path="/derecho-laboral.html" element={<Navigate to="/derecho-laboral" replace />} />
-        <Route path="/derecho-penal.html" element={<Navigate to="/derecho-penal" replace />} />
-        <Route path="/impuestos.html" element={<Navigate to="/impuestos" replace />} />
-        <Route path="/planeacion-patrimonial.html" element={<Navigate to="/asesoria-contable" replace />} />
-        <Route path="/privacidad.html" element={<Navigate to="/privacidad" replace />} />
-        <Route path="/tramites-notariales.html" element={<Navigate to="/tramites-notariales" replace />} />
-        <Route path="/acciones-de-tutela.html" element={<Navigate to="/acciones-de-tutela" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <>
+        <BrowserRouter>
+          <Shell />
+        </BrowserRouter>
+        {/* Floating test button for /api/ping */}
+        <div style={{ position: 'fixed', bottom: 16, right: 16, background: 'rgba(30,42,58,0.6)', color: '#fff', padding: '10px 12px', borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.3)', zIndex: 9999 }}>
+          <button onClick={testPing} style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: '#fff', cursor: 'pointer' }}>Probar /api/ping</button>
+          {pong && (
+            <pre style={{ marginTop: 8, maxWidth: 260, maxHeight: 160, overflow: 'auto', fontSize: 12 }}>
+              {JSON.stringify(pong, null, 2)}
+            </pre>
+          )}
+        </div>
+      </>
+    </AuthProvider>
   );
 }
 
