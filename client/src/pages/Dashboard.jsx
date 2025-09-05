@@ -46,10 +46,10 @@ export default function Dashboard() {
 
         {/* Acciones rápidas (placeholder) */}
         <div className="dash-item" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <button className="btn btn-secondary">Subir documento</button>
-          <button className="btn btn-secondary">Agendar cita</button>
-          <button className="btn btn-secondary">Abrir ticket</button>
-          <button className="btn btn-secondary">Pagar factura</button>
+          <button className="btn btn-primary">Subir documento</button>
+          <button className="btn btn-primary">Agendar cita</button>
+          <button className="btn btn-primary">Abrir ticket</button>
+          <button className="btn btn-primary">Pagar factura</button>
         </div>
 
         {/* KPIs */}

@@ -78,7 +78,7 @@ export default function MisCasos() {
           <div className="modal-card">
             <div className="modal-header">
               <div className="modal-title" id="caso-title">{selected.titulo}</div>
-              <button className="btn btn-secondary" onClick={() => setSelected(null)}>Cerrar</button>
+              <button className="btn btn-primary" onClick={() => setSelected(null)}>Cerrar</button>
             </div>
             <div className="modal-body">
               <div className="case-grid">

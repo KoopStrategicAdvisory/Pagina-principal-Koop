@@ -67,15 +67,12 @@ function App() {
           <Route path="/tramites-notariales" element={<TramitesNotariales />} />
           <Route path="/acciones-de-tutela" element={<AccionesDeTutela />} />
           
-          {/* Auth: si ya est1s autenticado, redirige fuera de login/registro */}
+          {/* Auth: si ya estás autenticado, redirige fuera de login; registro queda libre */}
           <Route
             path="/login"
             element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
           />
-          <Route
-            path="/register"
-            element={isAuthenticated ? <Navigate to="/" replace /> : <Register />}
-          />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/panel"
             element={

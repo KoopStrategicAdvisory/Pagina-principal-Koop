@@ -1,4 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
+// En dev usamos "/api" para pasar por el proxy de Vite; en prod puedes definir VITE_API_BASE
+const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 
 export async function registerApi({ name, email, password, roles }) {
   const res = await fetch(`${API_BASE}/auth/register`, {

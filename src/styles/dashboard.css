@@ -64,12 +64,19 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
+  transition: background 0.25s ease, transform 0.06s ease;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, #4fd1c5, #38b2ac);
   color: #fff;
 }
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #319795, #2c7a7b);
+}
+
+.btn:active { transform: translateY(1px); }
 
 .btn-secondary {
   background: #32465a;

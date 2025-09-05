@@ -1,13 +1,14 @@
 import axios from "axios";
+const BASE = import.meta.env?.VITE_API_BASE || "/api";
 
 const api = axios.create({
-  baseURL: "/api", // se apoya en el proxy de Vite
+  baseURL: BASE, // se apoya en el proxy de Vite
   withCredentials: true, // habilita envío/recepción de cookies
 });
 
 // Instancia sin interceptores para refresh
 const apiBare = axios.create({
-  baseURL: "/api",
+  baseURL: BASE,
   withCredentials: true,
 });
 
