@@ -1,34 +1,38 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import useMenu from '../hooks/useMenu';
 import '../styles/navbar-base.css';
 import '../styles/navbar-extras.css';
+import { normalizeUpperAscii } from '../utils/strings.js';
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
-  // Solo usar useMenu para el submenú de Áreas (no para abrir/cerrar hamburguesa)
-  useMenu();
   const [userOpen, setUserOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [areasOpen, setAreasOpen] = useState(false);
   const navigate = useNavigate();
 
   const onLogout = async () => {
-    try {
-      await logout();
-    } catch (_) {}
+    try { await logout(); } catch (_) {}
     setUserOpen(false);
     setMenuOpen(false);
+    setAreasOpen(false);
     navigate('/login', { replace: true });
   };
 
-  const onMenuToggle = () => setMenuOpen((v) => !v);
+  const onMenuToggle = () => {
+    setMenuOpen((v) => {
+      const next = !v;
+      if (!next) setAreasOpen(false);
+      return next;
+    });
+  };
 
   const onNavClick = (e) => {
-    // Cerrar menú al clicar cualquier enlace que NO sea el botón de desplegable
     const a = e.target.closest('a');
     if (a && !a.classList.contains('drop-btn')) {
       setMenuOpen(false);
+      setAreasOpen(false);
     }
   };
 
@@ -47,15 +51,19 @@ export default function Navbar() {
         <div className={`nav-menu ${menuOpen ? 'open' : ''}`} id="nav-menu" onClick={onNavClick}>
           <>
             <Link to="/#inicio">INICIO</Link>
-            <div className="dropdown">
-              <Link to="/#areas" className="drop-btn" id="areas-toggle">
+            <div className={`dropdown ${areasOpen ? 'open' : ''}`}>
+              <Link
+                to="/#areas"
+                className="drop-btn"
+                id="areas-toggle"
+                aria-expanded={areasOpen ? 'true' : 'false'}
+                onClick={(e) => { e.preventDefault(); setAreasOpen((v) => !v); }}
+              >
                 ÁREAS DE PRÁCTICA
               </Link>
               <div className="dropdown-content">
                 <div className="dropdown-group">
-                  <Link to="/derecho" className="dropdown-title">
-                    Derecho
-                  </Link>
+                  <Link to="/derecho" className="dropdown-title">Derecho</Link>
                   <Link to="/derecho-laboral">Derecho Laboral</Link>
                   <Link to="/derecho-penal">Derecho Penal</Link>
                   <Link to="/tramites-notariales">Trámites notariales</Link>
@@ -67,16 +75,14 @@ export default function Navbar() {
                   <Link to="/insolvencia">Insolvencia</Link>
                 </div>
                 <div className="dropdown-group">
-                  <Link to="/contabilidad" className="dropdown-title">
-                    Contabilidad
-                  </Link>
+                  <Link to="/contabilidad" className="dropdown-title">Contabilidad</Link>
                   <Link to="/auditoria">Auditoría</Link>
                   <Link to="/impuestos">Impuestos</Link>
                   <Link to="/asesoria-contable">Asesoría Contable</Link>
                 </div>
               </div>
             </div>
-            <Link to="/#vision">NUESTRA VISIÓN</Link>
+            {!isAuthenticated && <Link to="/#vision">NUESTRA VISIÓN</Link>}
           </>
           {isAuthenticated ? (
             <div className={`dropdown ${userOpen ? 'open' : ''}`}>
@@ -86,19 +92,14 @@ export default function Navbar() {
                 aria-expanded={userOpen ? 'true' : 'false'}
                 onClick={() => setUserOpen((v) => !v)}
               >
-                {user?.name || 'Mi cuenta'}
+                {normalizeUpperAscii(user?.name || 'Mi cuenta')}
               </button>
               <div className="dropdown-content">
                 <div className="dropdown-group">
                   <Link to="/dashboard">Dashboard</Link>
+                  <Link to="/mi-expediente">Mi expediente</Link>
                   <Link to="/mis-casos">Mis casos</Link>
-                  <Link
-                    to="/logout"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onLogout();
-                    }}
-                  >
+                  <Link to="/logout">
                     Cerrar sesión
                   </Link>
                 </div>

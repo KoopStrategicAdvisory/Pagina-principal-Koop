@@ -19,7 +19,9 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Panel from './pages/Panel.jsx';
 import Dashboard from '../client/src/pages/Dashboard.jsx';
+import MiExpediente from './pages/MiExpediente.jsx';
 import MisCasos from './pages/MisCasos.jsx';
+import Logout from './pages/Logout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { useAuth } from './context/AuthContext.jsx';
@@ -73,6 +75,7 @@ function App() {
             element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
           />
           <Route path="/register" element={<Register />} />
+          <Route path="/logout" element={<Logout />} />
           <Route
             path="/panel"
             element={
@@ -86,6 +89,23 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mi-expediente"
+            element={
+              <ProtectedRoute>
+                <MiExpediente />
+              </ProtectedRoute>
+            }
+          />
+          {/* alias solicitado: dashboard2 */}
+          <Route
+            path="/dashboard2"
+            element={
+              <ProtectedRoute>
+                <MiExpediente />
               </ProtectedRoute>
             }
           />

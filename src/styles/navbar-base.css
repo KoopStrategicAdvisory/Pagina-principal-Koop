@@ -29,6 +29,11 @@
 .navbar .menu-toggle span { height: 4px; background: #23395d; margin: 5px 0; border-radius: 2px; transition: .4s; display: block; }
 
 .navbar .nav-menu { display: flex; gap: 36px; align-items: center; justify-content: center; }
+.navbar .nav-menu,
+.navbar .nav-menu a,
+.navbar .nav-menu .drop-btn {
+  font-family: 'Montserrat', Arial, sans-serif;
+}
 .navbar .nav-menu a { color: #23395d; text-decoration: none; font-weight: 500; font-size: 1em; letter-spacing: .02em; transition: color .2s; }
 .navbar .nav-menu a:hover { color: var(--koop-acento, #ee9626); }
 

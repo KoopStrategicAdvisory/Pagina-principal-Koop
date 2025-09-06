@@ -86,7 +86,11 @@ export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogou
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (e) {
-        try { await onLogout?.(); } catch {}
+        // Evitar cerrar sesión por errores transitorios de red
+        const status = e?.response?.status;
+        if (status === 401 || status === 403) {
+          try { await onLogout?.(); } catch {}
+        }
         return Promise.reject(e);
       } finally {
         isRefreshing = false;

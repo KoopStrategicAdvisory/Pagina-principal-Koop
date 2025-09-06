@@ -3,10 +3,10 @@ import '../styles/dashboard.css';
 import '../styles/mis-casos.css';
 
 const casosEjemplo = [
-  { id: 'CJ-001', titulo: 'Acción de tutela – derecho a la salud', estado: 'En curso', juzgado: 'Juzgado 12 Municipal', fecha: '2025-07-10' },
-  { id: 'CJ-002', titulo: 'Proceso laboral – despido sin justa causa', estado: 'Audiencia programada', juzgado: 'Juzgado 3 Laboral del Circuito', fecha: '2025-08-02' },
-  { id: 'CJ-003', titulo: 'Responsabilidad fiscal – recursos', estado: 'Recurso interpuesto', juzgado: 'Contraloría Distrital', fecha: '2025-08-21' },
-  { id: 'CJ-004', titulo: 'Proceso de alimentos – fijación de cuota', estado: 'Admitido', juzgado: 'Juzgado 5 de Familia', fecha: '2025-09-01' },
+  { id: 'CJ-001', titulo: 'Acción de tutela — derecho a la salud', estado: 'En curso', juzgado: 'Juzgado 12 Municipal', fecha: '2025-07-10' },
+  { id: 'CJ-002', titulo: 'Proceso laboral — despido sin justa causa', estado: 'Audiencia programada', juzgado: 'Juzgado 3 Laboral del Circuito', fecha: '2025-08-02' },
+  { id: 'CJ-003', titulo: 'Responsabilidad fiscal — recursos', estado: 'Recurso interpuesto', juzgado: 'Contraloría Distrital', fecha: '2025-08-21' },
+  { id: 'CJ-004', titulo: 'Proceso de alimentos — fijación de cuota', estado: 'Admitido', juzgado: 'Juzgado 5 de Familia', fecha: '2025-09-01' },
 ];
 
 export default function MisCasos() {
@@ -39,7 +39,16 @@ export default function MisCasos() {
   };
 
   return (
-    <div className="dash-page">
+    <div
+      className="dash-page"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(13,27,42,0.65), rgba(27,38,59,0.65)), url('/fondodashboard.jpg')",
+        backgroundSize: 'cover',
+        backgroundAttachment: 'fixed',
+        backgroundPosition: 'center',
+      }}
+    >
       <div className="dash-card" style={{ maxWidth: 900 }}>
         <div className="dash-header">
           <div className="dash-title">Mis casos</div>

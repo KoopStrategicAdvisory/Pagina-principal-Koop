@@ -1,14 +1,16 @@
 /* Use global Montserrat (loaded in index.html) */
 
 .dash-page {
-  min-height: 100vh;
-  min-height: 100dvh;
+  /* Restar la altura del navbar y los paddings para evitar scroll mínimo innecesario */
+  min-height: calc(100dvh - var(--nav-h, 64px) - 32px);
   display: flex;
   justify-content: center;
   align-items: center;
   background: linear-gradient(135deg, #0d1b2a, #1b263b);
   color: #ffffff;
-  padding: 16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: 16px;
   padding-top: calc(16px + var(--nav-h, 64px));
   font-family: 'Montserrat', Arial, sans-serif;
 }

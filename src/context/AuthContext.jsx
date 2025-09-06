@@ -20,7 +20,7 @@ export function AuthProvider({ children }) {
     const t = localStorage.getItem('accessToken');
     if (!t) return null;
     const payload = decodeJwt(t);
-    return payload ? { id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [] } : null;
+    return payload ? { id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [], driveFolders: payload.driveFolders || [] } : null;
   });
   const [loading, setLoading] = useState(false);
   const isAuthenticated = !!accessToken;
@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
     } else {
       localStorage.setItem('accessToken', accessToken);
       const payload = decodeJwt(accessToken);
-      if (payload) setUser({ id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [] });
+      if (payload) setUser({ id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [], driveFolders: payload.driveFolders || [] });
     }
   }, [accessToken]);
 
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
       setAccessToken(token);
       // Preferir datos del token por coherencia
       const payload = decodeJwt(token);
-      setUser(payload ? { id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [] } : u || null);
+      setUser(payload ? { id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [], driveFolders: payload.driveFolders || [] } : u || null);
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err.message };
@@ -59,11 +59,7 @@ export function AuthProvider({ children }) {
       if (data?.accessToken) {
         setAccessToken(data.accessToken);
         const payload = decodeJwt(data.accessToken);
-        setUser(
-          payload
-            ? { id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [] }
-            : data.user || null
-        );
+        setUser(payload ? { id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [], driveFolders: payload.driveFolders || [] } : data.user || null);
       }
       return { ok: true, data };
     } catch (err) {

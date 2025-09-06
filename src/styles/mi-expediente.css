@@ -1,0 +1,63 @@
+/* Mi Expediente: reutiliza la paleta y componentes del dashboard (oscuro) */
+
+.me-subbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.me-hello { color: #e5edf7; font-weight: 600; margin-right: 8px; }
+.me-select, .me-input {
+  height: 38px;
+  border: 1px solid #394b61;
+  border-radius: 10px;
+  background: #243447;
+  color: #e5edf7;
+  padding: 0 12px;
+  font: inherit;
+}
+.me-select { min-width: 180px; }
+.me-input { width: 320px; max-width: 100%; }
+.me-actions { display: flex; gap: 8px; margin-left: auto; }
+
+/* Layout 3 columnas (responsivo) */
+.me-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+@media (min-width: 1200px) {
+  .me-layout { grid-template-columns: 320px 1fr 360px; }
+}
+.me-left, .me-center, .me-right { min-height: 220px; }
+.me-head { font-weight: 700; margin-bottom: 10px; }
+
+/* Árbol izquierdo */
+.me-tree { max-height: 460px; overflow: auto; padding-right: 4px; }
+.me-tree details { padding: 2px 0; border-bottom: 1px solid #34465a; }
+.me-tree summary { list-style: none; cursor: pointer; display:flex; gap:10px; align-items: center; padding: 8px 4px; }
+.me-tree summary:hover { background: #2a3a51; border-radius: 8px; }
+.me-chev { display:inline-block; transform: rotate(-90deg); transition: transform .18s ease; width: 16px; color: #9fb3cc; }
+details[open] > summary .me-chev { transform: rotate(0); }
+.me-tag { font-size: 12px; color: #9fb3cc; }
+.me-leaf { padding: 6px 24px; color: #e5edf7; }
+
+/* Tabs y tablas centro */
+.me-tabs { display:flex; gap: 10px; margin: -16px -16px 0 -16px; padding: 10px 16px; border-bottom: 1px solid #34465a; background: #1e2a3a; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+.me-tab { padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; color: #cbd5e1; }
+.me-tab.active { background: #2a3a51; color: #ffffff; }
+.me-table-wrap { position: relative; overflow: auto; }
+.me-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.me-table thead th { background: #1e2a3a; color: #e2e8f0; position: sticky; top: 0; z-index: 1; }
+.me-table th, .me-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #34465a; }
+.me-table tbody tr:nth-child(odd) { background: #223145; }
+.me-table tbody tr:hover { background: #2a3a51; }
+.me-badge { display:inline-flex; align-items:center; justify-content:center; min-width: 20px; height: 22px; border-radius: 999px; padding: 0 8px; font-size: 12px; font-weight: 700; color: #fff; }
+.me-badge-success { background: #10b981; }
+
+/* Derecha */
+.me-right-content { color: #d1d9e6; }
+.me-proc-grid { display: grid; grid-template-columns: 120px 1fr; gap: 8px 14px; }
+.me-hr { margin: 16px 0; border: none; border-top: 1px solid #34465a; }
+
