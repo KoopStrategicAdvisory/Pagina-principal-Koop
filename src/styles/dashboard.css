@@ -66,6 +66,8 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
+  font-family: 'Montserrat', Arial, sans-serif;
+  text-decoration: none;
   transition: background 0.25s ease, transform 0.06s ease;
 }
 
@@ -84,6 +86,12 @@
   background: #32465a;
   color: #fff;
   border: 1px solid #3f556e;
+}
+
+/* Talla pequeña para botones (por ej. "Mi expediente") */
+.btn-sm {
+  font-size: 14px;
+  padding: 8px 12px;
 }
 
 .muted { color: #cbd5e1; font-size: 14px; }
