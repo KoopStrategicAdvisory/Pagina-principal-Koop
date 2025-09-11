@@ -1,3 +1,5 @@
+// Dashboard.jsx — Portal del cliente (página principal)
+// Estructura general: Acciones rápidas, KPIs, PDF de bienvenida, widgets (Facturas/Mensajes) y Documentos recientes
 import { useEffect, useRef, useState } from "react";
 import api from "../api/axios";
 import KpiCard from "../components/dashboard/KpiCard";
@@ -8,6 +10,7 @@ import "../../../src/styles/dashboard.css";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../src/context/AuthContext.jsx";
 import { normalizeUpperAscii } from "../../../src/utils/strings.js";
+import ResponsivePdf from "../components/dashboard/ResponsivePdf.jsx";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -49,7 +52,7 @@ export default function Dashboard() {
           @media (min-width: 1024px) { .main-left { grid-column: span 2; } }
         `}</style>
 
-        {/* Acciones rÃƒÂ¡pidas */}
+        {/* Acciones rápidas (atajos para el usuario) */}
         <div className="dash-item" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <button
             className="btn btn-primary"
@@ -68,25 +71,20 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* KPIs */}
+        {/* KPIs (tarjetas con números) */}
         <div className="kpi-grid" style={{ marginTop: 16 }}>
-          <KpiCard label="Casos activos" value={kpis?.activeCases ?? (loading ? "Ã¢â‚¬Â¦" : 0)} />
+          <KpiCard label="Casos activos" value={kpis?.activeCases ?? (loading ? "…" : 0)} />
         </div>
 
-        {/* Fila principal */}
+        {/* Fila principal: izquierda PDF, derecha widgets */}
         <div className="main-grid" style={{ marginTop: 16 }}>
           <div className="main-left">
             <div className="dash-item" style={{ padding: 0 }}>
-              <div style={{ height: 560 }}>
-                <object data="/Saludobienvenidaportal.pdf" type="application/pdf" width="100%" height="100%">
-                  <div style={{ padding: 16 }}>
-                    No se pudo mostrar el PDF. <a href="/Saludobienvenidaportal.pdf" target="_blank" rel="noopener">Abrir en nueva pestaÃ±a</a>
-                  </div>
-                </object>
-              </div>
+              <ResponsivePdf src="/Saludobienvenidaportal.pdf" heightDesktop={560} heightMobile={480} />
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Bloque: Facturas vencidas (con botón de pago) */}
             <div className="dash-item">
               <div className="font-semibold mb-2" style={{ fontWeight: 600, marginBottom: 8 }}>Facturas vencidas</div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -115,3 +113,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

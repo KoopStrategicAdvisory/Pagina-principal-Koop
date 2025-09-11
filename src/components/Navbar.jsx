@@ -1,3 +1,8 @@
+// Navbar.jsx — Menú superior de navegación para todo el sitio
+// Para cambiar enlaces:
+// - Busca elementos <Link to="/ruta">TEXTO</Link>
+// - Agrega o elimina según necesidad
+// - El botón "CLIENTE KOOP" lleva a /login cuando NO hay sesión
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -28,6 +33,7 @@ export default function Navbar() {
     });
   };
 
+  // Cierra el menú al hacer clic en algún enlace (mejor UX móvil)
   const onNavClick = (e) => {
     const a = e.target.closest('a');
     if (a && !a.classList.contains('drop-btn')) {
@@ -50,6 +56,7 @@ export default function Navbar() {
         </div>
         <div className={`nav-menu ${menuOpen ? 'open' : ''}`} id="nav-menu" onClick={onNavClick}>
           <>
+            {/* Enlaces principales (edita/añade/quita aquí) */}
             <Link to="/#inicio">INICIO</Link>
             <div className={`dropdown ${areasOpen ? 'open' : ''}`}>
               <Link
@@ -63,6 +70,7 @@ export default function Navbar() {
               </Link>
               <div className="dropdown-content">
                 <div className="dropdown-group">
+                  {/* Sección: Derecho (submenú) */}
                   <Link to="/derecho" className="dropdown-title">Derecho</Link>
                   <Link to="/derecho-laboral">Derecho Laboral</Link>
                   <Link to="/derecho-penal">Derecho Penal</Link>
@@ -75,6 +83,7 @@ export default function Navbar() {
                   <Link to="/insolvencia">Insolvencia</Link>
                 </div>
                 <div className="dropdown-group">
+                  {/* Sección: Contabilidad (submenú) */}
                   <Link to="/contabilidad" className="dropdown-title">Contabilidad</Link>
                   <Link to="/auditoria">Auditoría</Link>
                   <Link to="/impuestos">Impuestos</Link>
@@ -96,7 +105,7 @@ export default function Navbar() {
               </button>
               <div className="dropdown-content">
                 <div className="dropdown-group">
-                  <Link to="/dashboard">Dashboard</Link>
+                  <Link to="/dashboard">Perfil</Link>
                   <Link to="/mi-expediente">Mi expediente</Link>
                   <Link to="/mis-casos">Mis casos</Link>
                   <Link to="/logout">

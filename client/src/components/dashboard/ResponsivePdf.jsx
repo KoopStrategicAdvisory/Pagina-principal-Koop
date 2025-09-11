@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import PdfCanvasViewer from './PdfCanvasViewer.jsx';
 
 /**
  * Visualizador de PDF con tratamiento específico para móviles.
- * - En móviles usa Google Docs Viewer embebido para maximizar compatibilidad.
- * - En escritorio intenta mostrar el PDF nativo con <object>, con iframes/fallback.
+ * - Móvil: no embebe PDF; muestra mensaje + botón para abrir en nueva pestaña.
+ * - Escritorio: intenta <object type="application/pdf"> con iframe de respaldo.
  */
 export default function ResponsivePdf({ src, heightDesktop = 560, heightMobile = 480, className }) {
   const [isMobile, setIsMobile] = useState(false);
@@ -30,10 +29,39 @@ export default function ResponsivePdf({ src, heightDesktop = 560, heightMobile =
   }, [src]);
 
   if (isMobile) {
-    // En móvil, usemos un visor interno basado en pdf.js (sin depender de Google Docs Viewer)
+    // Móvil: ocupar altura del cuadro y alinear el botón abajo a la derecha
     return (
-      <div className={className} style={{ width: '100%' }}>
-        <PdfCanvasViewer src={absUrl} initialScale={0.95} />
+      <div className={className} style={{ width: '100%', height: heightMobile, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: 16 }}>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>
+            ¡Gracias por elegirnos! Nos alegra mucho iniciar este camino a tu lado.
+          </div>
+          <div className="muted" style={{ marginBottom: 12 }}>
+            
+Te compartimos que ya tienes acceso a nuestro Portal de 
+Clientes Koop.
+<br />
+<br />
+Desde allí podrás: 
+• Consultar el estado de tus procesos en tiempo real. 
+<br />
+• Descargar documentos relevantes de manera segura. 
+<br />
+• Recibir notificaciones de audiencias y plazos importantes. 
+<br />
+• Comunicarse directamente con nuestro equipo para resolver 
+cualquier inquietud. 
+<br />
+<br />
+Estamos seguros de que esta alianza marcará un camino de 
+crecimiento y tranquilidad.
+          </div>
+        </div>
+        <div style={{ marginTop: 'auto', padding: 16, display: 'flex', justifyContent: 'flex-end' }}>
+          <a className="btn btn-primary" href={absUrl} target="_blank" rel="noopener noreferrer">
+            Cordial Saludo
+          </a>
+        </div>
       </div>
     );
   }

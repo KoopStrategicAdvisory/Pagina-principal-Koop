@@ -1,13 +1,70 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import '../styles/dashboard.css';
 import '../styles/mi-expediente.css';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../context/AuthContext';
 import { normalizeUpperAscii } from '../utils/strings.js';
+import { listRecentDocs, uploadDoc, getDownloadUrl } from '../api/docs';
 
 export default function MiExpediente() {
   const [activeTab, setActiveTab] = useState('docs');
   const { user } = useAuth();
   const displayName = normalizeUpperAscii(user?.name || '');
+
+  const [docs, setDocs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [warning, setWarning] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const loadDocs = async () => {
+    setLoading(true);
+    setError(null);
+    setWarning(null);
+    try {
+      const data = await listRecentDocs(20);
+      setDocs(Array.isArray(data?.items) ? data.items : []);
+      if (data?.warning) setWarning(data.warning);
+    } catch (e) {
+      setError(e?.message || 'Error cargando documentos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'docs') loadDocs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  const onClickUpload = () => fileInputRef.current?.click();
+
+  const onFileChange = async (e) => {
+    const f = e.target?.files?.[0];
+    if (!f) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await uploadDoc(f);
+      // Mostrar inmediatamente el recin subido
+      if (res?.file) setDocs((prev) => [res.file, ...prev]);
+      // Actualizar lista desde el backend (si hay permisos de ListBucket)
+      await loadDocs();
+    } catch (e2) {
+      setError(e2?.message || 'Error subiendo documento');
+    } finally {
+      setLoading(false);
+      try { e.target.value = null; } catch {}
+    }
+  };
+
+  const onDownload = async (key, fallbackUrl) => {
+    try {
+      const { url } = await getDownloadUrl(key, 600);
+      window.open(url || fallbackUrl, '_blank');
+    } catch (e) {
+      if (fallbackUrl) window.open(fallbackUrl, '_blank');
+    }
+  };
 
   return (
     <div
@@ -35,20 +92,23 @@ export default function MiExpediente() {
           </select>
           <input className="me-input" placeholder="Buscar..." />
           <div className="me-actions">
-            <button className="btn btn-primary">Registrar</button>
+            <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={onFileChange} />
+            <button className="btn btn-primary" onClick={onClickUpload} disabled={loading}>
+              {loading ? 'Subiendo...' : 'Radicar documento'}
+            </button>
             <button className="btn btn-secondary">Ver información</button>
           </div>
         </div>
 
         {/* Layout 3 columnas */}
         <div className="me-layout">
-          {/* Izquierda: Árbol */}
+          {/* Izquierda: Árbol (mock) */}
           <aside className="me-left dash-item">
             <div className="me-head">ESPECIALIDAD: LABORAL</div>
             <div className="me-tree">
               <details open>
                 <summary>
-                  <span className="me-chev">▶</span>
+                  <span className="me-chev">›</span>
                   <span>JUZGADO 009 MUNICIPAL DE PEQUEÑAS CAUSAS</span>
                 </summary>
                 <div className="me-leaf">
@@ -58,7 +118,7 @@ export default function MiExpediente() {
               </details>
               <details open>
                 <summary>
-                  <span className="me-chev">▶</span>
+                  <span className="me-chev">›</span>
                   <span>JUZGADO 003 LABORAL DEL CIRCUITO</span>
                 </summary>
                 <div className="me-leaf">
@@ -68,7 +128,7 @@ export default function MiExpediente() {
               </details>
               <details>
                 <summary>
-                  <span className="me-chev">▶</span>
+                  <span className="me-chev">›</span>
                   <span>JUZGADO 015 MUNICIPAL DE PEQUEÑAS CAUSAS</span>
                 </summary>
                 <div className="me-leaf">
@@ -78,7 +138,7 @@ export default function MiExpediente() {
               </details>
               <details>
                 <summary>
-                  <span className="me-chev">▶</span>
+                  <span className="me-chev">›</span>
                   <span>JUZGADO 048 LABORAL DEL CIRCUITO</span>
                 </summary>
                 <div className="me-leaf">
@@ -112,6 +172,14 @@ export default function MiExpediente() {
 
             {activeTab === 'docs' && (
               <div className="me-table-wrap">
+                {error && (
+                  <div style={{ color: '#ef4444', padding: '8px 12px' }}>{String(error)}</div>
+                )}
+                {warning && (
+                  <div style={{ color: '#f59e0b', padding: '8px 12px' }}>
+                    Aviso: {String(warning) === 'S3_LIST_FORBIDDEN' ? 'No hay permisos para listar el bucket. Tus documentos siguen disponibles si conservas el enlace.' : String(warning)}
+                  </div>
+                )}
                 <table className="me-table">
                   <thead>
                     <tr>
@@ -120,32 +188,42 @@ export default function MiExpediente() {
                       </th>
                       <th>Fecha de registro</th>
                       <th>Documento</th>
-                      <th>Tipo documento</th>
+                      <th>Tipo</th>
                       <th>Tamaño</th>
+                      <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td><input type="checkbox" /></td>
-                      <td>2025-08-12 10:34</td>
-                      <td>Auto admisorio</td>
-                      <td>PDF</td>
-                      <td>1.2 MB</td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" /></td>
-                      <td>2025-08-18 16:02</td>
-                      <td>Memorial de apoderado</td>
-                      <td>PDF</td>
-                      <td>680 KB</td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" /></td>
-                      <td>2025-08-21 09:11</td>
-                      <td>Oficio – traslado</td>
-                      <td>DOCX</td>
-                      <td>95 KB</td>
-                    </tr>
+                    {docs.length === 0 && (
+                      <tr>
+                        <td colSpan={6} style={{ color: '#9fb3cc' }}>
+                          {loading ? 'Cargando...' : 'No hay documentos para mostrar'}
+                        </td>
+                      </tr>
+                    )}
+                    {docs.map((d) => {
+                      const dt = d.createdTime ? new Date(d.createdTime) : null;
+                      const name = d.name || (d.key || '').split('/').pop();
+                      const sizeKb = typeof d.size === 'number' ? Math.max(1, Math.round(d.size / 1024)) : null;
+                      const mime = d.mimeType || (name && name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined);
+                      return (
+                        <tr key={d.key || d.id}>
+                          <td><input type="checkbox" /></td>
+                          <td>{dt ? dt.toLocaleString() : '-'}</td>
+                          <td title={name}>{name}</td>
+                          <td>{mime ? (mime.split('/')[1] || mime) : '-'}</td>
+                          <td>{sizeKb ? `${sizeKb} KB` : '-'}</td>
+                          <td>
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => onDownload(d.key, d.downloadUrl || d.webContentLink || d.webViewLink)}
+                            >
+                              Descargar
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

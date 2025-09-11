@@ -30,7 +30,12 @@ export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogou
   // Request: agrega Authorization si hay token
   api.interceptors.request.use((config) => {
     try {
-      const token = getAccessToken?.();
+      let token = undefined;
+      try { token = getAccessToken?.(); } catch {}
+      // Fallback para evitar cierres obsoletos: leer de localStorage si no hay token en memoria
+      if (!token && typeof window !== 'undefined') {
+        try { token = window.localStorage?.getItem('accessToken'); } catch {}
+      }
       if (token && !config.headers?.Authorization) {
         config.headers = config.headers || {};
         config.headers.Authorization = `Bearer ${token}`;

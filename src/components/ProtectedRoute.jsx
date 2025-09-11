@@ -1,3 +1,5 @@
+// ProtectedRoute — Envuelve páginas que requieren sesión.
+// Si no hay sesión, redirige a /login y recuerda a dónde ibas.
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';

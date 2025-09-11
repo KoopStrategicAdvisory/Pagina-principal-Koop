@@ -1,3 +1,8 @@
+// KpiCard — Tarjeta simple para mostrar un número grande
+// Props:
+// - label: texto pequeño arriba
+// - value: número principal
+// - hint: texto opcional abajo
 export default function KpiCard({ label, value, hint }) {
   return (
     <div className="dash-item">

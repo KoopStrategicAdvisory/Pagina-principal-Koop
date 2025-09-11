@@ -1,3 +1,4 @@
+// UnreadMessages — Placeholder para mensajes no leídos del cliente
 export default function UnreadMessages() {
   return (
     <div className="dash-item">

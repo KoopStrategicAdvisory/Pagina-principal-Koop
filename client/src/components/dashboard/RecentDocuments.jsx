@@ -1,3 +1,6 @@
+// RecentDocuments — Lista accesos a carpetas de Drive del cliente.
+// Si no hay carpetas asignadas en el token, usa valores por defecto
+// de VITE_DEFAULT_DRIVE_FOLDER_URL y VITE_DEFAULT_DRIVE_FOLDER_NAME.
 import { useMemo } from 'react';
 import { useAuth } from '../../../../src/context/AuthContext.jsx';
 

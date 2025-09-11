@@ -4,7 +4,7 @@
 
 .modal-overlay {
   position: fixed; inset: 0; z-index: 110;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.90);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
   display: flex; align-items: center; justify-content: center;
@@ -15,7 +15,7 @@
   background: #1e2a3a;
   border: 1px solid #394b61;
   border-radius: 14px;
-  box-shadow: 0 18px 48px rgba(0,0,0,.5);
+  box-shadow: 0 18px 48px rgba(0,0,0,);
 }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;

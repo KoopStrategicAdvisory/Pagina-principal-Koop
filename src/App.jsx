@@ -1,3 +1,9 @@
+// App.jsx — Punto de entrada de la SPA (sitio + portal)
+// Explicación sencilla:
+// - Define el enrutado con React Router
+// - Rutas públicas: páginas informativas
+// - Rutas protegidas: requieren sesión (Dashboard, Mi expediente, etc.)
+// - Muestra/oculta la Navbar en login/registro
 import React, { useState } from 'react';
 import './styles/overrides.css';
 import './styles/menu-mobile-uniform.css';
@@ -23,8 +29,8 @@ import MiExpediente from './pages/MiExpediente.jsx';
 import MisCasos from './pages/MisCasos.jsx';
 import Logout from './pages/Logout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import { AuthProvider } from './context/AuthContext.jsx';
-import { useAuth } from './context/AuthContext.jsx';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/AuthContext';
 import api from './api/axios';
 import Navbar from './components/Navbar.jsx';
 
@@ -43,6 +49,7 @@ function App() {
 
   //Acá se manipula el navbar para que no aparezca en login, register y dashboard
 
+  // Shell: layout básico (Navbar + Rutas)
   const Shell = () => {
     const location = useLocation();
     const { isAuthenticated } = useAuth();
@@ -50,9 +57,10 @@ function App() {
     const hideNavbar = p.startsWith('/login') || p.startsWith('/register');
     return (
       <>
+        {/* Navbar global (se oculta en login y registro) */}
         {!hideNavbar && <Navbar />}
         <Routes>
-          {/* Index siempre accesible, incluso autenticado */}
+          {/* Rutas públicas (siempre accesibles) */}
           <Route path="/" element={<Index />} />
           <Route path="/derecho" element={<Derecho />} />
           <Route path="/contabilidad" element={<Contabilidad />} />

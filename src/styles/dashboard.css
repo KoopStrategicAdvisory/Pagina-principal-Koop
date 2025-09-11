@@ -1,4 +1,7 @@
-/* Use global Montserrat (loaded in index.html) */
+/* Estilos del Dashboard
+   - Tipografía principal: Montserrat (cargada en index.html)
+   - Paleta oscura para tarjetas y botones
+   - Responsive tweaks al final del archivo */
 
 .dash-page {
   /* Restar la altura del navbar y los paddings para evitar scroll mínimo innecesario */
@@ -16,7 +19,7 @@
 }
 
 .dash-card {
-  background-color: #1e2a3a;
+  background-color: rgba(30, 42, 58, 0.80); // 35% opaco;
   padding: 24px;
   border-radius: 16px;
   width: 100%;

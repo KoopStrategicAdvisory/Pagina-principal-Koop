@@ -1,3 +1,7 @@
+// AuthContext — Maneja la sesión del usuario (JWT) en el frontend.
+// - Guarda el accessToken en localStorage
+// - Expone login, register, logout y refresh
+// - Integra con Axios para autorizar llamadas y refrescar tokens
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { loginApi, registerApi, logoutApi, refreshApi } from '../api/auth';
 import api, { setupAxiosInterceptors } from '../api/axios';
