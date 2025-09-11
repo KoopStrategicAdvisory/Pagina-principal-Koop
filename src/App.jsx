@@ -150,15 +150,7 @@ function App() {
         <BrowserRouter>
           <Shell />
         </BrowserRouter>
-        {/* Floating test button for /api/ping */}
-        <div style={{ position: 'fixed', bottom: 16, right: 16, background: 'rgba(30,42,58,0.6)', color: '#fff', padding: '10px 12px', borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.3)', zIndex: 9999 }}>
-          <button onClick={testPing} style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: '#fff', cursor: 'pointer' }}>Probar /api/ping</button>
-          {pong && (
-            <pre style={{ marginTop: 8, maxWidth: 260, maxHeight: 160, overflow: 'auto', fontSize: 12 }}>
-              {JSON.stringify(pong, null, 2)}
-            </pre>
-          )}
-        </div>
+
       </>
     </AuthProvider>
   );
