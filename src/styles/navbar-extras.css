@@ -44,7 +44,15 @@
   .koop-cta:hover, .koop-cta:focus { opacity: 1; }
 }
 
-/* Mobile safe: reduce strong motion on very small screens */
+/* Always animate on touch/mobile: keep the rainbow moving */
+@media (hover: none) {
+  .koop-cta .letter {
+    animation: koopWave 900ms ease-in-out calc(var(--i) * 60ms) infinite,
+               koopRainbow 2400ms linear calc(var(--i) * 80ms) infinite;
+  }
+}
+
+/* Mobile fine-tune: keep transitions snappy on very small screens */
 @media (max-width: 480px) {
   .koop-cta .letter { transition-duration: 160ms; }
 }

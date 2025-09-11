@@ -50,7 +50,7 @@ const Index = () => {
           <div className="hero-overlay"></div>
           <div className="hero-content">
             <div className="hero-box">
-              <div className="hero-title">KOOP es Bogotá: Excelencia académica y seriedad</div>
+              <div className="hero-title">KOOP es Bogotá, es excelencia académica</div>
               <div className="hero-subtitle">Expertos en Derecho Administrativo,<br /> Penal, Laboral y Médico</div>
               <div className="hero-desc">
                 Equipo de abogados y contadores con experiencia. <br />
