@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:4000",
+        target: "https://koop-api-a28ac382dd56.herokuapp.com/",
         changeOrigin: true
       }
     }
