@@ -1,12 +1,11 @@
-import axios from "axios";
-const BASE = import.meta.env?.VITE_API_BASE || "/api";
+﻿import axios from "axios";
+const BASE = import.meta.env?.VITE_API_BASE || 'https://koop-api-a28ac382dd56.herokuapp.com/api';
 
 const api = axios.create({
-  baseURL: BASE, // se apoya en el proxy de Vite
-  withCredentials: true, // habilita envío/recepción de cookies
+  baseURL: BASE,
+  withCredentials: true,
 });
 
-// Instancia sin interceptores para refresh
 const apiBare = axios.create({
   baseURL: BASE,
   withCredentials: true,
@@ -27,12 +26,10 @@ function onRefreshed(newToken) {
 }
 
 export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogout }) {
-  // Request: agrega Authorization si hay token
   api.interceptors.request.use((config) => {
     try {
       let token = undefined;
       try { token = getAccessToken?.(); } catch {}
-      // Fallback para evitar cierres obsoletos: leer de localStorage si no hay token en memoria
       if (!token && typeof window !== 'undefined') {
         try { token = window.localStorage?.getItem('accessToken'); } catch {}
       }
@@ -44,7 +41,6 @@ export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogou
     return config;
   });
 
-  // Response: maneja 401 con refresh single-flight
   api.interceptors.response.use(
     (res) => res,
     async (error) => {
@@ -52,7 +48,6 @@ export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogou
       const status = response?.status;
       const originalRequest = config || {};
 
-      // No reintentar para estas rutas o si ya reintentamos
       const url = String(originalRequest?.url || "");
       const isAuthRoute = url.includes("/auth/login") || url.includes("/auth/register") || url.includes("/auth/refresh");
 
@@ -60,10 +55,8 @@ export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogou
         return Promise.reject(error);
       }
 
-      // Marca para evitar loops
       originalRequest._retry = true;
 
-      // Si ya hay un refresh en curso, espera y reintenta
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           subscribeTokenRefresh((newToken) => {
@@ -78,7 +71,6 @@ export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogou
         });
       }
 
-      // Lanzar refresh
       isRefreshing = true;
       try {
         const resp = await apiBare.post('/auth/refresh');
@@ -86,12 +78,10 @@ export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogou
         if (!newToken) throw new Error('No accessToken in refresh');
         try { setAccessToken?.(newToken); } catch {}
         onRefreshed(newToken);
-        // Reintenta original con nuevo token
         originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (e) {
-        // Evitar cerrar sesión por errores transitorios de red
         const status = e?.response?.status;
         if (status === 401 || status === 403) {
           try { await onLogout?.(); } catch {}
