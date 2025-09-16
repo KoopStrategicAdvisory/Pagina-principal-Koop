@@ -1,6 +1,6 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { listUsers, setUserActive } from "../api/adminUsers";
+import { listUsers, setUserActive, grantAdminRole, deleteUser } from "../api/adminUsers";
 import "../styles/dashboard.css";
 
 function useIsAdmin(user) {
@@ -17,6 +17,10 @@ export default function AdminUsuarios() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(null);
+  const [roleUpdating, setRoleUpdating] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+
+  const currentUserId = user?.id;
 
   const fetchUsers = async () => {
     if (!isAdmin) return;
@@ -46,6 +50,38 @@ export default function AdminUsuarios() {
       setError(e?.response?.data?.message || e?.message || 'No se pudo actualizar el usuario');
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const makeAdmin = async (id) => {
+    const confirmed = window.confirm('Deseas otorgar rol de administrador a este usuario?');
+    if (!confirmed) return;
+    try {
+      setError(null);
+      setRoleUpdating(id);
+      const data = await grantAdminRole(id);
+      if (data?.user) {
+        setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...data.user } : u)));
+      }
+    } catch (e) {
+      setError(e?.response?.data?.message || e?.message || 'No se pudo actualizar los roles');
+    } finally {
+      setRoleUpdating(null);
+    }
+  };
+
+  const removeUser = async (id) => {
+    const confirmed = window.confirm('Deseas eliminar este usuario? Esta accion es permanente.');
+    if (!confirmed) return;
+    try {
+      setError(null);
+      setDeleting(id);
+      await deleteUser(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch (e) {
+      setError(e?.response?.data?.message || e?.message || 'No se pudo eliminar el usuario');
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -110,12 +146,16 @@ export default function AdminUsuarios() {
               )}
               {users.map((u) => {
                 const created = u.createdAt ? new Date(u.createdAt) : null;
-                const isActive = u.active !== false;
+                const roles = Array.isArray(u.roles) ? u.roles : [];
+                const hasAdminRole = roles.some((r) => String(r || '').toLowerCase() === 'admin');
+                const isActive = u.active !== false && u.isActive !== false;
+                const isSelf = currentUserId === u.id;
+                const rolesLabel = roles.length > 0 ? roles.join(', ') : '-';
                 return (
                   <tr key={u.id}>
                     <td>{u.name || '-'}</td>
                     <td>{u.email}</td>
-                    <td>{Array.isArray(u.roles) ? u.roles.join(', ') : '-'}</td>
+                    <td>{rolesLabel}</td>
                     <td>
                       <span className={`me-badge ${isActive ? 'me-badge-success' : 'me-badge-error'}`}>
                         {isActive ? 'Activo' : 'Inactivo'}
@@ -123,13 +163,32 @@ export default function AdminUsuarios() {
                     </td>
                     <td>{created ? created.toLocaleString() : '-'}</td>
                     <td>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        onClick={() => toggleActive(u.id, !isActive)}
-                        disabled={updating === u.id}
-                      >
-                        {updating === u.id ? 'Guardando...' : isActive ? 'Desactivar' : 'Activar'}
-                      </button>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => toggleActive(u.id, !isActive)}
+                          disabled={updating === u.id}
+                        >
+                          {updating === u.id ? 'Guardando...' : isActive ? 'Desactivar' : 'Activar'}
+                        </button>
+                        {!hasAdminRole && (
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => makeAdmin(u.id)}
+                            disabled={roleUpdating === u.id}
+                          >
+                            {roleUpdating === u.id ? 'Asignando...' : 'Hacer admin'}
+                          </button>
+                        )}
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => removeUser(u.id)}
+                          disabled={deleting === u.id || isSelf}
+                          title={isSelf ? 'No puedes eliminar tu propio usuario' : 'Eliminar usuario'}
+                        >
+                          {deleting === u.id ? 'Eliminando...' : 'Eliminar'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -141,3 +200,4 @@ export default function AdminUsuarios() {
     </div>
   );
 }
+

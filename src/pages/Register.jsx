@@ -8,7 +8,7 @@ export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [result, setResult] = useState(null);
+  const [success, setSuccess] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -17,19 +17,24 @@ export default function Register() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
     try {
       const res = await register(form.name, form.email, form.password);
       if (res.ok) {
-        setResult(res.data || { ok: true });
-        navigate('/dashboard');
+        const payload = res.data || { ok: true };
+        if (payload?.accessToken) {
+          navigate('/dashboard');
+        } else {
+          setSuccess('Tu registro fue recibido. Un administrador activara tu cuenta y te avisaremos por correo.');
+          setForm({ name: '', email: '', password: '' });
+        }
       } else {
         setError(res.error || 'Error en registro');
       }
     } catch (err) {
       const msg = err?.message || 'Error en registro';
       setError(msg);
-      setResult({ error: true, message: msg });
     } finally {
       setLoading(false);
     }
@@ -61,6 +66,7 @@ export default function Register() {
         <h2>Crear Cuenta</h2>
 
         {error && <div className="auth-error">{error}</div>}
+        {success && <div className="auth-info">{success}</div>}
 
         <form onSubmit={onSubmit}>
           <div className="input-group">
@@ -87,12 +93,12 @@ export default function Register() {
             />
           </div>
           <div className="input-group">
-            <label htmlFor="password">Contraseña</label>
+            <label htmlFor="password">Contrasena</label>
             <input
               id="password"
               name="password"
               type="password"
-              placeholder="Mínimo 8 caracteres"
+              placeholder="Minimo 8 caracteres"
               value={form.password}
               onChange={onChange}
               required
@@ -103,28 +109,12 @@ export default function Register() {
           </button>
         </form>
 
-        {/* Resultado del stub para depuración */}
-        {result && (
-          <pre style={{
-            textAlign: 'left',
-            marginTop: 12,
-            padding: 12,
-            background: 'rgba(36, 52, 71, 0.6)',
-            border: '1px solid rgba(57,75,97,0.5)',
-            borderRadius: 8,
-            maxHeight: 180,
-            overflow: 'auto',
-            fontSize: 12,
-            color: '#e6f1ff'
-          }}>
-            {JSON.stringify(result, null, 2)}
-          </pre>
-        )}
-
         <div className="auth-actions">
-          ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+          Ya tienes cuenta? <Link to="/login">Inicia sesion</Link>
         </div>
       </div>
     </div>
   );
 }
+
+

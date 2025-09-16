@@ -1,5 +1,5 @@
 ﻿// AdminDashboard - Portal del cliente (pagina principal para administradores)
-// Estructura general: Acciones rapidas, KPIs, PDF de bienvenida, widgets y documentos recientes
+// Estructura general: Acciones rapidas, KPIs, widgets personalizados y documentos recientes
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../../api/axios";
@@ -10,7 +10,6 @@ import KpiCard from "./KpiCard";
 // import CasesTable from "./CasesTable";
 import UnreadMessages from "./UnreadMessages";
 import RecentDocuments from "./RecentDocuments";
-import ResponsivePdf from "./ResponsivePdf.jsx";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -86,12 +85,26 @@ export default function AdminDashboard() {
           <KpiCard label="Casos activos" value={kpis?.activeCases ?? (loading ? "..." : 0)} />
         </div>
 
-        {/* Fila principal: izquierda PDF, derecha widgets */}
+        {/* Fila principal: izquierda resumen admin, derecha widgets */}
         <div className="main-grid" style={{ marginTop: 16 }}>
-          <div className="main-left">
-            <div className="dash-item" style={{ padding: 0 }}>
-              <ResponsivePdf src="/Saludobienvenidaportal.pdf" heightDesktop={560} heightMobile={480} />
+          <div className="main-left" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div className="dash-item">
+              <div className="font-semibold mb-2" style={{ fontWeight: 600, marginBottom: 8 }}>
+                Centro administrativo
+              </div>
+              <p style={{ marginBottom: 12 }}>
+                Supervisa la operacion del portal, gestiona usuarios y da seguimiento a la informacion mas reciente.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <Link className="btn btn-primary btn-sm" to="/admin/usuarios" title="Administrar usuarios">
+                  Administrar usuarios
+                </Link>
+                <Link className="btn btn-secondary btn-sm" to="/mi-expediente" title="Revisar expedientes">
+                  Revisar expedientes
+                </Link>
+              </div>
             </div>
+            <UnreadMessages />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Bloque: Facturas vencidas (con boton de pago) */}
@@ -105,7 +118,29 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </div>
-            <UnreadMessages />
+            <div className="dash-item">
+              <div className="font-semibold mb-2" style={{ fontWeight: 600, marginBottom: 8 }}>
+                Recordatorios del equipo
+              </div>
+              <p style={{ marginBottom: 0 }}>
+                Comparte novedades internas, carga reportes de gestion o establece tareas prioritarias para tu equipo desde esta seccion.
+              </p>
+            </div>
+            <div className="dash-item">
+              <div className="font-semibold mb-2" style={{ fontWeight: 600, marginBottom: 8 }}>
+                Reproductor Spotify
+              </div>
+              <iframe
+                title="Spotify administracion"
+                src="https://open.spotify.com/embed/playlist/1Zf1rz0XX6fyNxKOq4XvgN?utm_source=generator"
+                width="100%"
+                height="152"
+                frameBorder="0"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+                style={{ borderRadius: 8 }}
+              />
+            </div>
           </div>
         </div>
 
