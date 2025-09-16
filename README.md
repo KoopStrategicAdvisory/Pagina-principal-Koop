@@ -18,7 +18,8 @@ Este repositorio contiene la web principal (marketing) y el portal de clientes (
 5) Preview local: `npm run preview`
 
 Variable opcional:
-- `VITE_API_BASE`: URL base del backend. Si no se define, se usa `/api` y se espera un proxy/config en el servidor.
+- `VITE_API_BASE`: URL base del backend. Si no se define (o es una ruta relativa), las peticiones usan `/api` y el proxy de Vite las reenviará al destino configurado.
+- `VITE_API_PROXY_TARGET`: Destino opcional del proxy de desarrollo cuando `VITE_API_BASE` no está definido.
 
 ## Estructura de carpetas
 
@@ -91,6 +92,8 @@ Estilos del dashboard en `src/styles/dashboard.css`.
 5) Cambiar colores del dashboard: ajusta `src/styles/dashboard.css`.
 
 Si necesitas mÃ¡s guÃ­a paso a paso, consulta `docs/GUIA_PARA_DUMMIES.md`.
+
+
 
 
 

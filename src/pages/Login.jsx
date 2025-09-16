@@ -17,6 +17,7 @@ export default function Login() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    console.log('Submitting login form, Hola q ac', email);
     const res = await login(email, password);
     if (!res.ok) {
       setError(res.error || 'Error al iniciar sesión');
