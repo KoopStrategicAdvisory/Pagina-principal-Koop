@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import '../styles/dashboard.css';
 import '../styles/mi-expediente.css';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,7 @@ export default function MiExpediente() {
   const [activeTab, setActiveTab] = useState('docs');
   const { user } = useAuth();
   const displayName = normalizeUpperAscii(user?.name || '');
+  const DEFAULT_FOLDER = 'documentos_iniciales';
 
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -21,7 +22,7 @@ export default function MiExpediente() {
     setError(null);
     setWarning(null);
     try {
-      const data = await listRecentDocs(20);
+      const data = await listRecentDocs({ limit: 20, subfolder: DEFAULT_FOLDER });
       setDocs(Array.isArray(data?.items) ? data.items : []);
       if (data?.warning) setWarning(data.warning);
     } catch (e) {
@@ -44,7 +45,7 @@ export default function MiExpediente() {
     try {
       setLoading(true);
       setError(null);
-      const res = await uploadDoc(f);
+      const res = await uploadDoc(f, { subfolder: DEFAULT_FOLDER });
       // Mostrar inmediatamente el recin subido
       if (res?.file) setDocs((prev) => [res.file, ...prev]);
       // Actualizar lista desde el backend (si hay permisos de ListBucket)
@@ -202,7 +203,7 @@ export default function MiExpediente() {
                       </tr>
                     )}
                     {docs.map((d) => {
-                      const dt = d.createdTime ? new Date(d.createdTime) : null;
+                      const dt = d.lastModified ? new Date(d.lastModified) : (d.createdTime ? new Date(d.createdTime) : null);
                       const name = d.name || (d.key || '').split('/').pop();
                       const sizeKb = typeof d.size === 'number' ? Math.max(1, Math.round(d.size / 1024)) : null;
                       const mime = d.mimeType || (name && name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined);
@@ -216,7 +217,7 @@ export default function MiExpediente() {
                           <td>
                             <button
                               className="btn btn-secondary btn-sm"
-                              onClick={() => onDownload(d.key, d.downloadUrl || d.webContentLink || d.webViewLink)}
+                              onClick={() => onDownload(d.key, d.downloadURL || d.downloadUrl || d.webContentLink || d.webViewLink)}
                             >
                               Descargar
                             </button>
@@ -274,3 +275,7 @@ export default function MiExpediente() {
     </div>
   );
 }
+
+
+
+

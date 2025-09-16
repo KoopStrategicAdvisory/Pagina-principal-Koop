@@ -1,8 +1,8 @@
-﻿// App.jsx â€” Punto de entrada de la SPA (sitio + portal)
-// ExplicaciÃ³n sencilla:
+// App.jsx — Punto de entrada de la SPA (sitio + portal)
+// Explicación sencilla:
 // - Define el enrutado con React Router
-// - Rutas pÃºblicas: pÃ¡ginas informativas
-// - Rutas protegidas: requieren sesiÃ³n (Dashboard, Mi expediente, etc.)
+// - Rutas públicas: páginas informativas
+// - Rutas protegidas: requieren sesión (Dashboard, Mi expediente, etc.)
 // - Muestra/oculta la Navbar en login/registro
 import React, { useState } from 'react';
 import './styles/overrides.css';
@@ -24,6 +24,7 @@ import AccionesDeTutela from './pages/AccionesDeTutela.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Panel from './pages/Panel.jsx';
+import AdminUsuarios from './pages/AdminUsuarios.jsx';
 import Dashboard from './components/protected/Dashboard.jsx';
 import MiExpediente from './pages/MiExpediente.jsx';
 import MisCasos from './pages/MisCasos.jsx';
@@ -47,9 +48,9 @@ function App() {
     }
   };
 
-  //AcÃ¡ se manipula el navbar para que no aparezca en login, register y dashboard
+  //Acá se manipula el navbar para que no aparezca en login, register y dashboard
 
-  // Shell: layout bÃ¡sico (Navbar + Rutas)
+  // Shell: layout básico (Navbar + Rutas)
   const Shell = () => {
     const location = useLocation();
     const { isAuthenticated } = useAuth();
@@ -60,7 +61,7 @@ function App() {
         {/* Navbar global (se oculta en login y registro) */}
         {!hideNavbar && <Navbar />}
         <Routes>
-          {/* Rutas pÃºblicas (siempre accesibles) */}
+          {/* Rutas públicas (siempre accesibles) */}
           <Route path="/" element={<Index />} />
           <Route path="/derecho" element={<Derecho />} />
           <Route path="/contabilidad" element={<Contabilidad />} />
@@ -77,7 +78,7 @@ function App() {
           <Route path="/tramites-notariales" element={<TramitesNotariales />} />
           <Route path="/acciones-de-tutela" element={<AccionesDeTutela />} />
           
-          {/* Auth: si ya estÃ¡s autenticado, redirige fuera de login; registro queda libre */}
+          {/* Auth: si ya estás autenticado, redirige fuera de login; registro queda libre */}
           <Route
             path="/login"
             element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
@@ -89,6 +90,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Panel />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/usuarios"
+            element={
+              <ProtectedRoute>
+                <AdminUsuarios />
               </ProtectedRoute>
             }
           />
@@ -157,4 +166,11 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
+
+
 

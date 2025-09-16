@@ -6,7 +6,9 @@ import NoAccessDashboard from "./dashboard/NoAccess.jsx";
 
 function hasRole(user, role) {
   if (!user?.roles) return false;
-  return Array.isArray(user.roles) ? user.roles.includes(role) : false;
+  const normalized = Array.isArray(user.roles) ? user.roles : [user.roles];
+  const needle = String(role || '').toLowerCase();
+  return normalized.some((r) => String(r || '').toLowerCase() === needle);
 }
 
 export default function Dashboard() {
@@ -34,5 +36,3 @@ export default function Dashboard() {
 
   return <NoAccessDashboard />;
 }
-
-

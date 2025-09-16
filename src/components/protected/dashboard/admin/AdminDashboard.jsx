@@ -61,14 +61,13 @@ export default function AdminDashboard() {
         `}</style>
 
         {/* Acciones rapidas (atajos para el usuario) */}
-        <div className="dash-item" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <div className="dash-item" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <button
             className="btn btn-primary"
             onClick={() => {
-              // Abrir la primera carpeta asignada al usuario desde el card (si existe)
               const anchor = document.querySelector('[data-drive-folder-url]');
-              const url = anchor?.getAttribute("data-drive-folder-url");
-              if (url) window.open(url, "_blank", "noopener");
+              const url = anchor?.getAttribute('data-drive-folder-url');
+              if (url) window.open(url, '_blank', 'noopener');
             }}
             title="Radicar documentacion inicial"
           >
@@ -76,6 +75,9 @@ export default function AdminDashboard() {
           </button>
           <Link className="btn btn-primary btn-sm" to="/mi-expediente" title="Ir a Mi expediente">
             Mi expediente
+          </Link>
+          <Link className="btn btn-secondary btn-sm" to="/admin/usuarios" title="Administrar usuarios">
+            Administrar usuarios
           </Link>
         </div>
 
@@ -131,6 +133,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-
-
-

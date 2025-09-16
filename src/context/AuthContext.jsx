@@ -1,10 +1,10 @@
-// AuthContext — Maneja la sesión del usuario (JWT) en el frontend.
+﻿// AuthContext - Maneja la sesion del usuario (JWT) en el frontend.
 // - Guarda el accessToken en localStorage
 // - Expone login, register, logout y refresh
 // - Integra con Axios para autorizar llamadas y refrescar tokens
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { loginApi, registerApi, logoutApi, refreshApi } from '../api/auth';
-import api, { setupAxiosInterceptors } from '../api/axios';
+import { setupAxiosInterceptors } from '../api/axios';
 
 const AuthContext = createContext(null);
 
@@ -18,13 +18,37 @@ function decodeJwt(token) {
   }
 }
 
+function buildUser(payload, fallback) {
+  if (payload) {
+    return {
+      id: payload.sub,
+      name: payload.name,
+      email: payload.email,
+      roles: payload.roles || [],
+      active: payload.active !== false,
+      driveFolders: payload.driveFolders || [],
+    };
+  }
+  if (fallback) {
+    return {
+      id: fallback.id,
+      name: fallback.name,
+      email: fallback.email,
+      roles: fallback.roles || [],
+      active: fallback.active !== false,
+      driveFolders: fallback.driveFolders || [],
+    };
+  }
+  return null;
+}
+
 export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken') || null);
   const [user, setUser] = useState(() => {
     const t = localStorage.getItem('accessToken');
     if (!t) return null;
     const payload = decodeJwt(t);
-    return payload ? { id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [], driveFolders: payload.driveFolders || [] } : null;
+    return buildUser(payload, null);
   });
   const [loading, setLoading] = useState(false);
   const isAuthenticated = !!accessToken;
@@ -36,19 +60,17 @@ export function AuthProvider({ children }) {
     } else {
       localStorage.setItem('accessToken', accessToken);
       const payload = decodeJwt(accessToken);
-      if (payload) setUser({ id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [], driveFolders: payload.driveFolders || [] });
+      if (payload) setUser(buildUser(payload, null));
     }
   }, [accessToken]);
 
   const login = async (email, password) => {
-    console.log('Login!');
     setLoading(true);
     try {
       const { accessToken: token, user: u } = await loginApi({ email, password });
       setAccessToken(token);
-      // Preferir datos del token por coherencia
       const payload = decodeJwt(token);
-      setUser(payload ? { id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [], driveFolders: payload.driveFolders || [] } : u || null);
+      setUser(buildUser(payload, u));
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err.message };
@@ -59,13 +81,12 @@ export function AuthProvider({ children }) {
 
   const register = async (name, email, password, roles) => {
     setLoading(true);
-    console.log('Login!');
     try {
       const data = await registerApi({ name, email, password, roles });
       if (data?.accessToken) {
         setAccessToken(data.accessToken);
         const payload = decodeJwt(data.accessToken);
-        setUser(payload ? { id: payload.sub, name: payload.name, email: payload.email, roles: payload.roles || [], driveFolders: payload.driveFolders || [] } : data.user || null);
+        setUser(buildUser(payload, data.user));
       }
       return { ok: true, data };
     } catch (err) {
@@ -112,3 +133,4 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return ctx;
 }
+
