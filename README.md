@@ -30,8 +30,9 @@ Variable opcional:
   - `src/components/` â€” Componentes compartidos (por ejemplo, `Navbar.jsx`, `ProtectedRoute.jsx`).
   - `src/styles/` â€” Hojas de estilo CSS (navbar, dashboard, auth, overrides, etc.).
 - `src/components/protected/` - Portal de clientes (dashboard y componentes asociados a rutas protegidas).
-  - `src/components/protected/Dashboard.jsx` - Página principal del portal del cliente.
-  - `src/components/protected/dashboard/` - Tarjetas KPI, documentos, mensajes, etc.
+  - `src/components/protected/Dashboard.jsx` - Selecciona el dashboard correcto segun el rol.
+  - `src/components/protected/dashboard/admin/AdminDashboard.jsx` - Panel completo para roles admin.
+  - `src/components/protected/dashboard/user/UserDashboard.jsx` - Panel simplificado para roles user.
 - `src/infraestructure/` - Utilidades compartidas (Firebase Storage y helpers del portal autenticado).
 - `public/` â€” Assets estÃ¡ticos (imÃ¡genes, PDF, 404.html, etc.).
 - `old/` â€” Versiones HTML antiguas mantenidas solo como referencia.
@@ -63,7 +64,7 @@ Archivo: `src/components/Navbar.jsx`
 
 ## CÃ³mo editar el Dashboard
 
-Archivo: `src/components/protected/Dashboard.jsx`
+Archivo: `src/components/protected/dashboard/admin/AdminDashboard.jsx`
 - Acciones rÃ¡pidas: primer bloque con botÃ³n para â€œRadicar documentaciÃ³n inicialâ€ y enlace a â€œMi expedienteâ€.
 - KPIs: tarjetas superiores (actualmente solo â€œCasos activosâ€).
 - Columna izquierda: muestra un PDF de bienvenida.
@@ -88,10 +89,12 @@ Estilos del dashboard en `src/styles/dashboard.css`.
 1) Cambiar el logo: reemplaza `public/Koop Logo.png` por una imagen con el mismo nombre.
 2) Cambiar un texto de una pÃ¡gina: abre el archivo en `src/pages/` correspondiente y edita el texto dentro del JSX.
 3) Agregar un enlace en el menÃº: edita `src/components/Navbar.jsx` y agrega un `<Link to="/tu-ruta">Nombre</Link>`.
-4) Modificar el botÃ³n â€œPagar facturaâ€: edita el bloque "Facturas vencidas" en `src/components/protected/Dashboard.jsx`.
+4) Modificar el botÃ³n â€œPagar facturaâ€: edita el bloque "Facturas vencidas" en `src/components/protected/dashboard/admin/AdminDashboard.jsx`.
 5) Cambiar colores del dashboard: ajusta `src/styles/dashboard.css`.
 
 Si necesitas mÃ¡s guÃ­a paso a paso, consulta `docs/GUIA_PARA_DUMMIES.md`.
+
+
 
 
 
