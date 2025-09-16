@@ -41,6 +41,7 @@ export function AuthProvider({ children }) {
   }, [accessToken]);
 
   const login = async (email, password) => {
+    console.log('Login!');
     setLoading(true);
     try {
       const { accessToken: token, user: u } = await loginApi({ email, password });
@@ -58,6 +59,7 @@ export function AuthProvider({ children }) {
 
   const register = async (name, email, password, roles) => {
     setLoading(true);
+    console.log('Login!');
     try {
       const data = await registerApi({ name, email, password, roles });
       if (data?.accessToken) {

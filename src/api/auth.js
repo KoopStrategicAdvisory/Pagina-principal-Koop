@@ -2,6 +2,7 @@
 const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 
 export async function registerApi({ name, email, password, roles }) {
+  console.log(`API BASE: ${API_BASE}/auth/register`);
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -24,12 +25,14 @@ export async function refreshApi() {
 }
 
 export async function loginApi({ email, password }) {
+  console.log(`API BASE: ${API_BASE}/auth/login`);
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify({ email, password }),
   });
+  console.log(res);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.message || 'Credenciales inválidas');
   return data;
