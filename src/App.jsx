@@ -25,6 +25,7 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Panel from './pages/Panel.jsx';
 import AdminUsuarios from './pages/AdminUsuarios.jsx';
+import ClientesActivos from './pages/ClientesActivos.jsx';
 import Dashboard from './components/protected/Dashboard.jsx';
 import MiExpediente from './pages/MiExpediente.jsx';
 import MisCasos from './pages/MisCasos.jsx';
@@ -98,6 +99,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminUsuarios />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/clientes-activos"
+            element={
+              <ProtectedRoute>
+                <ClientesActivos />
               </ProtectedRoute>
             }
           />

@@ -1,28 +1,37 @@
 ﻿import api from './axios';
 
-const DEFAULT_FOLDER = 'documentos_iniciales';
-
-// Lista documentos recientes desde S3 a través del backend.
-export async function listRecentDocs({ limit = 10, subfolder = null } = {}) {
-  const params = { limit };
+export async function listRecentDocs({ limit, subfolder } = {}) {
+  const params = {};
+  if (typeof limit === 'number') params.limit = limit;
   if (subfolder) params.subfolder = subfolder;
   const { data } = await api.get('/docs/recent', { params });
   return data;
 }
 
-// Sube un archivo (multipart/form-data). Devuelve el objeto de archivo con enlaces.
-export async function uploadDoc(file, { subfolder = DEFAULT_FOLDER } = {}) {
-  const form = new FormData();
-  form.append('file', file);
-  form.append('subfolder', subfolder);
-  const { data } = await api.post('/docs/upload', form, {
+export async function uploadDoc(file, { subfolder } = {}) {
+  if (!file) {
+    throw new Error('Archivo requerido');
+  }
+  const formData = new FormData();
+  formData.append('file', file);
+  if (subfolder) {
+    formData.append('subfolder', subfolder);
+  }
+  const { data } = await api.post('/docs/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-  return data; // { file: {...} }
+  return data;
 }
 
-// Obtiene una URL firmada temporal para descargar un objeto por key.
-export async function getDownloadUrl(key, expires = 600) {
-  const { data } = await api.get('/docs/download-url', { params: { key, expires } });
-  return data; // { url, expiresIn, key }
+export async function uploadDocument({ file, subfolder }) {
+  return uploadDoc(file, { subfolder });
+}
+
+export async function getDownloadUrl(key, expiresIn = 600) {
+  if (!key) {
+    throw new Error('Key requerida');
+  }
+  const params = { key, expires: expiresIn };
+  const { data } = await api.get('/docs/download-url', { params });
+  return data;
 }

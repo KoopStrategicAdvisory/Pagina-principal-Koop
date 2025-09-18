@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { listUsers, setUserActive, grantAdminRole, revokeAdminRole, deleteUser } from "../api/adminUsers";
-import { createClientFromUser } from "../api/clients";
 import "../styles/dashboard.css";
 
 const ALLOWED_ROLES = ['admin', 'user'];
@@ -35,9 +34,6 @@ export default function AdminUsuarios() {
   const [updating, setUpdating] = useState(null);
   const [roleUpdating, setRoleUpdating] = useState(null);
   const [deleting, setDeleting] = useState(null);
-  const [clientModal, setClientModal] = useState(null); // { userId, fullName, documentType, documentNumber, birthDate, phone, email, address, contactInfo }
-  const [clientSaving, setClientSaving] = useState(false);
-  const [clientError, setClientError] = useState(null);
 
   const currentUserId = user?.id;
 
@@ -137,50 +133,6 @@ export default function AdminUsuarios() {
     }
   };
 
-  const openClientModal = (u) => {
-    setClientError(null);
-    setClientModal({
-      userId: u.id,
-      fullName: u.name || "",
-      documentType: "",
-      documentNumber: "",
-      birthDate: "",
-      phone: "",
-      email: u.email || "",
-      address: "",
-      contactInfo: "",
-    });
-  };
-
-  const saveClient = async () => {
-    if (!clientModal?.userId) return;
-    setClientError(null);
-    try {
-      setClientSaving(true);
-      const payload = {
-        fullName: String(clientModal.fullName || "").trim(),
-        documentType: String(clientModal.documentType || "").trim(),
-        documentNumber: String(clientModal.documentNumber || "").trim(),
-        birthDate: clientModal.birthDate ? new Date(clientModal.birthDate).toISOString() : undefined,
-        phone: String(clientModal.phone || "").trim(),
-        email: String(clientModal.email || "").trim(),
-        address: String(clientModal.address || "").trim(),
-        contactInfo: String(clientModal.contactInfo || "").trim(),
-      };
-      if (!payload.fullName) {
-        setClientError('El nombre completo es requerido');
-        setClientSaving(false);
-        return;
-      }
-      await createClientFromUser(clientModal.userId, payload);
-      setClientModal(null);
-    } catch (e) {
-      setClientError(e?.response?.data?.message || e?.message || 'No se pudo crear el cliente');
-    } finally {
-      setClientSaving(false);
-    }
-  };
-
   if (!isAdmin) {
     return (
       <div className="dash-page" style={{ padding: 40 }}>
@@ -195,7 +147,6 @@ export default function AdminUsuarios() {
   }
 
   return (
-    <>
     <div
       className="dash-page"
       style={{
@@ -267,12 +218,6 @@ export default function AdminUsuarios() {
                         >
                           {updating === u.id ? 'Guardando...' : isActive ? 'Desactivar' : 'Activar'}
                         </button>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => openClientModal(u)}
-                        >
-                          Convertir a cliente
-                        </button>
                         {!hasAdminRole ? (
                           <button
                             className="btn btn-secondary btn-sm"
@@ -309,108 +254,6 @@ export default function AdminUsuarios() {
         </div>
       </div>
     </div>
-    {clientModal && (
-      <div
-        role="dialog"
-        aria-modal="true"
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}
-        onClick={(e) => { if (e.target === e.currentTarget) setClientModal(null); }}
-      >
-        <div className="dash-card" style={{ width: '100%', maxWidth: 680, padding: 16 }}>
-          <div className="dash-header" style={{ marginBottom: 12 }}>
-            <div className="dash-title">Convertir usuario en cliente</div>
-          </div>
-          {clientError && (
-            <div style={{ background: '#7f1d1d', color: '#fecaca', padding: 10, borderRadius: 8, marginBottom: 12 }}>
-              {clientError}
-            </div>
-          )}
-          <div className="dash-item" style={{ display: 'grid', gap: 12 }}>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Nombre completo</span>
-              <input
-                value={clientModal.fullName}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, fullName: e.target.value }))}
-                style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
-              />
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12 }}>
-              <label style={{ display: 'grid', gap: 6 }}>
-                <span>Tipo de documento</span>
-                <input
-                  placeholder="CC / CE / NIT / PAS"
-                  value={clientModal.documentType}
-                  onChange={(e) => setClientModal((prev) => ({ ...prev, documentType: e.target.value }))}
-                  style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
-                />
-              </label>
-              <label style={{ display: 'grid', gap: 6 }}>
-                <span>Número de documento</span>
-                <input
-                  value={clientModal.documentNumber}
-                  onChange={(e) => setClientModal((prev) => ({ ...prev, documentNumber: e.target.value }))}
-                  style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
-                />
-              </label>
-            </div>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Fecha de nacimiento</span>
-              <input
-                type="date"
-                value={clientModal.birthDate}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, birthDate: e.target.value }))}
-                style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
-              />
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <label style={{ display: 'grid', gap: 6 }}>
-                <span>Teléfono fijo / celular</span>
-                <input
-                  value={clientModal.phone}
-                  onChange={(e) => setClientModal((prev) => ({ ...prev, phone: e.target.value }))}
-                  style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
-                />
-              </label>
-              <label style={{ display: 'grid', gap: 6 }}>
-                <span>Correo electrónico</span>
-                <input
-                  type="email"
-                  value={clientModal.email}
-                  onChange={(e) => setClientModal((prev) => ({ ...prev, email: e.target.value }))}
-                  style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
-                />
-              </label>
-            </div>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Dirección física</span>
-              <input
-                value={clientModal.address}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, address: e.target.value }))}
-                style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
-              />
-            </label>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Información de contacto (opcional)</span>
-              <textarea
-                rows={3}
-                value={clientModal.contactInfo}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, contactInfo: e.target.value }))}
-                style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px', resize: 'vertical' }}
-              />
-            </label>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-            <button className="btn btn-secondary" onClick={() => setClientModal(null)} disabled={clientSaving}>
-              Cancelar
-            </button>
-            <button className="btn btn-primary" onClick={saveClient} disabled={clientSaving}>
-              {clientSaving ? 'Guardando...' : 'Crear cliente'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-    </>
   );
 }
 

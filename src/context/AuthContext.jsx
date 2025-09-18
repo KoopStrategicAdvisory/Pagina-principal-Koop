@@ -1,4 +1,4 @@
-﻿// AuthContext - Maneja la sesion del usuario (JWT) en el frontend.
+// AuthContext - Maneja la sesion del usuario (JWT) en el frontend.
 // - Guarda el accessToken en localStorage
 // - Expone login, register, logout y refresh
 // - Integra con Axios para autorizar llamadas y refrescar tokens
@@ -7,6 +7,23 @@ import { loginApi, registerApi, logoutApi, refreshApi } from '../api/auth';
 import { setupAxiosInterceptors } from '../api/axios';
 
 const AuthContext = createContext(null);
+const ALLOWED_ROLES = ['admin', 'user'];
+
+function normalizeRoles(value, { defaultRole = 'user' } = {}) {
+  const normalizedDefault = String(defaultRole || 'user').trim().toLowerCase();
+  const safeDefault = ALLOWED_ROLES.includes(normalizedDefault) ? normalizedDefault : 'user';
+  const roles = Array.isArray(value) ? value : [value];
+  const normalized = roles
+    .map((role) => String(role || '').trim().toLowerCase())
+    .filter((role) => ALLOWED_ROLES.includes(role));
+  if (normalized.includes('admin')) {
+    return ['admin'];
+  }
+  if (normalized.includes('user')) {
+    return ['user'];
+  }
+  return [safeDefault];
+}
 
 function decodeJwt(token) {
   try {
@@ -24,7 +41,7 @@ function buildUser(payload, fallback) {
       id: payload.sub,
       name: payload.name,
       email: payload.email,
-      roles: payload.roles || [],
+      roles: normalizeRoles(payload.roles),
       active: payload.active !== false,
       driveFolders: payload.driveFolders || [],
     };
@@ -34,7 +51,7 @@ function buildUser(payload, fallback) {
       id: fallback.id,
       name: fallback.name,
       email: fallback.email,
-      roles: fallback.roles || [],
+      roles: normalizeRoles(fallback.roles),
       active: fallback.active !== false,
       driveFolders: fallback.driveFolders || [],
     };
@@ -82,7 +99,13 @@ export function AuthProvider({ children }) {
   const register = async (name, email, password, roles) => {
     setLoading(true);
     try {
-      const data = await registerApi({ name, email, password, roles });
+      const hasRoles = Array.isArray(roles) && roles.length > 0;
+      const data = await registerApi({
+        name,
+        email,
+        password,
+        roles: hasRoles ? normalizeRoles(roles) : undefined,
+      });
       if (data?.accessToken) {
         setAccessToken(data.accessToken);
         const payload = decodeJwt(data.accessToken);
@@ -133,4 +156,3 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return ctx;
 }
-
