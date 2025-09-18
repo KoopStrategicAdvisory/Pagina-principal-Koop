@@ -31,6 +31,7 @@ export default function ClientesActivos() {
   const [editing, setEditing] = useState(null); // { id, name, email, documentNumber, phone }
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
 
   const fetchClients = async () => {
     if (!isAdmin) return;
@@ -83,7 +84,7 @@ export default function ClientesActivos() {
       setSaving(true);
       setError(null);
       const resp = await updateClient(editing.id, payload);
-      const updated = resp?.user || null;
+      const updated = resp?.client || null;
       if (updated) {
         setClients((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
       }
@@ -121,9 +122,41 @@ export default function ClientesActivos() {
       }}
     >
       <div className="dash-card" style={{ width: '100%', maxWidth: 1200 }}>
-        <div className="dash-header" style={{ marginBottom: 16 }}>
+        <style>{`
+          .only-mobile { display: block; }
+          .only-desktop { display: none; }
+          @media (min-width: 768px) {
+            .only-mobile { display: none; }
+            .only-desktop { display: block; }
+          }
+          @media (max-width: 767px) {
+            .mobile-list { display: grid; gap: 10px; }
+          }
+          /* Header layout */
+          .clients-header { display: grid; gap: 10px; align-items: center; }
+          .clients-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+          @media (min-width: 768px) {
+            .clients-header { grid-template-columns: 1fr auto; }
+          }
+          @media (max-width: 767px) {
+            .clients-actions { grid-template-columns: 1fr; }
+            .clients-actions .btn { width: 100%; }
+          }
+          .mobile-item { border: 1px solid rgba(148,163,184,0.35); border-radius: 10px; overflow: hidden; background: #1b263b; }
+          .mobile-item-header { display: flex; align-items: center; justify-content: space-between; padding: 0; cursor: pointer; height: 44px; }
+          .mobile-item .btn { border-radius: 10px; width: 100%; }
+          .mobile-item-title { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding: 0 12px; }
+          .mobile-item-details { padding: 10px 12px; border-top: 1px solid rgba(148,163,184,0.25); }
+          .kv { display: grid; grid-template-columns: 120px 1fr; gap: 8px; font-size: 14px; }
+          .kv span { opacity: 0.9; }
+          @media (max-width: 480px) {
+            .kv { grid-template-columns: 1fr; }
+            .kv span { font-size: 12px; opacity: 0.8; }
+          }
+        `}</style>
+        <div className="dash-header clients-header" style={{ marginBottom: 16 }}>
           <div className="dash-title">Clientes activos</div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="clients-actions">
             <input
               type="search"
               placeholder="Buscar por nombre, email, cedula o celular"
@@ -149,7 +182,8 @@ export default function ClientesActivos() {
           </div>
         )}
 
-        <div className="dash-item" style={{ overflowX: 'auto' }}>
+        {/* Desktop table */}
+        <div className="dash-item only-desktop" style={{ overflowX: 'auto' }}>
           <table className="me-table" style={{ minWidth: 820 }}>
             <thead>
               <tr>
@@ -183,6 +217,42 @@ export default function ClientesActivos() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile list with expandable details */}
+        <div className="dash-item only-mobile mobile-list">
+          {filtered.length === 0 && (
+            <div style={{ textAlign: 'center', padding: 8 }}>
+              {loading ? 'Cargando...' : 'No hay clientes activos para mostrar'}
+            </div>
+          )}
+          {filtered.map((c) => {
+            const isOpen = expandedId === c.id;
+            return (
+              <div key={c.id} className="mobile-item">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm mobile-item-header"
+                  onClick={() => setExpandedId((prev) => (prev === c.id ? null : c.id))}
+                  aria-expanded={isOpen}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  <div className="mobile-item-title">{c.name || '-'}</div>
+                  <div style={{ opacity: 0.9, fontSize: 12, paddingRight: 10 }}>{isOpen ? '▲' : '▼'}</div>
+                </button>
+                {isOpen && (
+                  <div className="mobile-item-details">
+                    <div className="kv"><span>Email</span><div>{c.email || '-'}</div></div>
+                    <div className="kv" style={{ marginTop: 6 }}><span>Cédula</span><div>{c.documentNumber || '-'}</div></div>
+                    <div className="kv" style={{ marginTop: 6 }}><span>Celular</span><div>{c.phone || '-'}</div></div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                      <button className="btn btn-primary btn-sm" onClick={() => onEdit(c)}>Editar</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
