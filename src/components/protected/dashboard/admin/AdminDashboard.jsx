@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../../api/axios";
-import { listUsers } from "../../../../api/adminUsers";
+import { listActiveClients } from "../../../../api/clients";
 import { useAuth } from "../../../../context/AuthContext.jsx";
 import useCalendarEvents from "../../../../hooks/useCalendarEvents";
 import { normalizeUpperAscii } from "../../../../utils/strings.js";
@@ -45,10 +45,12 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClientIds, setSelectedClientIds] = useState([]);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const [kbOffset, setKbOffset] = useState(0);
 
   const [clients, setClients] = useState([]);
   const [clientsLoading, setClientsLoading] = useState(false);
   const [clientsError, setClientsError] = useState(null);
+  const tasksCount = useMemo(() => Array.isArray(calendarEvents) ? calendarEvents.length : 0, [calendarEvents]);
 
   useEffect(() => {
     (async () => {
@@ -69,7 +71,7 @@ export default function AdminDashboard() {
       try {
         setClientsLoading(true);
         setClientsError(null);
-        const response = await listUsers();
+        const response = await listActiveClients();
         if (ignore) return;
         const items = Array.isArray(response?.items) ? response.items : [];
         setClients(
@@ -180,6 +182,34 @@ export default function AdminDashboard() {
     }
   };
 
+  useEffect(() => {
+    if (!isComposeOpen) {
+      setKbOffset(0);
+      return undefined;
+    }
+    const updateOffset = () => {
+      try {
+        const vv = window.visualViewport;
+        if (vv) {
+          const offset = Math.max(0, Math.round(window.innerHeight - vv.height));
+          setKbOffset(offset);
+        } else {
+          setKbOffset(0);
+        }
+      } catch (_) {
+        setKbOffset(0);
+      }
+    };
+    updateOffset();
+    const vv = window.visualViewport;
+    vv && vv.addEventListener('resize', updateOffset);
+    window.addEventListener('resize', updateOffset);
+    return () => {
+      vv && vv.removeEventListener('resize', updateOffset);
+      window.removeEventListener('resize', updateOffset);
+    };
+  }, [isComposeOpen]);
+
   return (
     <div
       className="dash-page"
@@ -204,8 +234,8 @@ export default function AdminDashboard() {
           /* Oculta el panel de redaccion en pantallas pequeñas para usar modal */
           @media (max-width: 1023px) { .compose-panel { display: none; } }
           /* Modal flotante para redaccion en móvil */
-          .compose-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; display: flex; align-items: flex-end; }
-          .compose-modal { background: #0f172a; color: #e2e8f0; width: 100%; border-top-left-radius: 14px; border-top-right-radius: 14px; padding: 16px; box-shadow: 0 -8px 24px rgba(0,0,0,0.35); max-height: 85vh; overflow: auto; }
+          .compose-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+          .compose-modal { background: #0f172a; color: #e2e8f0; width: min(680px, 92vw); border-radius: 14px; padding: 16px; box-shadow: 0 10px 32px rgba(0,0,0,0.45); max-height: 100dvh; overflow: auto; }
           @media (min-width: 1024px) { .compose-overlay { display: none; } }
         `}</style>
 
@@ -221,17 +251,9 @@ export default function AdminDashboard() {
         </div>
 
         <div className="dash-item" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              const anchor = document.querySelector('[data-drive-folder-url]');
-              const url = anchor?.getAttribute('data-drive-folder-url');
-              if (url) window.open(url, '_blank', 'noopener');
-            }}
-            title="Lineas de tiempo procesales"
-          >
-            Lineas de tiempo procesales
-          </button>
+          <Link className="btn btn-primary" to="/admin/tareas" title="Ver y gestionar tareas">
+            {`Tareas: (${tasksCount})`}
+          </Link>
           <Link className="btn btn-primary btn-sm" to="/admin/clientes-activos" title="Clientes">
             Clientes
           </Link>
@@ -241,7 +263,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="kpi-grid" style={{ marginTop: 16 }}>
-          <KpiCard label="Casos activos" value={kpis?.activeCases ?? (loading ? "..." : 0)} />
+          <KpiCard label="Casos activos" value={clients?.length ?? 0} />
         </div>
 
         <div className="admin-main-grid" style={{ marginTop: 16 }}>
@@ -488,7 +510,14 @@ export default function AdminDashboard() {
       </div>
       {isComposeOpen && (
         <div className="compose-overlay" role="dialog" aria-modal="true">
-          <div className="compose-modal">
+          <div
+            className="compose-modal"
+            style={{
+              marginBottom: kbOffset > 0 ? kbOffset : 0,
+              maxHeight: `calc(100dvh - ${kbOffset}px)`,
+              paddingBottom: 'calc(16px + env(safe-area-inset-bottom))',
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <div style={{ fontWeight: 700 }}>{selectedDateLabel || 'Selecciona un dia'}</div>
               <button type="button" className="btn btn-secondary btn-sm" onClick={() => setIsComposeOpen(false)} aria-label="Cerrar">

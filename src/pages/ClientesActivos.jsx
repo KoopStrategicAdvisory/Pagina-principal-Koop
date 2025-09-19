@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { listActiveClients, updateClient } from '../api/clients';
+import { listActiveClients, updateClient, assignClientAdmin } from '../api/clients';
+import { listUsers as listAllUsers } from '../api/adminUsers';
+import { listRecentDocs, uploadDoc, getDownloadUrl, createFolder } from '../api/docs';
 import '../styles/dashboard.css';
 
 const ALLOWED_ROLES = ['admin', 'user'];
@@ -32,6 +34,24 @@ export default function ClientesActivos() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  // Asignación de admins (UI local)
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignClient, setAssignClient] = useState(null);
+  const [admins, setAdmins] = useState([]);
+  const [adminsLoading, setAdminsLoading] = useState(false);
+  const [adminsError, setAdminsError] = useState(null);
+  const [selectedAdminId, setSelectedAdminId] = useState('');
+
+  // Archivos por cliente (S3)
+  const [filesOpen, setFilesOpen] = useState(false);
+  const [filesClient, setFilesClient] = useState(null);
+  const [filesFolder, setFilesFolder] = useState('');
+  const [files, setFiles] = useState([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+  const [filesError, setFilesError] = useState(null);
+  const [filesWarning, setFilesWarning] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [creatingFolder, setCreatingFolder] = useState(false);
 
   const fetchClients = async () => {
     if (!isAdmin) return;
@@ -62,6 +82,44 @@ export default function ClientesActivos() {
         .some((v) => v.includes(q))
     );
   }, [clients, search]);
+
+  // Helpers de asignación (persistencia en backend)
+  const getAssignedFor = (clientId) => {
+    const found = clients.find(c=>c.id===clientId);
+    return found?.assignedAdmin || null;
+  };
+
+  const openAssignModal = async (client) => {
+    setAssignClient(client);
+    setAssignOpen(true);
+    setAdminsError(null);
+    setAdminsLoading(true);
+    try {
+      const data = await listAllUsers();
+      const items = Array.isArray(data?.items) ? data.items : [];
+      const adminUsers = items.filter((u) => (Array.isArray(u.roles) ? u.roles : [u.roles]).map(r=>String(r||'').toLowerCase()).includes('admin'));
+      setAdmins(adminUsers.map(u=>({ id:u.id, name:u.name||u.email||u.id, email:u.email })));
+      const current = getAssignedFor(client.id);
+      setSelectedAdminId(current?.id || '');
+    } catch (e) {
+      setAdminsError(e?.response?.data?.message || e?.message || 'No se pudo cargar administradores');
+    } finally {
+      setAdminsLoading(false);
+    }
+  };
+
+  const onSaveAssignment = async () => {
+    try {
+      const payloadId = selectedAdminId || '';
+      await assignClientAdmin(assignClient.id, payloadId);
+      // Refrescar lista en memoria para reflejar assignedAdmin
+      await fetchClients();
+      setAssignOpen(false);
+      setAssignClient(null);
+    } catch (e) {
+      setAdminsError(e?.response?.data?.message || e?.message || 'No se pudo asignar');
+    }
+  };
 
   const onEdit = (client) => {
     setEditing({
@@ -96,6 +154,79 @@ export default function ClientesActivos() {
     }
   };
 
+  const folderForClient = (c) => {
+    const idPart = String(c?.documentNumber || c?.id || '').trim();
+    return idPart ? `clientes/${idPart}` : 'clientes/sin-id';
+  };
+
+  const loadClientFiles = async (folder) => {
+    setFilesLoading(true);
+    setFilesError(null);
+    setFilesWarning(null);
+    try {
+      const data = await listRecentDocs({ limit: 50, subfolder: folder });
+      setFiles(Array.isArray(data?.items) ? data.items : []);
+      if (data?.warning) setFilesWarning(data.warning);
+    } catch (e) {
+      setFilesError(e?.response?.data?.message || e?.message || 'No se pudieron cargar archivos');
+    } finally {
+      setFilesLoading(false);
+    }
+  };
+
+  const openFilesModal = async (client) => {
+    const folder = folderForClient(client);
+    setFilesClient(client);
+    setFilesFolder(folder);
+    setFilesOpen(true);
+    await loadClientFiles(folder);
+  };
+
+  const ensureFolderAndOpen = async (client) => {
+    const folder = folderForClient(client);
+    try {
+      await createFolder({ subfolder: folder });
+    } catch (_) { /* idempotente si ya existe */ }
+    await openFilesModal(client);
+  };
+
+  const uploadToClient = async (file) => {
+    if (!file || !filesFolder) return;
+    try {
+      setUploading(true);
+      setFilesError(null);
+      await uploadDoc(file, { subfolder: filesFolder });
+      await loadClientFiles(filesFolder);
+    } catch (e) {
+      setFilesError(e?.response?.data?.message || e?.message || 'No se pudo subir el archivo');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const createFolderNow = async () => {
+    if (!filesFolder) return;
+    try {
+      setCreatingFolder(true);
+      setFilesError(null);
+      await createFolder({ subfolder: filesFolder });
+      await loadClientFiles(filesFolder);
+    } catch (e) {
+      setFilesError(e?.response?.data?.message || e?.message || 'No se pudo crear la carpeta');
+    } finally {
+      setCreatingFolder(false);
+    }
+  };
+
+  const onDownload = async (key, fallbackUrl) => {
+    try {
+      const { url } = await getDownloadUrl(key, 600);
+      window.open(url || fallbackUrl, '_blank');
+    } catch (e) {
+      if (fallbackUrl) window.open(fallbackUrl, '_blank');
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="dash-page" style={{ padding: 40 }}>
@@ -118,7 +249,10 @@ export default function ClientesActivos() {
         backgroundSize: 'cover',
         backgroundAttachment: 'fixed',
         backgroundPosition: 'center',
-        padding: 32,
+        paddingLeft: 16,
+        paddingRight: 16,
+        paddingBottom: 16,
+        // respetar el padding-top del .dash-page (deja espacio para navbar fijo)
       }}
     >
       <div className="dash-card" style={{ width: '100%', maxWidth: 1200 }}>
@@ -204,12 +338,28 @@ export default function ClientesActivos() {
               )}
               {filtered.map((c) => (
                 <tr key={c.id}>
-                  <td>{c.name || '-'}</td>
+                  <td>
+                    <div>{c.name || '-'}</div>
+                    <div style={{ fontSize: 12, opacity: 0.75 }}>Admin asignado: {c.assignedAdmin?.name || '—'}</div>
+                  </td>
                   <td>{c.email || '-'}</td>
                   <td>{c.documentNumber || '-'}</td>
                   <td>{c.phone || '-'}</td>
                   <td>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => openAssignModal(c)}
+                        title={getAssignedFor(c.id) ? `Asignado a ${getAssignedFor(c.id)?.name || ''}` : 'Asignar administrador'}
+                      >
+                        {getAssignedFor(c.id) ? 'Asignado' : 'Asignar'}
+                      </button>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => ensureFolderAndOpen(c)}
+                      >
+                        Archivos
+                      </button>
                       <button className="btn btn-primary btn-sm" onClick={() => onEdit(c)}>Editar</button>
                     </div>
                   </td>
@@ -245,7 +395,23 @@ export default function ClientesActivos() {
                     <div className="kv"><span>Email</span><div>{c.email || '-'}</div></div>
                     <div className="kv" style={{ marginTop: 6 }}><span>Cédula</span><div>{c.documentNumber || '-'}</div></div>
                     <div className="kv" style={{ marginTop: 6 }}><span>Celular</span><div>{c.phone || '-'}</div></div>
+                    <div className="kv" style={{ marginTop: 6 }}><span>Admin asignado</span><div>{c.assignedAdmin?.name || '—'}</div></div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => openAssignModal(c)}
+                        style={{ marginRight: 8 }}
+                        title={getAssignedFor(c.id) ? `Asignado a ${getAssignedFor(c.id)?.name || ''}` : 'Asignar administrador'}
+                      >
+                        {getAssignedFor(c.id) ? 'Asignado' : 'Asignar'}
+                      </button>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => ensureFolderAndOpen(c)}
+                        style={{ marginRight: 8 }}
+                      >
+                        Archivos
+                      </button>
                       <button className="btn btn-primary btn-sm" onClick={() => onEdit(c)}>Editar</button>
                     </div>
                   </div>
@@ -321,6 +487,124 @@ export default function ClientesActivos() {
               <button className="btn btn-primary" onClick={onSave} disabled={saving}>
                 {saving ? 'Guardando...' : 'Guardar cambios'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {filesOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 55, padding: 16,
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setFilesOpen(false); }}
+        >
+          <div className="dash-card" style={{ width: '100%', maxWidth: 900 }}>
+            <div className="dash-header" style={{ marginBottom: 8 }}>
+              <div className="dash-title">Archivos — {filesClient?.name || filesClient?.email || filesClient?.id}</div>
+              <button className="btn btn-secondary btn-sm" onClick={() => setFilesOpen(false)}>Cerrar</button>
+            </div>
+            <div className="dash-item" style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 13, opacity: 0.85 }}>Carpeta S3: <code>{filesFolder}</code></div>
+              <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <input type="file" onChange={(e) => uploadToClient(e.target.files?.[0])} disabled={uploading || creatingFolder} />
+                <span style={{ fontSize: 13, opacity: 0.8 }}>{uploading ? 'Subiendo...' : 'Sube para crear/ver la carpeta'}</span>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={createFolderNow} disabled={creatingFolder || uploading}>
+                  {creatingFolder ? 'Creando...' : 'Crear carpeta ahora'}
+                </button>
+              </div>
+              {filesError && (
+                <div style={{ background: '#7f1d1d', color: '#fecaca', padding: 8, borderRadius: 6, marginTop: 8 }}>{filesError}</div>
+              )}
+              {filesWarning && (
+                <div style={{ background: '#78350f', color: '#fde68a', padding: 8, borderRadius: 6, marginTop: 8 }}>
+                  Aviso: {String(filesWarning) === 'S3_LIST_FORBIDDEN' ? 'No hay permisos para listar el bucket. Puedes descargar si conservas el enlace.' : String(filesWarning)}
+                </div>
+              )}
+            </div>
+
+            <div className="dash-item" style={{ overflowX: 'auto' }}>
+              <table className="me-table" style={{ minWidth: 680 }}>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Tamaño</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {files.length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: 10 }}>
+                        {filesLoading ? 'Cargando...' : 'No hay archivos para mostrar'}
+                      </td>
+                    </tr>
+                  )}
+                  {files.map((f) => {
+                    const dt = f.lastModified ? new Date(f.lastModified) : (f.createdTime ? new Date(f.createdTime) : null);
+                    const name = f.name || (f.key || '').split('/').pop();
+                    const sizeKb = typeof f.size === 'number' ? Math.max(1, Math.round(f.size / 1024)) : null;
+                    const mime = f.mimeType || (name && name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined);
+                    return (
+                      <tr key={f.key || f.id}>
+                        <td>{dt ? dt.toLocaleString() : '-'}</td>
+                        <td title={name}>{name}</td>
+                        <td>{mime ? (mime.split('/')[1] || mime) : '-'}</td>
+                        <td>{sizeKb ? `${sizeKb} KB` : '-'}</td>
+                        <td>
+                          <button className="btn btn-secondary btn-sm" onClick={() => onDownload(f.key, f.downloadURL || f.downloadUrl || f.webContentLink || f.webViewLink)}>
+                            Descargar
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {assignOpen && assignClient && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16 }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setAssignOpen(false); setAssignClient(null); } }}
+        >
+          <div className="dash-card" style={{ width: '100%', maxWidth: 560 }}>
+            <div className="dash-header" style={{ marginBottom: 8 }}>
+              <div className="dash-title">Asignar administrador</div>
+            </div>
+            <div className="dash-item" style={{ display: 'grid', gap: 10 }}>
+              <div style={{ fontSize: 14, opacity: 0.85 }}>Cliente: <strong>{assignClient.name}</strong> <span style={{ opacity: 0.7 }}>({assignClient.id})</span></div>
+              {adminsError && (
+                <div style={{ background: '#7f1d1d', color: '#fecaca', padding: 8, borderRadius: 6 }}>{adminsError}</div>
+              )}
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span>Selecciona un admin</span>
+                <select
+                  value={selectedAdminId}
+                  onChange={(e)=>setSelectedAdminId(e.target.value)}
+                  disabled={adminsLoading}
+                  style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
+                >
+                  <option value="">— Sin asignar —</option>
+                  {admins.map((a)=> (
+                    <option key={a.id} value={a.id}>{a.name} — {a.email}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+              <button className="btn btn-secondary" onClick={()=>{ setAssignOpen(false); setAssignClient(null); }} disabled={adminsLoading}>Cancelar</button>
+              <button className="btn btn-primary" onClick={onSaveAssignment} disabled={adminsLoading}>Guardar</button>
             </div>
           </div>
         </div>

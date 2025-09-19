@@ -28,7 +28,14 @@
 }
 .navbar .menu-toggle span { height: 4px; background: #23395d; margin: 5px 0; border-radius: 2px; transition: .4s; display: block; }
 
-.navbar .nav-menu { display: flex; gap: 36px; align-items: center; justify-content: center; }
+.navbar .nav-menu { display: flex; gap: 36px; align-items: center; justify-content: flex-end; flex: 1; }
+/* Center and space primary links block on desktop */
+.navbar .nav-menu .main-links {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  margin: 0 auto;
+}
 .navbar .nav-menu,
 .navbar .nav-menu a,
 .navbar .nav-menu .drop-btn {
@@ -76,6 +83,8 @@
     flex-direction: column; align-items: flex-start; gap: 14px;
     padding: 16px 20px; display: none; z-index: 90;
   }
+  /* On mobile, flatten main-links into the vertical list */
+  .navbar .nav-menu .main-links { display: contents; margin: 0; gap: 0; }
   .navbar .nav-menu.open { display: flex; }
   .navbar .dropdown-content{ position: static; box-shadow:none; padding:0; gap:0; display:none; flex-direction:column; }
   .navbar .dropdown.open .dropdown-content{ display:flex; }

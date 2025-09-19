@@ -4,12 +4,19 @@ import '../styles/mi-expediente.css';
 import { useAuth } from '../context/AuthContext';
 import { normalizeUpperAscii } from '../utils/strings.js';
 import { listRecentDocs, uploadDoc, getDownloadUrl } from '../api/docs';
+import { listActiveClients } from '../api/clients';
 
 export default function MiExpediente() {
   const [activeTab, setActiveTab] = useState('docs');
   const { user } = useAuth();
   const displayName = normalizeUpperAscii(user?.name || '');
   const DEFAULT_FOLDER = 'documentos_iniciales';
+  const roles = Array.isArray(user?.roles) ? user.roles : (user?.roles ? [user?.roles] : []);
+  const isAdmin = roles.map((r)=>String(r||'').trim().toLowerCase()).includes('admin');
+  // Clientes asignados (solo admin)
+  const [assignedClients, setAssignedClients] = useState([]);
+  const [assignedLoading, setAssignedLoading] = useState(false);
+  const [assignedError, setAssignedError] = useState(null);
 
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -36,6 +43,28 @@ export default function MiExpediente() {
     if (activeTab === 'docs') loadDocs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
+
+  // Cargar clientes asignados al admin actual
+  useEffect(() => {
+    if (!isAdmin) return;
+    let ignore = false;
+    (async () => {
+      try {
+        setAssignedLoading(true);
+        setAssignedError(null);
+        const data = await listActiveClients();
+        if (ignore) return;
+        const items = Array.isArray(data?.items) ? data.items : [];
+        const myId = String(user?.id || user?.sub || '').trim();
+        setAssignedClients(items.filter((c) => String(c?.assignedAdmin?.id || '').trim() === myId));
+      } catch (e) {
+        if (!ignore) setAssignedError(e?.response?.data?.message || e?.message || 'No se pudo cargar clientes asignados');
+      } finally {
+        if (!ignore) setAssignedLoading(false);
+      }
+    })();
+    return () => { ignore = true; };
+  }, [isAdmin, user]);
 
   const onClickUpload = () => fileInputRef.current?.click();
 
@@ -80,13 +109,13 @@ export default function MiExpediente() {
     >
       <div className="dash-card" style={{ width: '100%', maxWidth: 1320 }}>
         <div className="dash-header">
-          <div className="dash-title">Mi expediente</div>
+          <div className="dash-title">{isAdmin ? 'Mis expedientes' : 'Mi expediente'}</div>
         </div>
 
-        {/* Barra de acciones / búsqueda */}
+        {/* Barra de acciones / b�squeda */}
         <div className="dash-item me-subbar">
           <div className="me-hello">Bienvenido: {displayName}</div>
-          <select className="me-select" aria-label="Tipo de búsqueda">
+          <select className="me-select" aria-label="Tipo de b�squeda">
             <option>Procesos judiciales</option>
             <option>Demandas</option>
             <option>Audiencias</option>
@@ -97,59 +126,48 @@ export default function MiExpediente() {
             <button className="btn btn-primary" onClick={onClickUpload} disabled={loading}>
               {loading ? 'Subiendo...' : 'Radicar documento'}
             </button>
-            <button className="btn btn-secondary">Ver información</button>
+            <button className="btn btn-secondary">Ver informaci�n</button>
           </div>
         </div>
 
         {/* Layout 3 columnas */}
         <div className="me-layout">
-          {/* Izquierda: Árbol (mock) */}
+          {/* Izquierda: Clientes asignados al admin (o mensaje) */}
           <aside className="me-left dash-item">
-            <div className="me-head">ESPECIALIDAD: LABORAL</div>
+            <div className="me-head">CLIENTE</div>
             <div className="me-tree">
-              <details open>
-                <summary>
-                  <span className="me-chev">›</span>
-                  <span>JUZGADO 009 MUNICIPAL DE PEQUEÑAS CAUSAS</span>
-                </summary>
-                <div className="me-leaf">
-                  <div>110014105009-20250011400</div>
-                  <div className="me-tag">Cuadernos</div>
+              {!isAdmin && (
+                <div className="me-leaf" style={{ opacity: .8 }}>
+                  <div>No aplica para tu perfil.</div>
                 </div>
-              </details>
-              <details open>
-                <summary>
-                  <span className="me-chev">›</span>
-                  <span>JUZGADO 003 LABORAL DEL CIRCUITO</span>
-                </summary>
-                <div className="me-leaf">
-                  <div>110014105009-2025011401</div>
-                  <div className="me-tag">Cuadernos</div>
-                </div>
-              </details>
-              <details>
-                <summary>
-                  <span className="me-chev">›</span>
-                  <span>JUZGADO 015 MUNICIPAL DE PEQUEÑAS CAUSAS</span>
-                </summary>
-                <div className="me-leaf">
-                  <div>110014105015-20240208700</div>
-                  <div className="me-tag">Cuadernos</div>
-                </div>
-              </details>
-              <details>
-                <summary>
-                  <span className="me-chev">›</span>
-                  <span>JUZGADO 048 LABORAL DEL CIRCUITO</span>
-                </summary>
-                <div className="me-leaf">
-                  <div>110013105048-2024090000</div>
-                  <div className="me-tag">Cuadernos</div>
-                </div>
-              </details>
+              )}
+              {isAdmin && assignedError && (
+                <div className="me-leaf" style={{ color: '#fecaca' }}>{assignedError}</div>
+              )}
+              {isAdmin && !assignedError && assignedLoading && (
+                <div className="me-leaf" style={{ opacity: .8 }}>Cargando clientes…</div>
+              )}
+              {isAdmin && !assignedLoading && assignedClients.length === 0 && (
+                <div className="me-leaf" style={{ opacity: .8 }}>No tienes clientes asignados</div>
+              )}
+              {isAdmin && assignedClients.length > 0 && (
+                <>
+                  {assignedClients.map((c) => (
+                    <details key={c.id} open>
+                      <summary>
+                        <span className="me-chev">></span>
+                        <span>{c.name}</span>
+                      </summary>
+                      <div className="me-leaf">
+                        <div>{c.documentNumber || c.email || c.id}</div>
+                        <div className="me-tag">Asignado</div>
+                      </div>
+                    </details>
+                  ))}
+                </>
+              )}
             </div>
           </aside>
-
           {/* Centro: Tabs + Tabla */}
           <main className="me-center dash-item">
             <div className="me-tabs">
@@ -190,7 +208,7 @@ export default function MiExpediente() {
                       <th>Fecha de registro</th>
                       <th>Documento</th>
                       <th>Tipo</th>
-                      <th>Tamaño</th>
+                      <th>Tama�o</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -236,7 +254,7 @@ export default function MiExpediente() {
                   <thead>
                     <tr>
                       <th>Fecha</th>
-                      <th>Actuación</th>
+                      <th>Actuaci�n</th>
                       <th>Juzgado</th>
                       <th>Estado</th>
                     </tr>
@@ -260,11 +278,11 @@ export default function MiExpediente() {
             <div className="me-right-content">
               <div className="me-proc-grid">
                 <div className="me-tag">Radicado</div><div>110014105009-20250011400</div>
-                <div className="me-tag">Clase</div><div>Laboral – Ordinario</div>
-                <div className="me-tag">Demandante</div><div>Juan Pérez</div>
+                <div className="me-tag">Clase</div><div>Laboral � Ordinario</div>
+                <div className="me-tag">Demandante</div><div>Juan P�rez</div>
                 <div className="me-tag">Demandado</div><div>Acme S.A.S.</div>
                 <div className="me-tag">Juzgado</div><div>JDO 009 MPC</div>
-                <div className="me-tag">Estado</div><div>En trámite</div>
+                <div className="me-tag">Estado</div><div>En tr�mite</div>
               </div>
               <hr className="me-hr" />
               <button className="btn btn-primary" style={{ width: '100%' }}>Descargar expediente</button>

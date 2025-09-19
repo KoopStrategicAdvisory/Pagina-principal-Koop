@@ -10,6 +10,11 @@ export async function updateClient(id, payload) {
   return data;
 }
 
+export async function assignClientAdmin(id, adminUserId) {
+  const { data } = await api.patch(`/admin/clients/${id}/assign`, { adminUserId });
+  return data;
+}
+
 export async function createClientFromUser(id, payload) {
   const { data } = await api.post(`/admin/clients/from-user/${id}`, payload);
   return data;

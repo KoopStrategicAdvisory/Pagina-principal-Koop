@@ -191,7 +191,9 @@ export default function AdminUsuarios() {
         backgroundSize: "cover",
         backgroundAttachment: "fixed",
         backgroundPosition: "center",
-        padding: 32,
+        paddingLeft: 16,
+        paddingRight: 16,
+        paddingBottom: 16,
       }}
     >
       <div className="dash-card" style={{ width: "100%", maxWidth: 1200 }}>
@@ -503,4 +505,3 @@ export default function AdminUsuarios() {
     </div>
   );
 }
-

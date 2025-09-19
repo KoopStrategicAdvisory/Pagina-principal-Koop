@@ -35,3 +35,9 @@ export async function getDownloadUrl(key, expiresIn = 600) {
   const { data } = await api.get('/docs/download-url', { params });
   return data;
 }
+
+export async function createFolder(subfolder) {
+  const payload = typeof subfolder === 'string' ? { subfolder } : (subfolder || {});
+  const { data } = await api.post('/docs/folder', payload);
+  return data;
+}

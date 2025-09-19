@@ -12,6 +12,8 @@ import { normalizeUpperAscii } from '../utils/strings.js';
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
+  const roles = Array.isArray(user?.roles) ? user.roles : (user?.roles ? [user.roles] : []);
+  const isAdmin = roles.map((r)=>String(r||'').trim().toLowerCase()).includes('admin');
   const [userOpen, setUserOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
@@ -106,7 +108,7 @@ export default function Navbar() {
               <div className="dropdown-content">
                 <div className="dropdown-group">
                   <Link to="/dashboard">Perfil</Link>
-                  <Link to="/mi-expediente">Mi expediente</Link>
+                  <Link to="/mi-expediente">{isAdmin ? 'Mis expedientes' : 'Mi expediente'}</Link>
                   <Link to="/mis-casos">Mis casos</Link>
                   <Link to="/logout">
                     Cerrar sesión

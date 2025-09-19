@@ -204,10 +204,13 @@ export default function AdminUsuarios() {
         backgroundSize: "cover",
         backgroundAttachment: "fixed",
         backgroundPosition: "center",
-        padding: 32,
+        paddingLeft: 16,
+        paddingRight: 16,
+        paddingBottom: 16,
       }}
     >
       <div className="dash-card" style={{ width: "100%", maxWidth: 1200 }}>
+        
         <div className="dash-header" style={{ marginBottom: 16 }}>
           <div className="dash-title">Administrar usuarios</div>
           <button className="btn btn-secondary" onClick={fetchUsers} disabled={loading}>
@@ -345,7 +348,7 @@ export default function AdminUsuarios() {
                 />
               </label>
               <label style={{ display: 'grid', gap: 6 }}>
-                <span>Número de documento</span>
+                <span>N?mero de documento</span>
                 <input
                   value={clientModal.documentNumber}
                   onChange={(e) => setClientModal((prev) => ({ ...prev, documentNumber: e.target.value }))}
@@ -364,7 +367,7 @@ export default function AdminUsuarios() {
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <label style={{ display: 'grid', gap: 6 }}>
-                <span>Teléfono fijo / celular</span>
+                <span>Tel?fono fijo / celular</span>
                 <input
                   value={clientModal.phone}
                   onChange={(e) => setClientModal((prev) => ({ ...prev, phone: e.target.value }))}
@@ -372,7 +375,7 @@ export default function AdminUsuarios() {
                 />
               </label>
               <label style={{ display: 'grid', gap: 6 }}>
-                <span>Correo electrónico</span>
+                <span>Correo electr?nico</span>
                 <input
                   type="email"
                   value={clientModal.email}
@@ -382,7 +385,7 @@ export default function AdminUsuarios() {
               </label>
             </div>
             <label style={{ display: 'grid', gap: 6 }}>
-              <span>Dirección física</span>
+              <span>Direcci?n f?sica</span>
               <input
                 value={clientModal.address}
                 onChange={(e) => setClientModal((prev) => ({ ...prev, address: e.target.value }))}
@@ -390,7 +393,7 @@ export default function AdminUsuarios() {
               />
             </label>
             <label style={{ display: 'grid', gap: 6 }}>
-              <span>Información de contacto (opcional)</span>
+              <span>Informaci?n de contacto (opcional)</span>
               <textarea
                 rows={3}
                 value={clientModal.contactInfo}
