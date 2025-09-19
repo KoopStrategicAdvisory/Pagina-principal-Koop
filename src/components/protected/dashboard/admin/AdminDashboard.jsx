@@ -1,6 +1,6 @@
 ﻿// AdminDashboard - Portal del cliente (pagina principal para administradores)
 // Estructura general: Acciones rapidas, KPIs, widgets personalizados y documentos recientes
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../../api/axios";
 import { listActiveClients } from "../../../../api/clients";
@@ -10,6 +10,7 @@ import { normalizeUpperAscii } from "../../../../utils/strings.js";
 import "../../../../styles/dashboard.css";
 import UploadDocumentAction from "../common/UploadDocumentAction.jsx";
 import CalendarWidget from "../common/CalendarWidget.jsx";
+import AiChat from "./AiChat.jsx";
 import KpiCard from "./KpiCard";
 import RecentDocuments from "./RecentDocuments";
 
@@ -46,6 +47,8 @@ export default function AdminDashboard() {
   const [selectedClientIds, setSelectedClientIds] = useState([]);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [kbOffset, setKbOffset] = useState(0);
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const toolsMenuRef = useRef(null);
 
   const [clients, setClients] = useState([]);
   const [clientsLoading, setClientsLoading] = useState(false);
@@ -97,6 +100,30 @@ export default function AdminDashboard() {
       ignore = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!isToolsOpen) return undefined;
+    const handleClick = (e) => {
+      try {
+        if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target)) {
+          setIsToolsOpen(false);
+        }
+      } catch (_) {}
+    };
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setIsToolsOpen(false);
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('click', handleClick);
+      window.addEventListener('keydown', handleKey);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('click', handleClick);
+        window.removeEventListener('keydown', handleKey);
+      }
+    };
+  }, [isToolsOpen]);
 
   const filteredClients = useMemo(() => {
     if (!searchTerm) return clients;
@@ -182,6 +209,16 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteDayNotes = () => {
+    if (!selectedDateKey || selectedDayEvents.length === 0) return;
+    const message = `¿Borrar todas las anotaciones del ${selectedDateLabel}?`;
+    if (typeof window !== 'undefined') {
+      const ok = window.confirm(message);
+      if (!ok) return;
+    }
+    setCalendarEvents((prev) => prev.filter((evt) => evt?.date !== selectedDateKey));
+  };
+
   useEffect(() => {
     if (!isComposeOpen) {
       setKbOffset(0);
@@ -257,6 +294,114 @@ export default function AdminDashboard() {
           <Link className="btn btn-primary btn-sm" to="/admin/clientes-activos" title="Clientes">
             Clientes
           </Link>
+          <div style={{ position: 'relative' }} ref={toolsMenuRef}>
+            <button
+              type="button"
+              className="btn btn-orange btn-sm"
+              onClick={() => setIsToolsOpen((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={isToolsOpen ? 'true' : 'false'}
+            >
+              Consultas
+            </button>
+            {isToolsOpen && (
+              <div
+                role="menu"
+                className="quick-menu"
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  right: 0,
+                  zIndex: 1010,
+                  background: '#0f172a',
+                  color: '#e2e8f0',
+                  border: '1px solid rgba(148,163,184,0.25)',
+                  borderRadius: 12,
+                  boxShadow: '0 10px 24px rgba(0,0,0,0.45)',
+                  minWidth: 320,
+                  padding: 8,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* TODO: Reemplazar las URL de cada opción con los enlaces reales */}
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start', marginBottom: 6 }}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      // TODO: URL Consulta de procesos Rama Judicial
+                      window.open('https://consultaprocesos.ramajudicial.gov.co/Procesos/Index', '_blank', 'noopener');
+                    }
+                    setIsToolsOpen(false);
+                  }}
+                  role="menuitem"
+                >
+                  1. Consulta de procesos Rama Judicial
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start', marginBottom: 6 }}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      // TODO: URL Publicaciones Procesales Rama Judicial
+                      window.open('https://publicacionesprocesales.ramajudicial.gov.co/', '_blank', 'noopener');
+                    }
+                    setIsToolsOpen(false);
+                  }}
+                  role="menuitem"
+                >
+                  2. Publicaciones Procesales Rama Judicial
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start', marginBottom: 6 }}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      // TODO: URL SIUGJ
+                      window.open('https://siugj.ramajudicial.gov.co/principalPortal/index.php', '_blank', 'noopener');
+                    }
+                    setIsToolsOpen(false);
+                  }}
+                  role="menuitem"
+                >
+                  3. Siugj
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start', marginBottom: 6 }}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      // TODO: URL Consultas Fiscalía
+                      window.open('https://consulta-web.fiscalia.gov.co/', '_blank', 'noopener');
+                    }
+                    setIsToolsOpen(false);
+                  }}
+                  role="menuitem"
+                >
+                  4. Consultas Fiscalía
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start' }}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      // TODO: URL Consultas Jurisdiccionales SuperFinanciera
+                      window.open('https://www.superfinanciera.gov.co/formulesuqueja/faces/consulta/jurisdiccional.xhtml', '_blank', 'noopener');
+                    }
+                    setIsToolsOpen(false);
+                  }}
+                  role="menuitem"
+                >
+                  5. Consultas Jurisdiccionales SuperFinanciera
+                </button>
+              </div>
+            )}
+          </div>
           <Link className="btn btn-secondary btn-sm" to="/admin/usuarios" title="Administrar usuarios">
             Administrar usuarios
           </Link>
@@ -322,6 +467,11 @@ export default function AdminDashboard() {
           </div>
 
           <div className="admin-main-right">
+            <AiChat
+              title="Asistente IA"
+              systemPrompt={"Eres un asistente interno de Koop Strategic Advisory. Responde de forma breve, clara y profesional."}
+            />
+
             <div className="dash-item compose-panel">
               <div className="font-semibold" style={{ fontWeight: 600 }}>
                 {selectedDateLabel || 'Selecciona un dia'}
@@ -428,6 +578,14 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   type="button"
+                  className="btn btn-danger"
+                  onClick={handleDeleteDayNotes}
+                  disabled={!selectedDateKey || selectedDayEvents.length === 0}
+                >
+                  Borrar anotaciones
+                </button>
+                <button
+                  type="button"
                   className="btn btn-primary"
                   onClick={handleSaveNote}
                   disabled={!noteText.trim() || (!publishToAll && selectedClientIds.length === 0)}
@@ -486,6 +644,7 @@ export default function AdminDashboard() {
                 style={{ borderRadius: 8 }}
               />
             </div>
+            
           </div>
         </div>
 
@@ -625,6 +784,14 @@ export default function AdminDashboard() {
                   }}
                 >
                   Limpiar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleDeleteDayNotes}
+                  disabled={!selectedDateKey || selectedDayEvents.length === 0}
+                >
+                  Borrar anotaciones
                 </button>
                 <button
                   type="button"

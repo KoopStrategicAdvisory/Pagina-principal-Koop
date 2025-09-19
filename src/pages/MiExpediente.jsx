@@ -155,7 +155,7 @@ export default function MiExpediente() {
                   {assignedClients.map((c) => (
                     <details key={c.id} open>
                       <summary>
-                        <span className="me-chev">></span>
+                        <span className="me-chev">&gt;</span>
                         <span>{c.name}</span>
                       </summary>
                       <div className="me-leaf">

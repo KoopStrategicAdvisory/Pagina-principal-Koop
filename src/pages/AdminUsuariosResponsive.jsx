@@ -405,67 +405,70 @@ export default function AdminUsuarios() {
         <div
           role="dialog"
           aria-modal="true"
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}
+          className="modal-overlay"
           onClick={(e) => { if (e.target === e.currentTarget) setClientModal(null); }}
         >
-          <div className="dash-card" style={{ width: '100%', maxWidth: 680, padding: 16 }}>
-            <div className="dash-header" style={{ marginBottom: 12 }}>
+          <div className="modal-card" role="document">
+            <div className="modal-header">
               <div className="dash-title">Convertir usuario en cliente</div>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setClientModal(null)} aria-label="Cerrar">
+                Cerrar
+              </button>
             </div>
             {clientError && (
-              <div style={{ background: '#7f1d1d', color: '#fecaca', padding: 10, borderRadius: 8, marginBottom: 12 }}>
+              <div className="alert alert-error" role="alert">
                 {clientError}
               </div>
             )}
-            <div className="dash-item" style={{ display: 'grid', gap: 12 }}>
-              <label style={{ display: 'grid', gap: 6 }}>
+            <div className="form">
+              <label className="field">
                 <span>Nombre completo</span>
                 <input
+                  className="input"
                   value={clientModal.fullName}
                   onChange={(e) => setClientModal((prev) => ({ ...prev, fullName: e.target.value }))}
-                  style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
                 />
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12 }}>
-                <label style={{ display: 'grid', gap: 6 }}>
+              <div className="form-row" style={{ gridTemplateColumns: '1fr 2fr' }}>
+                <label className="field">
                   <span>Tipo de documento</span>
-                  <input
+                  <input className="input"
                     placeholder="CC / CE / NIT / PAS"
                     value={clientModal.documentType}
                     onChange={(e) => setClientModal((prev) => ({ ...prev, documentType: e.target.value }))}
                     style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
                   />
                 </label>
-                <label style={{ display: 'grid', gap: 6 }}>
+                <label className="field">
                   <span>Número de documento</span>
-                  <input
+                  <input className="input"
                     value={clientModal.documentNumber}
                     onChange={(e) => setClientModal((prev) => ({ ...prev, documentNumber: e.target.value }))}
                     style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
                   />
                 </label>
               </div>
-              <label style={{ display: 'grid', gap: 6 }}>
+              <label className="field">
                 <span>Fecha de nacimiento</span>
-                <input
+                <input className="input"
                   type="date"
                   value={clientModal.birthDate}
                   onChange={(e) => setClientModal((prev) => ({ ...prev, birthDate: e.target.value }))}
                   style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
                 />
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <label style={{ display: 'grid', gap: 6 }}>
+              <div className="form-row two">
+                <label className="field">
                   <span>Teléfono fijo / celular</span>
-                  <input
+                  <input className="input"
                     value={clientModal.phone}
                     onChange={(e) => setClientModal((prev) => ({ ...prev, phone: e.target.value }))}
                     style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
                   />
                 </label>
-                <label style={{ display: 'grid', gap: 6 }}>
+                <label className="field">
                   <span>Correo electrónico</span>
-                  <input
+                  <input className="input"
                     type="email"
                     value={clientModal.email}
                     onChange={(e) => setClientModal((prev) => ({ ...prev, email: e.target.value }))}
@@ -473,17 +476,17 @@ export default function AdminUsuarios() {
                   />
                 </label>
               </div>
-              <label style={{ display: 'grid', gap: 6 }}>
+              <label className="field">
                 <span>Dirección física</span>
-                <input
+                <input className="input"
                   value={clientModal.address}
                   onChange={(e) => setClientModal((prev) => ({ ...prev, address: e.target.value }))}
                   style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
                 />
               </label>
-              <label style={{ display: 'grid', gap: 6 }}>
+              <label className="field">
                 <span>Información de contacto (opcional)</span>
-                <textarea
+                <textarea className="textarea"
                   rows={3}
                   value={clientModal.contactInfo}
                   onChange={(e) => setClientModal((prev) => ({ ...prev, contactInfo: e.target.value }))}
