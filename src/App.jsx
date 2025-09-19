@@ -24,7 +24,7 @@ import AccionesDeTutela from './pages/AccionesDeTutela.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Panel from './pages/Panel.jsx';
-import AdminUsuarios from './pages/AdminUsuarios.jsx';
+import AdminUsuarios from './pages/AdminUsuariosResponsive.jsx';
 import ClientesActivos from './pages/ClientesActivos.jsx';
 import Dashboard from './components/protected/Dashboard.jsx';
 import MiExpediente from './pages/MiExpediente.jsx';

@@ -44,6 +44,7 @@ export default function AdminDashboard() {
   const [publishToAll, setPublishToAll] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClientIds, setSelectedClientIds] = useState([]);
+  const [isComposeOpen, setIsComposeOpen] = useState(false);
 
   const [clients, setClients] = useState([]);
   const [clientsLoading, setClientsLoading] = useState(false);
@@ -140,6 +141,7 @@ export default function AdminDashboard() {
     setNoteText('');
     setSelectedClientIds([]);
     setPublishToAll(true);
+    setIsComposeOpen(false);
   };
 
   const primaryButtonStyle = {
@@ -171,6 +173,13 @@ export default function AdminDashboard() {
     [selectedDate]
   );
 
+  const handleCalendarChange = (date) => {
+    setSelectedDate(date);
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsComposeOpen(true);
+    }
+  };
+
   return (
     <div
       className="dash-page"
@@ -192,6 +201,12 @@ export default function AdminDashboard() {
           .admin-clients-list { max-height: 200px; overflow-y: auto; border: 1px solid rgba(148,163,184,0.35); border-radius: 8px; padding: 8px; }
           .admin-clients-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px; border-bottom: 1px solid rgba(148,163,184,0.15); }
           .admin-clients-item:last-child { border-bottom: none; }
+          /* Oculta el panel de redaccion en pantallas pequeñas para usar modal */
+          @media (max-width: 1023px) { .compose-panel { display: none; } }
+          /* Modal flotante para redaccion en móvil */
+          .compose-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; display: flex; align-items: flex-end; }
+          .compose-modal { background: #0f172a; color: #e2e8f0; width: 100%; border-top-left-radius: 14px; border-top-right-radius: 14px; padding: 16px; box-shadow: 0 -8px 24px rgba(0,0,0,0.35); max-height: 85vh; overflow: auto; }
+          @media (min-width: 1024px) { .compose-overlay { display: none; } }
         `}</style>
 
         <div className="dash-header">
@@ -217,8 +232,8 @@ export default function AdminDashboard() {
           >
             Lineas de tiempo procesales
           </button>
-          <Link className="btn btn-primary btn-sm" to="/mi-expediente" title="Ir a Mi expediente">
-            Mi expediente
+          <Link className="btn btn-primary btn-sm" to="/admin/clientes-activos" title="Clientes">
+            Clientes
           </Link>
           <Link className="btn btn-secondary btn-sm" to="/admin/usuarios" title="Administrar usuarios">
             Administrar usuarios
@@ -250,7 +265,7 @@ export default function AdminDashboard() {
 
             <CalendarWidget
               value={selectedDate}
-              onChange={setSelectedDate}
+              onChange={handleCalendarChange}
               events={calendarEvents}
             />
 
@@ -285,7 +300,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="admin-main-right">
-            <div className="dash-item">
+            <div className="dash-item compose-panel">
               <div className="font-semibold" style={{ fontWeight: 600 }}>
                 {selectedDateLabel || 'Selecciona un dia'}
               </div>
@@ -471,6 +486,156 @@ export default function AdminDashboard() {
           </pre>
         )}
       </div>
+      {isComposeOpen && (
+        <div className="compose-overlay" role="dialog" aria-modal="true">
+          <div className="compose-modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div style={{ fontWeight: 700 }}>{selectedDateLabel || 'Selecciona un dia'}</div>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setIsComposeOpen(false)} aria-label="Cerrar">
+                Cerrar
+              </button>
+            </div>
+
+            <div className="dash-item" style={{ padding: 0 }}>
+              <p style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>
+                Registra recordatorios o publicaciones para clientes especificos o para todos.
+              </p>
+
+              <textarea
+                value={noteText}
+                onChange={(event) => setNoteText(event.target.value)}
+                placeholder="Agregar nota o detalle del evento"
+                rows={4}
+                style={{
+                  width: '100%',
+                  marginTop: 12,
+                  background: '#1b263b',
+                  color: '#e2e8f0',
+                  border: '1px solid rgba(148,163,184,0.35)',
+                  borderRadius: 10,
+                  padding: '10px 12px',
+                  resize: 'vertical',
+                }}
+              />
+
+              <div style={{ marginTop: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={publishToAll}
+                    onChange={(event) => {
+                      setPublishToAll(event.target.checked);
+                      if (event.target.checked) {
+                        setSelectedClientIds([]);
+                      }
+                    }}
+                  />
+                  <span>Publicar para todos los clientes</span>
+                </label>
+              </div>
+
+              {!publishToAll && (
+                <div style={{ marginTop: 12 }}>
+                  <input
+                    type="search"
+                    placeholder="Buscar por nombre, email o ID"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.35)',
+                      background: '#1b263b',
+                      color: '#e2e8f0',
+                    }}
+                  />
+                  {clientsError && (
+                    <div style={{ color: '#fecaca', background: '#7f1d1d', padding: 8, borderRadius: 8, marginTop: 8 }}>
+                      {clientsError}
+                    </div>
+                  )}
+                  <div className="admin-clients-list" style={{ marginTop: 8 }}>
+                    {clientsLoading && <div style={{ opacity: 0.7 }}>Cargando clientes...</div>}
+                    {!clientsLoading && filteredClients.length === 0 && (
+                      <div style={{ opacity: 0.7 }}>No se encontraron clientes</div>
+                    )}
+                    {filteredClients.map((client) => {
+                      const checked = selectedClientIds.includes(client.id);
+                      return (
+                        <label key={client.id} className="admin-clients-item">
+                          <span style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 600 }}>{client.name}</span>
+                            <span style={{ fontSize: 12, opacity: 0.75 }}>{client.id}</span>
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => handleToggleClient(client.id)}
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {selectedClientIds.length > 0 && (
+                    <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>
+                      Seleccionados: {selectedClientIds.join(', ')}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setNoteText('');
+                    setPublishToAll(true);
+                    setSelectedClientIds([]);
+                  }}
+                >
+                  Limpiar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleSaveNote}
+                  disabled={!noteText.trim() || (!publishToAll && selectedClientIds.length === 0)}
+                >
+                  Guardar anotacion
+                </button>
+              </div>
+
+              {selectedDayEvents.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 8 }}>Anotaciones del dia</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {selectedDayEvents.map((event) => (
+                      <div
+                        key={event.id}
+                        style={{
+                          border: '1px solid rgba(148,163,184,0.35)',
+                          borderRadius: 10,
+                          padding: 10,
+                          background: '#1b263b',
+                        }}
+                      >
+                        <div style={{ marginBottom: 6 }}>{event.note}</div>
+                        <div style={{ fontSize: 12, opacity: 0.7 }}>
+                          {event.audience?.type === 'all'
+                            ? 'Visible para todos los clientes'
+                            : `Visible para: ${Array.isArray(event.audience?.clientIds) && event.audience.clientIds.length > 0 ? event.audience.clientIds.join(", ") : "-"}` }
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

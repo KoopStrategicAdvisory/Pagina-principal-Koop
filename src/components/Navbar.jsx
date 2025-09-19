@@ -54,8 +54,8 @@ export default function Navbar() {
           <span></span>
           <span></span>
         </div>
-        <div className={`nav-menu ${menuOpen ? 'open' : ''}`} id="nav-menu" onClick={onNavClick}>
-          <>
+        <div className={`nav-menu ${menuOpen ? 'open' : ''}`} id="nav-menu" onClick={onNavClick} data-auth={isAuthenticated ? '1' : '0'}>
+          <div className="main-links">
             {/* Enlaces principales (edita/añade/quita aquí) */}
             <Link to="/#inicio">INICIO</Link>
             <div className={`dropdown ${areasOpen ? 'open' : ''}`}>
@@ -92,7 +92,7 @@ export default function Navbar() {
               </div>
             </div>
             {!isAuthenticated && <Link to="/#vision">NUESTRA VISIÓN</Link>}
-          </>
+          </div>
           {isAuthenticated ? (
             <div className={`dropdown ${userOpen ? 'open' : ''}`}>
               <button

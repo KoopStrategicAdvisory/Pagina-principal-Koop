@@ -194,3 +194,6 @@ html.route-fade-in #root {
 html, body {
   font-family: 'Montserrat', Arial, sans-serif;
 }
+
+/* Reset default margins to avoid white edges on app pages */
+html, body { margin: 0; padding: 0; }

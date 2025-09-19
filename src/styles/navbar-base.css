@@ -81,3 +81,8 @@
   .navbar .dropdown.open .dropdown-content{ display:flex; }
   .navbar .dropdown-content a{ padding:6px 0; }
 }
+
+/* Hide main links on mobile when authenticated */
+@media (max-width:700px){
+  .navbar .nav-menu[data-auth="1"] .main-links { display: none; }
+}
