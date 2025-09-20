@@ -3,6 +3,8 @@ import { useAuth } from "../context/AuthContext";
 import { listUsers, setUserActive, grantAdminRole, revokeAdminRole, deleteUser } from "../api/adminUsers";
 import { createClientFromUser } from "../api/clients";
 import "../styles/dashboard.css";
+import { SuccessNotice, DangerNotice } from '../components/common/Notice';
+import { EditForm, EditRow, EditField, EditTextArea } from '../components/common/EditFormKit';
 
 const ALLOWED_ROLES = ['admin', 'user'];
 
@@ -38,6 +40,10 @@ export default function AdminUsuarios() {
   const [clientModal, setClientModal] = useState(null); // { userId, fullName, documentType, documentNumber, birthDate, phone, email, address, contactInfo }
   const [clientSaving, setClientSaving] = useState(false);
   const [clientError, setClientError] = useState(null);
+  const [notice, setNotice] = useState(null);
+  const [search, setSearch] = useState("");
+  const [showPending, setShowPending] = useState(true);
+  const [showActive, setShowActive] = useState(false);
 
   const currentUserId = user?.id;
 
@@ -172,8 +178,13 @@ export default function AdminUsuarios() {
         setClientSaving(false);
         return;
       }
-      await createClientFromUser(clientModal.userId, payload);
+      const res = await createClientFromUser(clientModal.userId, payload);
       setClientModal(null);
+      // Aviso visual verde: cliente creado y carpeta asignada
+      try { clearTimeout(saveClient._t); } catch {}
+      setNotice('Cliente creado y carpeta asignada');
+      saveClient._t = setTimeout(() => setNotice(null), 3500);
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch {}
     } catch (e) {
       setClientError(e?.response?.data?.message || e?.message || 'No se pudo crear el cliente');
     } finally {
@@ -210,106 +221,200 @@ export default function AdminUsuarios() {
       }}
     >
       <div className="dash-card" style={{ width: "100%", maxWidth: 1200 }}>
-        
-        <div className="dash-header" style={{ marginBottom: 16 }}>
-          <div className="dash-title">Administrar usuarios</div>
-          <button className="btn btn-secondary" onClick={fetchUsers} disabled={loading}>
-            {loading ? "Actualizando..." : "Refrescar"}
-          </button>
-        </div>
-        {error && (
-          <div style={{ background: "#7f1d1d", color: "#fecaca", padding: 12, borderRadius: 8, marginBottom: 16 }}>
-            {error}
-          </div>
-        )}
 
-        <div className="dash-item" style={{ overflowX: "auto" }}>
-          <table className="me-table" style={{ minWidth: 720 }}>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Roles</th>
-                <th>Activo</th>
-                <th>Creado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length === 0 && (
-                <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: 16 }}>
-                    {loading ? "Cargando..." : "No hay usuarios para mostrar"}
-                  </td>
-                </tr>
-              )}
-              {users.map((u) => {
-                const created = u.createdAt ? new Date(u.createdAt) : null;
-                const roles = normalizeRoles(u.roles);
-                const hasAdminRole = roles.includes('admin');
-                const isActive = u.active !== false && u.isActive !== false;
-                const isSelf = currentUserId === u.id;
-                const rolesLabel = roles.length > 0 ? roles.join(', ') : '-';
-                return (
-                  <tr key={u.id}>
-                    <td>{u.name || '-'}</td>
-                    <td>{u.email}</td>
-                    <td>{rolesLabel}</td>
-                    <td>
-                      <span className={`me-badge ${isActive ? 'me-badge-success' : 'me-badge-error'}`}>
-                        {isActive ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-                    <td>{created ? created.toLocaleString() : '-'}</td>
-                    <td>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() => toggleActive(u.id, !isActive)}
-                          disabled={updating === u.id}
-                        >
-                          {updating === u.id ? 'Guardando...' : isActive ? 'Desactivar' : 'Activar'}
-                        </button>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => openClientModal(u)}
-                        >
-                          Convertir a cliente
-                        </button>
-                        {!hasAdminRole ? (
-                          <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={() => makeAdmin(u.id)}
-                            disabled={roleUpdating === u.id}
-                          >
-                            {roleUpdating === u.id ? 'Asignando...' : 'Hacer admin'}
-                          </button>
-                        ) : (
-                          <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={() => revokeAdmin(u.id)}
-                            disabled={roleUpdating === u.id || isSelf}
-                            title={isSelf ? 'No puedes modificar tu propio rol' : 'Quitar rol admin'}
-                          >
-                            {roleUpdating === u.id ? 'Quitando...' : 'Quitar admin'}
-                          </button>
-                        )}
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => removeUser(u.id)}
-                          disabled={deleting === u.id || isSelf}
-                          title={isSelf ? 'No puedes eliminar tu propio usuario' : 'Eliminar usuario'}
-                        >
-                          {deleting === u.id ? 'Eliminando...' : 'Eliminar'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="dash-header" style={{ marginBottom: 16, gap: 12 }}>
+          <div className="dash-title">Administrar usuarios</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input
+              className="input"
+              placeholder="Buscar por nombre, cédula o correo"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ width: 260 }}
+            />
+            {search && (
+              <button className="btn btn-secondary btn-sm" onClick={() => setSearch("")}>Limpiar</button>
+            )}
+            <button className="btn btn-secondary" onClick={fetchUsers} disabled={loading}>
+              {loading ? "Actualizando..." : "Refrescar"}
+            </button>
+          </div>
         </div>
+        {notice && (<SuccessNotice autoHideMs={3500}>{notice}</SuccessNotice>)}
+        {error && (<DangerNotice>{error}</DangerNotice>)}
+
+        {(() => {
+          const norm = (v) => String(v || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          const q = norm(search);
+          const matches = (u) => {
+            if (!q) return true;
+            const docs = [u.document, u.documentNumber, u.cedula, u.dni, u.idNumber, u.numeroDocumento];
+            const values = [u.name, u.email, ...docs];
+            return values.some((val) => norm(val).includes(q));
+          };
+          const filtered = users.filter(matches);
+          const byCreatedAtDesc = (a, b) => {
+            const atA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const atB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return atB - atA;
+          };
+          const isInactive = (u) => u?.active === false || u?.isActive === false;
+          const pending = filtered.filter(isInactive).sort(byCreatedAtDesc);
+          const actives = filtered.filter((u) => !isInactive(u)).sort(byCreatedAtDesc);
+
+          const renderRow = (u) => {
+            const created = u.createdAt ? new Date(u.createdAt) : null;
+            const roles = normalizeRoles(u.roles);
+            const hasAdminRole = roles.includes('admin');
+            const isActive = u.active !== false && u.isActive !== false;
+            const isSelf = currentUserId === u.id;
+            const rolesLabel = roles.length > 0 ? roles.join(', ') : '-';
+            return (
+              <tr key={u.id}>
+                <td>{u.name || '-'}</td>
+                <td>{u.email}</td>
+                <td>{rolesLabel}</td>
+                <td>
+                  <span className={`me-badge ${isActive ? 'me-badge-success' : 'me-badge-error'}`}>
+                    {isActive ? 'Activo' : 'Inactivo'}
+                  </span>
+                </td>
+                <td>{created ? created.toLocaleString() : '-'}</td>
+                <td>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => toggleActive(u.id, !isActive)}
+                      disabled={updating === u.id}
+                    >
+                      {updating === u.id ? 'Guardando...' : isActive ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => openClientModal(u)}
+                    >
+                      Convertir a cliente
+                    </button>
+                    {!hasAdminRole ? (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => makeAdmin(u.id)}
+                        disabled={roleUpdating === u.id}
+                      >
+                        {roleUpdating === u.id ? 'Asignando...' : 'Hacer admin'}
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => revokeAdmin(u.id)}
+                        disabled={roleUpdating === u.id || isSelf}
+                        title={isSelf ? 'No puedes modificar tu propio rol' : 'Quitar rol admin'}
+                      >
+                        {roleUpdating === u.id ? 'Quitando...' : 'Quitar admin'}
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => removeUser(u.id)}
+                      disabled={deleting === u.id || isSelf}
+                      title={isSelf ? 'No puedes eliminar tu propio usuario' : 'Eliminar usuario'}
+                    >
+                      {deleting === u.id ? 'Eliminando...' : 'Eliminar'}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          };
+
+          return (
+            <>
+              {/* Usuarios creados (no activados) */}
+              <div className="dash-item" style={{ marginBottom: 16 }}>
+                <div className="dash-header" style={{ marginBottom: 8 }}>
+                  <h4 style={{ margin: 0 }}>
+                    Usuarios creados (no activados)
+                    {pending.length > 0 ? ` · ${pending.length}` : ''}
+                  </h4>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setShowPending((v) => !v)}
+                  >
+                    {showPending ? 'Ocultar' : 'Mostrar'}
+                  </button>
+                </div>
+                {showPending && (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="me-table" style={{ minWidth: 720 }}>
+                      <thead>
+                        <tr>
+                          <th>Nombre</th>
+                          <th>Email</th>
+                          <th>Roles</th>
+                          <th>Activo</th>
+                          <th>Creado</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pending.length === 0 && (
+                          <tr>
+                            <td colSpan={6} style={{ textAlign: 'center', padding: 16 }}>
+                              {loading ? 'Cargando...' : 'No hay usuarios no activados'}
+                            </td>
+                          </tr>
+                        )}
+                        {pending.map(renderRow)}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Usuarios activados */}
+              <div className="dash-item">
+                <div className="dash-header" style={{ marginBottom: 8 }}>
+                  <h4 style={{ margin: 0 }}>
+                    Usuarios activados
+                    {actives.length > 0 ? ` · ${actives.length}` : ''}
+                  </h4>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setShowActive((v) => !v)}
+                  >
+                    {showActive ? 'Ocultar' : 'Mostrar'}
+                  </button>
+                </div>
+                {showActive && (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="me-table" style={{ minWidth: 720 }}>
+                      <thead>
+                        <tr>
+                          <th>Nombre</th>
+                          <th>Email</th>
+                          <th>Roles</th>
+                          <th>Activo</th>
+                          <th>Creado</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {actives.length === 0 && (
+                          <tr>
+                            <td colSpan={6} style={{ textAlign: 'center', padding: 16 }}>
+                              {loading ? 'Cargando...' : 'No hay usuarios activados'}
+                            </td>
+                          </tr>
+                        )}
+                        {actives.map(renderRow)}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </>
+          );
+        })()}
       </div>
     </div>
     {clientModal && (
@@ -326,85 +431,62 @@ export default function AdminUsuarios() {
               Cerrar
             </button>
           </div>
-          {clientError && (
-            <div className="alert alert-error" role="alert">
-              {clientError}
-            </div>
-          )}
-          <div className="form">
-            <label className="field">
-              <span>Nombre completo</span>
-              <input
-                className="input"
-                value={clientModal.fullName}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, fullName: e.target.value }))}
+          {clientError && (<DangerNotice onClose={() => setClientError(null)}>{clientError}</DangerNotice>)}
+          <EditForm>
+            <EditField
+              label="Nombre completo"
+              value={clientModal.fullName}
+              onChange={(e) => setClientModal((prev) => ({ ...prev, fullName: e.target.value }))}
+              placeholder="Nombre y apellidos"
+            />
+            <EditRow cols={2}>
+              <EditField
+                label="Tipo de documento"
+                value={clientModal.documentType}
+                onChange={(e) => setClientModal((prev) => ({ ...prev, documentType: e.target.value }))}
+                placeholder="CC / CE / NIT / PAS"
               />
-            </label>
-            <div className="form-row" style={{ gridTemplateColumns: '1fr 2fr' }}>
-              <label className="field">
-                <span>Tipo de documento</span>
-                <input
-                  className="input"
-                  placeholder="CC / CE / NIT / PAS"
-                  value={clientModal.documentType}
-                  onChange={(e) => setClientModal((prev) => ({ ...prev, documentType: e.target.value }))}
-                />
-              </label>
-              <label className="field">
-                <span>Número de documento</span>
-                <input
-                  className="input"
-                  value={clientModal.documentNumber}
-                  onChange={(e) => setClientModal((prev) => ({ ...prev, documentNumber: e.target.value }))}
-                />
-              </label>
-            </div>
-            <label className="field">
-              <span>Fecha de nacimiento</span>
-              <input
-                className="input"
-                type="date"
-                value={clientModal.birthDate}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, birthDate: e.target.value }))}
+              <EditField
+                label="Número de documento"
+                value={clientModal.documentNumber}
+                onChange={(e) => setClientModal((prev) => ({ ...prev, documentNumber: e.target.value }))}
+                placeholder="Ej: 80761460"
               />
-            </label>
-            <div className="form-row two">
-              <label className="field">
-                <span>Teléfono fijo / celular</span>
-                <input
-                  className="input"
-                  value={clientModal.phone}
-                  onChange={(e) => setClientModal((prev) => ({ ...prev, phone: e.target.value }))}
-                />
-              </label>
-              <label className="field">
-                <span>Correo electrónico</span>
-                <input
-                  className="input"
-                  type="email"
-                  value={clientModal.email}
-                  onChange={(e) => setClientModal((prev) => ({ ...prev, email: e.target.value }))}
-                />
-              </label>
-            </div>
-            <label className="field">
-              <span>Dirección física</span>
-              <input
-                className="input"
-                value={clientModal.address}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, address: e.target.value }))}
+            </EditRow>
+            <EditField
+              label="Fecha de nacimiento"
+              type="date"
+              value={clientModal.birthDate}
+              onChange={(e) => setClientModal((prev) => ({ ...prev, birthDate: e.target.value }))}
+            />
+            <EditRow cols={2}>
+              <EditField
+                label="Teléfono fijo / celular"
+                value={clientModal.phone}
+                onChange={(e) => setClientModal((prev) => ({ ...prev, phone: e.target.value }))}
+                placeholder="Ej: 300 123 4567"
               />
-            </label>
-            <label className="field">
-              <span>Información de contacto (opcional)</span>
-              <textarea
-                className="textarea"
-                rows={3}
-                value={clientModal.contactInfo}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, contactInfo: e.target.value }))}
+              <EditField
+                label="Correo electrónico"
+                type="email"
+                value={clientModal.email}
+                onChange={(e) => setClientModal((prev) => ({ ...prev, email: e.target.value }))}
+                placeholder="nombre@dominio.com"
               />
-            </label>
-          </div>
+            </EditRow>
+            <EditField
+              label="Dirección física"
+              value={clientModal.address}
+              onChange={(e) => setClientModal((prev) => ({ ...prev, address: e.target.value }))}
+              placeholder="Calle 123 #45-67, Ciudad"
+            />
+            <EditTextArea
+              label="Información de contacto (opcional)"
+              value={clientModal.contactInfo}
+              onChange={(e) => setClientModal((prev) => ({ ...prev, contactInfo: e.target.value }))}
+              placeholder="Notas internas, referencias, etc."
+            />
+          </EditForm>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
             <button className="btn btn-secondary" onClick={() => setClientModal(null)} disabled={clientSaving}>
               Cancelar
