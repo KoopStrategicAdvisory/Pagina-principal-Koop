@@ -1,6 +1,8 @@
 ﻿import api from './axios';
 
+
 export async function listRecentDocs({ limit, subfolder } = {}) {
+api.getSigned();
   const params = {};
   if (typeof limit === 'number') params.limit = limit;
   if (subfolder) params.subfolder = subfolder;

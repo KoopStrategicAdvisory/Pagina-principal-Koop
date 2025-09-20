@@ -94,4 +94,24 @@ export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogou
   );
 }
 
+const GETEndpoint = getSignedURLEndpoint('project-1/avatar/theosassler.png', 'getObject');
+
+axios.get(GETEndpoint)
+  .then(res => console.log(res))
+  .catch(err => console.log(err));
+
+async function getSignedURLEndpoint(key, operation) {
+
+  var options = {
+    Bucket: process.env.AWS_BUCKET,
+    Key: key, /* Filename in the bucket */
+    Expires: 3000 /* Seconds */
+  };
+
+  const url = await s3.getSignedUrlPromise(operation, options);
+  return url;
+}
+
+
+
 export default api;
