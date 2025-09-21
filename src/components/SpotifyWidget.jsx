@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import api from '../api/axios';
 
 export default function SpotifyWidget() {
   const { user } = useAuth();
@@ -192,52 +193,20 @@ export default function SpotifyWidget() {
 
   const checkAuthentication = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        return;
-      }
-
-      const response = await fetch('http://localhost:4000/api/spotify/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const profile = await response.json();
-        setUserProfile(profile);
-        setIsAuthenticated(true);
-      }
+      const response = await api.get('/spotify/me');
+      setUserProfile(response.data);
+      setIsAuthenticated(true);
     } catch (error) {
       console.log('No hay sesión de Spotify activa');
+      setIsAuthenticated(false);
+      setUserProfile(null);
     }
   };
 
   const authenticateWithSpotify = async () => {
     try {
-      // Obtener el token de autorización del localStorage
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        console.error('No hay token de autorización');
-        return;
-      }
-
-      const response = await fetch('http://localhost:4000/api/spotify/auth/url', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      window.location.href = data.authUrl;
+      const response = await api.get('/spotify/auth/url');
+      window.location.href = response.data.authUrl;
     } catch (error) {
       console.error('Error getting auth URL:', error);
     }
@@ -523,18 +492,14 @@ export default function SpotifyWidget() {
                   Abrir
                 </a>
                 <button
-                  onClick={() => {
-                    fetch('http://localhost:4000/api/spotify/logout', {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-                        'Content-Type': 'application/json'
-                      },
-                      credentials: 'include'
-                    }).then(() => {
+                  onClick={async () => {
+                    try {
+                      await api.post('/spotify/logout');
                       setIsAuthenticated(false);
                       setUserProfile(null);
-                    });
+                    } catch (error) {
+                      console.error('Error logging out:', error);
+                    }
                   }}
                   style={{
                     flex: 1,
