@@ -1,0 +1,87 @@
+.spotify-admin-player-container {
+  position: fixed;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  width: 300px; /* Más pequeño */
+  background-color: rgba(18, 18, 18, 0.85); /* Transparencia */
+  backdrop-filter: blur(10px); /* Efecto de desenfoque */
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  z-index: 1000;
+  transition: all 0.3s ease-in-out;
+  border: 1px solid rgba(40, 40, 40, 0.6);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.spotify-admin-player-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1001;
+}
+
+.spotify-admin-player-controls button {
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  backdrop-filter: blur(5px);
+}
+
+.spotify-admin-player-controls button:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.spotify-admin-player-container iframe {
+  border: none;
+  width: 100%;
+  height: 80px; /* Altura reducida */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .spotify-admin-player-container {
+    width: 280px;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+  }
+}
+
+@media (max-width: 480px) {
+  .spotify-admin-player-container {
+    width: 250px;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+  }
+}
+
+/* Animación suave para el hover */
+.spotify-admin-player-container:hover {
+  transform: translateY(-52px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9);
+}
+
+/* Efecto de pulso sutil en el reproductor */
+.spotify-admin-player-container {
+  animation: subtle-pulse 3s ease-in-out infinite;
+}
+
+@keyframes subtle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.9; }
+}

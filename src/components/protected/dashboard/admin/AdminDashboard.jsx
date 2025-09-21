@@ -633,16 +633,10 @@ export default function AdminDashboard() {
               <div className="font-semibold mb-2" style={{ fontWeight: 600, marginBottom: 8 }}>
                 Reproductor Spotify
               </div>
-              <iframe
-                title="Spotify administracion"
-                src="https://open.spotify.com/embed/playlist/1Zf1rz0XX6fyNxKOq4XvgN?utm_source=generator"
-                width="100%"
-                height="152"
-                frameBorder="0"
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"
-                style={{ borderRadius: 8 }}
-              />
+              <p style={{ marginBottom: 0, fontSize: 13, opacity: 0.8 }}>
+                El reproductor de Spotify está disponible como ventana flotante en la esquina inferior izquierda. 
+                La música continuará reproduciéndose mientras navegas entre páginas.
+              </p>
             </div>
             
           </div>

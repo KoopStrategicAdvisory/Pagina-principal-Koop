@@ -36,6 +36,7 @@ import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import api from './api/axios';
 import Navbar from './components/Navbar.jsx';
+import SpotifyPlayerAdmin from './components/SpotifyPlayerAdmin.jsx';
 import FontProvider from './theme/FontProvider.jsx';
 
 function App() {
@@ -168,6 +169,8 @@ function App() {
           <Route path="/tramites-notariales.html" element={<Navigate to="/tramites-notariales" replace />} />
           <Route path="/acciones-de-tutela.html" element={<Navigate to="/acciones-de-tutela" replace />} />
         </Routes>
+        {/* Reproductor de Spotify flotante solo para administradores */}
+        <SpotifyPlayerAdmin />
       </>
     );
   };
