@@ -1,14 +1,14 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import '../styles/dashboard.css';
 import '../styles/mi-expediente.css';
 import { useAuth } from '../context/AuthContext';
 import { normalizeUpperAscii } from '../utils/strings.js';
-import { listRecentDocs, uploadDoc, getDownloadUrl, getClientDocumentHistory } from '../api/docs';
+import { listRecentDocs, uploadDoc, getDownloadUrl, getClientDocumentHistory, getDiagnostics } from '../api/docs';
 import { listActiveClients } from '../api/clients';
 
 export default function MiExpediente() {
   const [activeTab, setActiveTab] = useState('docs');
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
   const displayName = normalizeUpperAscii(user?.name || '');
   const DEFAULT_FOLDER = 'clientes';
   const roles = Array.isArray(user?.roles) ? user.roles : (user?.roles ? [user?.roles] : []);
@@ -24,11 +24,18 @@ export default function MiExpediente() {
   const [warning, setWarning] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Estados para gestión de carpetas de clientes
+  // Estados para gesti�n de carpetas de clientes
   const [selectedClient, setSelectedClient] = useState(null);
   const [clientFolders, setClientFolders] = useState({});
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [loadingFolders, setLoadingFolders] = useState(false);
+  const [expandedClients, setExpandedClients] = useState(new Set());
+  
+  // Estados para usuarios regulares
+  const [userFolders, setUserFolders] = useState([]);
+  const [selectedUserFolder, setSelectedUserFolder] = useState(null);
+  const [loadingUserFolders, setLoadingUserFolders] = useState(false);
+  const [expandedUserFolders, setExpandedUserFolders] = useState(new Set());
 
   const loadDocs = async () => {
     setLoading(true);
@@ -46,9 +53,16 @@ export default function MiExpediente() {
   };
 
   useEffect(() => {
-    if (activeTab === 'docs') loadDocs();
+    if (activeTab === 'docs') {
+      if (isAdmin) {
+        loadDocs();
+      } else {
+        // Para usuarios regulares, cargar sus carpetas
+        loadUserFolders();
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, isAdmin]);
 
   // Cargar clientes asignados al admin actual
   useEffect(() => {
@@ -102,7 +116,7 @@ export default function MiExpediente() {
     }
   };
 
-  // Función para cargar carpetas de un cliente
+  // Funci�n para cargar carpetas de un cliente
   const loadClientFolders = async (client) => {
     if (!client?.documentNumber) return;
     
@@ -116,44 +130,53 @@ export default function MiExpediente() {
       
       // Agrupar documentos por carpeta
       const folders = {};
+      const clientBasePath = `clientes/${client.documentNumber}`;
+      
       if (Array.isArray(data?.items)) {
         data.items.forEach(item => {
           if (item.isFolder) {
-            // Es una carpeta
+            // Es una carpeta - solo mostrar subcarpetas, no la carpeta padre del cliente
             const folderPath = item.key?.replace(/\/$/, ''); // Remover trailing slash
-            const folderName = item.name || folderPath?.split('/').pop() || 'Carpeta';
-            folders[folderPath] = {
-              name: folderName,
-              path: folderPath,
-              documents: [],
-              isFolder: true
-            };
+            
+            // Solo incluir si es una subcarpeta del cliente (no la carpeta padre)
+            if (folderPath && folderPath !== clientBasePath && folderPath.startsWith(clientBasePath + '/')) {
+              // Extraer solo el nombre de la carpeta (la �ltima parte despu�s del cliente)
+              const relativePath = folderPath.replace(clientBasePath + '/', '');
+              const folderName = relativePath.split('/').pop() || 'Carpeta';
+              
+              folders[folderPath] = {
+                name: folderName,
+                path: folderPath,
+                documents: [],
+                isFolder: true
+              };
+            }
           } else {
             // Es un archivo
             const folderPath = item.key?.split('/').slice(0, -1).join('/') || 'root';
-            if (!folders[folderPath]) {
-              folders[folderPath] = {
-                name: folderPath === 'root' ? 'Documentos principales' : folderPath.split('/').pop(),
-                path: folderPath,
-                documents: [],
-                isFolder: false
-              };
+            
+            // Solo incluir archivos que est�n en subcarpetas del cliente
+            if (folderPath && folderPath !== clientBasePath && folderPath.startsWith(clientBasePath + '/')) {
+              if (!folders[folderPath]) {
+                // Extraer solo el nombre de la carpeta (la �ltima parte despu�s del cliente)
+                const relativePath = folderPath.replace(clientBasePath + '/', '');
+                const folderName = relativePath.split('/').pop() || 'Carpeta';
+                
+                folders[folderPath] = {
+                  name: folderName,
+                  path: folderPath,
+                  documents: [],
+                  isFolder: false
+                };
+              }
+              folders[folderPath].documents.push(item);
             }
-            folders[folderPath].documents.push(item);
           }
         });
       }
       
-      // Si no hay carpetas encontradas, crear la carpeta principal del cliente
-      if (Object.keys(folders).length === 0) {
-        const clientFolderPath = `clientes/${client.documentNumber}`;
-        folders[clientFolderPath] = {
-          name: 'Documentos del cliente',
-          path: clientFolderPath,
-          documents: [],
-          isFolder: true
-        };
-      }
+      // Si no hay subcarpetas encontradas, no crear ninguna carpeta
+      // Solo mostrar las subcarpetas reales que existen
       
       setClientFolders(prev => ({
         ...prev,
@@ -161,38 +184,43 @@ export default function MiExpediente() {
       }));
     } catch (e) {
       console.error('Error cargando carpetas del cliente:', e);
-      // En caso de error, crear la carpeta principal del cliente
-      const clientFolderPath = `clientes/${client.documentNumber}`;
-      const folders = {
-        [clientFolderPath]: {
-          name: 'Documentos del cliente',
-          path: clientFolderPath,
-          documents: [],
-          isFolder: true
-        }
-      };
-      
+      // En caso de error, no mostrar ninguna carpeta
       setClientFolders(prev => ({
         ...prev,
-        [client.id]: folders
+        [client.id]: {}
       }));
     } finally {
       setLoadingFolders(false);
     }
   };
 
-  // Función para manejar clic en cliente
+  // Funci�n para manejar clic en cliente (acorde�n)
   const onClientClick = async (client) => {
-    setSelectedClient(client);
-    setSelectedFolder(null);
+    const isExpanded = expandedClients.has(client.id);
     
-    // Si ya tenemos las carpetas cargadas, no las volvemos a cargar
-    if (!clientFolders[client.id]) {
-      await loadClientFolders(client);
+    if (isExpanded) {
+      // Si est� expandido, lo contraemos
+      setExpandedClients(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(client.id);
+        return newSet;
+      });
+      setSelectedClient(null);
+      setSelectedFolder(null);
+    } else {
+      // Si est� contra�do, lo expandimos
+      setExpandedClients(prev => new Set(prev).add(client.id));
+      setSelectedClient(client);
+      setSelectedFolder(null);
+      
+      // Si ya tenemos las carpetas cargadas, no las volvemos a cargar
+      if (!clientFolders[client.id]) {
+        await loadClientFolders(client);
+      }
     }
   };
 
-  // Función para manejar clic en carpeta
+  // Funci�n para manejar clic en carpeta
   const onFolderClick = async (folder) => {
     setSelectedFolder(folder);
     
@@ -230,6 +258,170 @@ export default function MiExpediente() {
     }
   };
 
+  // Función para cargar carpetas del usuario regular
+  const loadUserFolders = async () => {
+    setLoadingUserFolders(true);
+    try {
+      console.log('Usuario actual:', user);
+      console.log('Token de acceso:', accessToken ? 'Presente' : 'Ausente');
+      console.log('Roles del usuario:', user?.roles);
+      
+      // Primero intentamos una llamada simple para verificar autenticación
+      console.log('Intentando verificar conectividad...');
+      try {
+        const healthCheck = await getDiagnostics();
+        console.log('Health check exitoso:', healthCheck);
+      } catch (healthError) {
+        console.error('Health check falló:', healthError);
+        throw new Error('No se puede conectar con el servidor de documentos');
+      }
+      
+      console.log('Intentando cargar documentos del usuario...');
+      
+      // Para usuarios regulares, cargamos sus documentos desde su carpeta de cliente
+      // El backend automáticamente resuelve la carpeta del cliente basado en el usuario autenticado
+      // cuando usamos 'clientes' como subfolder
+      const data = await listRecentDocs({ limit: 100, subfolder: 'clientes' });
+      console.log('Datos de la API para usuario:', data);
+      const items = Array.isArray(data?.items) ? data.items : [];
+      console.log('Items procesados:', items);
+      
+      // Agrupamos los documentos por carpetas
+      const foldersMap = new Map();
+      
+      // Obtener el prefijo base del cliente (ej: "clientes/1032465160/")
+      // Buscar la primera carpeta que contenga "clientes/" para obtener la ruta base
+      let clientBasePath = 'clientes';
+      const clientFolder = items.find(item => item.isFolder && item.key && item.key.includes('clientes/'));
+      if (clientFolder) {
+        // Extraer la ruta base del cliente (ej: "clientes/1032465160/")
+        const pathParts = clientFolder.key.split('/');
+        if (pathParts.length >= 2) {
+          clientBasePath = `${pathParts[0]}/${pathParts[1]}/`;
+        }
+      }
+      console.log('Ruta base del cliente:', clientBasePath);
+      console.log('Items encontrados:', items.map(item => ({ key: item.key, isFolder: item.isFolder, name: item.name })));
+      
+      // Primero, procesar solo las carpetas para evitar duplicados
+      items.forEach(item => {
+        if (item.isFolder) {
+          const fullPath = item.key;
+          
+          // Solo incluir si es una subcarpeta dentro de clientes/1032465160/
+          if (fullPath && fullPath.startsWith(clientBasePath) && fullPath !== clientBasePath) {
+            const relativePath = fullPath.replace(clientBasePath, '').replace(/^\/+|\/+$/g, '');
+            
+            // Verificar que sea una subcarpeta directa (no sub-subcarpeta)
+            if (relativePath && !relativePath.includes('/')) {
+              foldersMap.set(fullPath, {
+                name: relativePath,
+                path: fullPath,
+                documents: [],
+                isFolder: true
+              });
+            }
+          }
+        }
+      });
+      
+      // Luego, agregar archivos a las carpetas existentes
+      items.forEach(item => {
+        if (!item.isFolder) {
+          const pathParts = item.key?.split('/') || [];
+          
+          if (pathParts.length > 2) { // clientes/1032465160/subcarpeta/archivo
+            const folderPath = pathParts.slice(0, -1).join('/');
+            
+            if (folderPath.startsWith(clientBasePath) && folderPath !== clientBasePath) {
+              const relativePath = folderPath.replace(clientBasePath, '').replace(/^\/+|\/+$/g, '');
+              
+              if (relativePath && !relativePath.includes('/')) {
+                // Solo agregar archivo si la carpeta ya existe y el item no es una carpeta
+                const existingFolder = foldersMap.get(folderPath);
+                if (existingFolder && !item.isFolder) {
+                  existingFolder.documents.push(item);
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      const folders = Array.from(foldersMap.values());
+      console.log('Carpetas del usuario cargadas:', folders);
+      setUserFolders(folders);
+    } catch (error) {
+      console.error('Error cargando carpetas del usuario:', error);
+      console.error('Detalles del error:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      
+      if (error.response?.status === 401) {
+        setError('Error de autenticación. Por favor, cierra sesión y vuelve a iniciar sesión.');
+      } else {
+        setError('Error cargando carpetas: ' + (error.message || 'Error desconocido'));
+      }
+    } finally {
+      setLoadingUserFolders(false);
+    }
+  };
+
+  // Función para manejar clic en carpeta de usuario
+  const onUserFolderClick = async (folder) => {
+    setSelectedUserFolder(folder);
+    
+    // Si ya tenemos los documentos cargados para esta carpeta, los mostramos
+    if (folder.documents && folder.documents.length > 0) {
+      setDocs(folder.documents);
+    } else {
+      // Si no, cargamos los documentos de la carpeta
+      try {
+        setLoading(true);
+        const data = await listRecentDocs({ 
+          limit: 50, 
+          subfolder: folder.path 
+        });
+        // Solo mostrar archivos, no carpetas
+        const documents = Array.isArray(data?.items) ? data.items.filter(item => !item.isFolder) : [];
+        setDocs(documents);
+        
+        // Actualizamos la carpeta con los documentos cargados (solo archivos)
+        setUserFolders(prev => prev.map(f => 
+          f.path === folder.path 
+            ? { ...f, documents: documents }
+            : f
+        ));
+      } catch (error) {
+        console.error('Error cargando documentos de la carpeta:', error);
+        setError('Error cargando documentos de la carpeta');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Función para manejar clic en carpeta de usuario (acordeón)
+  const onUserFolderAccordionClick = (folder) => {
+    const isExpanded = expandedUserFolders.has(folder.path);
+    
+    if (isExpanded) {
+      // Si está expandido, lo contraemos
+      setExpandedUserFolders(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(folder.path);
+        return newSet;
+      });
+      setSelectedUserFolder(null);
+    } else {
+      // Si está contraído, lo expandimos
+      setExpandedUserFolders(prev => new Set(prev).add(folder.path));
+      onUserFolderClick(folder);
+    }
+  };
+
   return (
     <div
       className="dash-page"
@@ -246,10 +438,10 @@ export default function MiExpediente() {
           <div className="dash-title">{isAdmin ? 'Mis expedientes' : 'Mi expediente'}</div>
         </div>
 
-        {/* Barra de acciones / b�squeda */}
+        {/* Barra de acciones / b?squeda */}
         <div className="dash-item me-subbar">
           <div className="me-hello">Bienvenido: {displayName}</div>
-          <select className="me-select" aria-label="Tipo de b�squeda">
+          <select className="me-select" aria-label="Tipo de b?squeda">
             <option>Procesos judiciales</option>
             <option>Demandas</option>
             <option>Audiencias</option>
@@ -260,7 +452,7 @@ export default function MiExpediente() {
             <button className="btn btn-primary" onClick={onClickUpload} disabled={loading}>
               {loading ? 'Subiendo...' : 'Radicar documento'}
             </button>
-            <button className="btn btn-secondary">Ver informaci�n</button>
+            <button className="btn btn-secondary">Ver informaci?n</button>
           </div>
         </div>
 
@@ -268,86 +460,203 @@ export default function MiExpediente() {
         <div className="me-layout">
           {/* Izquierda: Clientes asignados al admin (o mensaje) */}
           <aside className="me-left dash-item">
-            <div className="me-head">CLIENTE</div>
+            <div className="me-head">{isAdmin ? 'CLIENTE' : 'CARPETAS'}</div>
             <div className="me-tree">
               {!isAdmin && (
-                <div className="me-leaf" style={{ opacity: .8 }}>
-                  <div>No aplica para tu perfil.</div>
-                </div>
+                <>
+                  {loadingUserFolders ? (
+                    <div className="me-leaf" style={{ opacity: .8 }}>
+                      Cargando carpetas...
+                    </div>
+                  ) : userFolders.length === 0 ? (
+                    <div className="me-leaf" style={{ opacity: .8 }}>
+                      No hay carpetas disponibles
+                    </div>
+                  ) : (
+                    userFolders.map((folder) => {
+                      const isExpanded = expandedUserFolders.has(folder.path);
+                      return (
+                        <div key={folder.path} style={{ marginBottom: '8px' }}>
+                          {/* Nombre de la carpeta clickeable con indicador de acordeón */}
+                          <div 
+                            style={{ 
+                              cursor: 'pointer',
+                              color: isExpanded ? '#4fd1c5' : '#e5edf7',
+                              fontWeight: '600',
+                              padding: '8px 4px',
+                              borderRadius: '4px',
+                              backgroundColor: isExpanded ? '#2a3a51' : 'transparent',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onClick={() => onUserFolderAccordionClick(folder)}
+                          >
+                            {/* Indicador de acordeón */}
+                            <span style={{
+                              display: 'inline-block',
+                              transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                              transition: 'transform 0.2s ease',
+                              fontSize: '12px',
+                              color: isExpanded ? '#4fd1c5' : '#9fb3cc'
+                            }}>
+                              ▼
+                            </span>
+                            {folder.name}
+                          </div>
+                          
+                          {/* Contenido de la carpeta (acordeón) */}
+                          {isExpanded && (
+                            <div style={{ marginLeft: '16px', marginTop: '4px' }}>
+                              <div style={{ color: '#9fb3cc', fontSize: '12px' }}>
+                                {folder.documents?.length || 0} documentos
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </>
               )}
               {isAdmin && assignedError && (
                 <div className="me-leaf" style={{ color: '#fecaca' }}>{assignedError}</div>
               )}
               {isAdmin && !assignedError && assignedLoading && (
-                <div className="me-leaf" style={{ opacity: .8 }}>Cargando clientes…</div>
+                <div className="me-leaf" style={{ opacity: .8 }}>Cargando clientes�</div>
               )}
               {isAdmin && !assignedLoading && assignedClients.length === 0 && (
                 <div className="me-leaf" style={{ opacity: .8 }}>No tienes clientes asignados</div>
               )}
               {isAdmin && assignedClients.length > 0 && (
                 <>
-                  {assignedClients.map((c) => (
-                    <details key={c.id} open>
-                      <summary onClick={() => onClientClick(c)}>
-                        <span className="me-chev">&gt;</span>
-                        <span style={{ 
-                          cursor: 'pointer',
-                          color: selectedClient?.id === c.id ? '#4fd1c5' : '#e5edf7'
-                        }}>
+                  {assignedClients.map((c) => {
+                    const isExpanded = expandedClients.has(c.id);
+                    return (
+                      <div key={c.id} style={{ marginBottom: '8px' }}>
+                        {/* Nombre del cliente clickeable con indicador de acorde�n */}
+                        <div 
+                          style={{ 
+                            cursor: 'pointer',
+                            color: isExpanded ? '#4fd1c5' : '#e5edf7',
+                            fontWeight: '600',
+                            padding: '8px 4px',
+                            borderRadius: '4px',
+                            backgroundColor: isExpanded ? '#2a3a51' : 'transparent',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onClick={() => onClientClick(c)}
+                        >
+                          {/* Indicador de acorde�n */}
+                          <span style={{
+                            display: 'inline-block',
+                            transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.2s ease',
+                            fontSize: '12px',
+                            color: isExpanded ? '#4fd1c5' : '#9fb3cc'
+                          }}>
+                            ▼
+                          </span>
                           {c.name}
-                        </span>
-                      </summary>
-                      <div className="me-leaf">
-                        {/* Mostrar carpetas del cliente si está seleccionado, sino mostrar info básica */}
-                        {selectedClient?.id === c.id ? (
-                          <div>
-                            {loadingFolders ? (
-                              <div style={{ color: '#9fb3cc', fontSize: '12px' }}>
-                                Cargando carpetas...
-                              </div>
-                            ) : (
-                              <div>
-                                {Object.values(clientFolders[c.id] || {}).map((folder, index) => (
-                                  <div 
-                                    key={index}
-                                    className="me-leaf"
-                                    style={{ 
-                                      cursor: 'pointer',
-                                      backgroundColor: selectedFolder?.path === folder.path ? '#2a3a51' : 'transparent',
-                                      borderRadius: '4px',
-                                      margin: '2px 0',
-                                      padding: '4px 8px'
-                                    }}
-                                    onClick={() => onFolderClick(folder)}
-                                  >
+                        </div>
+                        
+                        {/* Contenido del cliente (acorde�n) */}
+                        {isExpanded && (
+                        <div style={{ marginLeft: '16px', marginTop: '4px' }}>
+                          {loadingFolders ? (
+                            <div style={{ color: '#9fb3cc', fontSize: '12px' }}>
+                              Cargando carpetas...
+                            </div>
+                          ) : (
+                            <div>
+                              {Object.values(clientFolders[c.id] || {}).map((folder, index) => (
+                                <div 
+                                  key={index}
+                                  style={{ 
+                                    cursor: 'pointer',
+                                    backgroundColor: selectedFolder?.path === folder.path ? '#2a3a51' : '#1e2a3a',
+                                    borderRadius: '8px',
+                                    margin: '4px 0',
+                                    padding: '12px 16px',
+                                    border: selectedFolder?.path === folder.path ? '1px solid #4fd1c5' : '1px solid #394b61',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px'
+                                  }}
+                                  onClick={() => onFolderClick(folder)}
+                                  onMouseEnter={(e) => {
+                                    if (selectedFolder?.path !== folder.path) {
+                                      e.target.style.backgroundColor = '#2a3a51';
+                                      e.target.style.borderColor = '#4fd1c5';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (selectedFolder?.path !== folder.path) {
+                                      e.target.style.backgroundColor = '#1e2a3a';
+                                      e.target.style.borderColor = '#394b61';
+                                    }
+                                  }}
+                                >
+                                  {/* Icono de carpeta moderno */}
+                                  <div style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: selectedFolder?.path === folder.path ? '#4fd1c5' : '#fc771c'
+                                  }}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                      <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                                    </svg>
+                                  </div>
+                                  
+                                  {/* Contenido de la carpeta */}
+                                  <div style={{ flex: 1 }}>
                                     <div style={{ 
                                       color: selectedFolder?.path === folder.path ? '#4fd1c5' : '#e5edf7',
-                                      fontSize: '13px'
+                                      fontSize: '14px',
+                                      fontWeight: '500',
+                                      marginBottom: '2px'
                                     }}>
-                                      📁 {folder.name}
+                                      {folder.name}
                                     </div>
-                                    <div className="me-tag" style={{ fontSize: '10px' }}>
-                                      {folder.documents?.length || 0} docs
+                                    <div style={{ 
+                                      color: '#9fb3cc',
+                                      fontSize: '11px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}>
+                                      <span style={{
+                                        display: 'inline-block',
+                                        width: '4px',
+                                        height: '4px',
+                                        borderRadius: '50%',
+                                        backgroundColor: folder.documents?.length > 0 ? '#10b981' : '#6b7280'
+                                      }}></span>
+                                      {folder.documents?.length || 0} documentos
                                     </div>
                                   </div>
-                                ))}
-                                {Object.keys(clientFolders[c.id] || {}).length === 0 && !loadingFolders && (
-                                  <div style={{ color: '#9fb3cc', fontSize: '12px' }}>
-                                    No hay carpetas disponibles
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div>
-                            <div>{c.documentNumber || c.email || c.id}</div>
-                            <div className="me-tag">Asignado</div>
-                          </div>
+                                </div>
+                              ))}
+                              {Object.keys(clientFolders[c.id] || {}).length === 0 && !loadingFolders && (
+                                <div style={{ color: '#9fb3cc', fontSize: '12px' }}>
+                                  No hay carpetas disponibles
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                         )}
                       </div>
-                    </details>
-                  ))}
+                    );
+                  })}
                 </>
               )}
             </div>
@@ -375,7 +684,7 @@ export default function MiExpediente() {
 
             {activeTab === 'docs' && (
               <div className="me-table-wrap">
-                {/* Información de contexto */}
+                {/* Informaci�n de contexto */}
                 {selectedClient && selectedFolder && (
                   <div style={{ 
                     background: '#1e2a3a', 
@@ -403,7 +712,7 @@ export default function MiExpediente() {
                     <span style={{ color: '#9fb3cc' }}> Selecciona una carpeta para ver sus documentos</span>
                   </div>
                 )}
-                {!selectedClient && (
+                {isAdmin && !selectedClient && (
                   <div style={{ 
                     background: '#1e2a3a', 
                     padding: '12px 16px', 
@@ -412,6 +721,17 @@ export default function MiExpediente() {
                     fontSize: '14px'
                   }}>
                     Selecciona un cliente para ver sus carpetas y documentos
+                  </div>
+                )}
+                {!isAdmin && !selectedUserFolder && (
+                  <div style={{ 
+                    background: '#1e2a3a', 
+                    padding: '12px 16px', 
+                    borderBottom: '1px solid #34465a',
+                    color: '#9fb3cc',
+                    fontSize: '14px'
+                  }}>
+                    Selecciona una carpeta para ver sus documentos
                   </div>
                 )}
 
@@ -432,7 +752,7 @@ export default function MiExpediente() {
                       <th>Fecha de registro</th>
                       <th>Documento</th>
                       <th>Tipo</th>
-                      <th>Tama�o</th>
+                      <th>Tama?o</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -441,11 +761,17 @@ export default function MiExpediente() {
                       <tr>
                         <td colSpan={6} style={{ color: '#9fb3cc', textAlign: 'center', padding: '20px' }}>
                           {loading ? 'Cargando...' : 
-                           selectedClient && selectedFolder ? 
-                           `No hay documentos en la carpeta "${selectedFolder.name}"` :
-                           selectedClient ? 
-                           'Selecciona una carpeta para ver sus documentos' :
-                           'Selecciona un cliente para ver sus documentos'
+                           isAdmin ? (
+                             selectedClient && selectedFolder ? 
+                             `No hay documentos en la carpeta "${selectedFolder.name}"` :
+                             selectedClient ? 
+                             'Selecciona una carpeta para ver sus documentos' :
+                             'Selecciona un cliente para ver sus documentos'
+                           ) : (
+                             selectedUserFolder ? 
+                             `No hay documentos en la carpeta "${selectedUserFolder.name}"` :
+                             'Selecciona una carpeta para ver sus documentos'
+                           )
                           }
                         </td>
                       </tr>
@@ -484,7 +810,7 @@ export default function MiExpediente() {
                   <thead>
                     <tr>
                       <th>Fecha</th>
-                      <th>Actuaci�n</th>
+                      <th>Actuaci?n</th>
                       <th>Juzgado</th>
                       <th>Estado</th>
                     </tr>
@@ -508,11 +834,11 @@ export default function MiExpediente() {
             <div className="me-right-content">
               <div className="me-proc-grid">
                 <div className="me-tag">Radicado</div><div>110014105009-20250011400</div>
-                <div className="me-tag">Clase</div><div>Laboral � Ordinario</div>
-                <div className="me-tag">Demandante</div><div>Juan P�rez</div>
+                <div className="me-tag">Clase</div><div>Laboral ? Ordinario</div>
+                <div className="me-tag">Demandante</div><div>Juan P?rez</div>
                 <div className="me-tag">Demandado</div><div>Acme S.A.S.</div>
                 <div className="me-tag">Juzgado</div><div>JDO 009 MPC</div>
-                <div className="me-tag">Estado</div><div>En tr�mite</div>
+                <div className="me-tag">Estado</div><div>En tr?mite</div>
               </div>
               <hr className="me-hr" />
               <button className="btn btn-primary" style={{ width: '100%' }}>Descargar expediente</button>

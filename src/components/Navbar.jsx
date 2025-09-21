@@ -108,7 +108,10 @@ export default function Navbar() {
               <div className="dropdown-content">
                 <div className="dropdown-group">
                   <Link to="/dashboard">Perfil</Link>
+                  {isAdmin && <Link to="/admin/clientes-activos">Clientes</Link>}
+                  {isAdmin && <Link to="/admin/usuarios">Usuarios</Link>}
                   <Link to="/mi-expediente">{isAdmin ? 'Mis expedientes' : 'Mi expediente'}</Link>
+                  {isAdmin && <Link to="/admin/tareas">Tareas</Link>}
                   <Link to="/mis-casos">Mis casos</Link>
                   <Link to="/logout">
                     Cerrar sesión

@@ -3,16 +3,16 @@ import { listRecentDocs, uploadDoc, getDownloadUrl, createFolder, updateDownload
 import api from '../../api/axios';
 
 const FOLDER_PREFIXES = [
-  { id: 'laboral', name: '1. Proceso Laboral' },
-  { id: 'penal', name: '2. Proceso Penal' },
-  { id: 'administrativo', name: '3. Proceso Administrativo' },
-  { id: 'civil-declarativo', name: '4. Proceso Civil Declarativo' },
-  { id: 'ejecutivo', name: '5. Proceso Ejecutivo' },
-  { id: 'familia', name: '6. Proceso de Familia' },
-  { id: 'arbitral', name: '7. Proceso Arbitral' },
-  { id: 'notarial', name: '8. Trámite Notarial' },
-  { id: 'varios', name: '9. Trámites Varios' },
-  { id: 'otros', name: '10. Otros' }
+  { id: 'Proceso Laboral', name: '1. Proceso Laboral' },
+  { id: 'Proceso Penal', name: '2. Proceso Penal' },
+  { id: 'Proceso Administrativo', name: '3. Proceso Administrativo' },
+  { id: 'Proceso Civil Declarativo', name: '4. Proceso Civil Declarativo' },
+  { id: 'Proceso Ejecutivo', name: '5. Proceso Ejecutivo' },
+  { id: 'Proceso de Familia', name: '6. Proceso de Familia' },
+  { id: 'Proceso Arbitral', name: '7. Proceso Arbitral' },
+  { id: 'Trámite Notarial', name: '8. Trámite Notarial' },
+  { id: 'Trámites Varios', name: '9. Trámites Varios' },
+  { id: 'Otros', name: '10. Otros' }
 ];
 
 export default function FileManager({ 
@@ -94,7 +94,7 @@ export default function FileManager({
       setFilesError(null);
 
       const selectedPrefix = FOLDER_PREFIXES.find(p => p.id === selectedFolderPrefix);
-      const folderName = `${selectedPrefix.id}-${newFolderName.trim().replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-')}`;
+      const folderName = `${selectedPrefix.id} ${newFolderName.trim()}`;
       const subfolder = `${currentSubfolder}${folderName}/`;
 
       await createFolder({ subfolder });
