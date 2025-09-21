@@ -36,6 +36,7 @@ import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import api from './api/axios';
 import Navbar from './components/Navbar.jsx';
+import FontProvider from './theme/FontProvider.jsx';
 
 function App() {
   // Test /api/ping using Axios instance
@@ -173,12 +174,11 @@ function App() {
 
   return (
     <AuthProvider>
-      <>
+      <FontProvider>
         <BrowserRouter>
           <Shell />
         </BrowserRouter>
-
-      </>
+      </FontProvider>
     </AuthProvider>
   );
 }

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { listActiveClients, updateClient, assignClientAdmin, deleteClient } from '../api/clients';
 import { listUsers as listAllUsers } from '../api/adminUsers';
-import { listRecentDocs, uploadDoc, getDownloadUrl, createFolder, getDiagnostics } from '../api/docs';
+import { listRecentDocs, uploadDoc, getDownloadUrl, createFolder } from '../api/docs';
 import api from '../api/axios';
 import '../styles/dashboard.css';
 import { SuccessNotice, DangerNotice } from '../components/common/Notice';
@@ -51,7 +51,7 @@ export default function ClientesActivos() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState(null);
-  // Asignación de admins (UI local)
+  // Asignaci�n de admins (UI local)
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignClient, setAssignClient] = useState(null);
   const [admins, setAdmins] = useState([]);
@@ -121,7 +121,7 @@ export default function ClientesActivos() {
     );
   }, [clients, search]);
 
-  // Helpers de asignación (persistencia en backend)
+  // Helpers de asignaci�n (persistencia en backend)
   const getAssignedFor = (clientId) => {
     const found = clients.find(c=>c.id===clientId);
     return found?.assignedAdmin || null;
@@ -223,7 +223,7 @@ export default function ClientesActivos() {
 
   const folderForClient = (c) => {
     const idPart = String(c?.documentNumber || c?.id || '').trim();
-    return idPart ? `clientes/${idPart}/` : 'clientes/sin-id/';
+    return idPart ? `clientes/${idPart}` : 'clientes/sin-id';
   };
 
   const loadClientFiles = async (folder) => {
@@ -231,14 +231,10 @@ export default function ClientesActivos() {
     setFilesError(null);
     setFilesWarning(null);
     try {
-      // El backend espera 'clientes' o 'clientes/cedula' como subfolder
-      const subfolder = folder.startsWith('clientes/') ? folder.replace(/\/$/, '') : folder;
-      
-      const data = await listRecentDocs({ limit: 50, subfolder });
+      const data = await listRecentDocs({ limit: 50, subfolder: folder });
       setFiles(Array.isArray(data?.items) ? data.items : []);
       if (data?.warning) setFilesWarning(data.warning);
     } catch (e) {
-      console.error('Error al cargar archivos:', e);
       setFilesError(e?.response?.data?.message || e?.message || 'No se pudieron cargar archivos');
     } finally {
       setFilesLoading(false);
@@ -254,7 +250,6 @@ export default function ClientesActivos() {
     setShowCreateFolder(false);
     setNewFolderName('');
     setSelectedFolderPrefix('');
-    
     await loadClientFiles(folder);
   };
 
@@ -267,18 +262,20 @@ export default function ClientesActivos() {
   };
 
   const uploadToClient = async (file) => {
-    if (!file || !currentSubfolder) return;
+    if (!file || !filesFolder) return;
     try {
       setUploading(true);
       setFilesError(null);
-      await uploadDoc(file, { subfolder: currentSubfolder });
-      await loadClientFiles(currentSubfolder);
+      await uploadDoc(file, { subfolder: filesFolder });
+      await loadClientFiles(filesFolder);
     } catch (e) {
       setFilesError(e?.response?.data?.message || e?.message || 'No se pudo subir el archivo');
     } finally {
       setUploading(false);
     }
   };
+
+  // Removed explicit folder creation; uploading un archivo crea el registro necesario.
 
   const onDownload = async (key, fallbackUrl) => {
     try {
@@ -297,21 +294,8 @@ export default function ClientesActivos() {
       setCreatingFolder(true);
       setFilesError(null);
       
-      // Crear la carpeta con el prefijo + nombre personalizado
-      // El backend sanitiza los nombres, así que usamos formato simple
-      const selectedPrefix = FOLDER_PREFIXES.find(p => p.id === selectedFolderPrefix);
-      const folderName = `${selectedPrefix.id}-${newFolderName.trim().replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-')}`;
-      const folderPath = `${currentSubfolder}${folderName}/`;
-      
-      console.log('Creando carpeta:', {
-        selectedPrefix,
-        folderName,
-        folderPath,
-        currentSubfolder
-      });
-      
-      const result = await createFolder({ subfolder: folderPath });
-      console.log('Resultado de crear carpeta:', result);
+      const folderPath = `${filesFolder}${selectedFolderPrefix}/${newFolderName.trim()}/`;
+      await createFolder({ subfolder: folderPath });
       
       setShowCreateFolder(false);
       setNewFolderName('');
@@ -319,9 +303,8 @@ export default function ClientesActivos() {
       showNotice('Carpeta creada exitosamente');
       
       // Recargar archivos para mostrar la nueva carpeta
-      await loadClientFiles(currentSubfolder);
+      await loadClientFiles(filesFolder);
     } catch (e) {
-      console.error('Error al crear carpeta:', e);
       setFilesError(e?.response?.data?.message || e?.message || 'No se pudo crear la carpeta');
     } finally {
       setCreatingFolder(false);
@@ -339,7 +322,7 @@ export default function ClientesActivos() {
       await api.delete('/docs/object', { data: { key: file.key } });
       
       showNotice('Archivo eliminado exitosamente');
-      await loadClientFiles(currentSubfolder);
+      await loadClientFiles(filesFolder);
     } catch (e) {
       setFilesError(e?.response?.data?.message || e?.message || 'No se pudo eliminar el archivo');
     } finally {
@@ -347,30 +330,9 @@ export default function ClientesActivos() {
     }
   };
 
-  const onDeleteFolder = async (folder) => {
-    if (!folder?.key) return;
-    
-    try {
-      setDeletingFile(folder.key);
-      setFilesError(null);
-      
-      // Llamar a la API para eliminar la carpeta (objeto con trailing slash)
-      await api.delete('/docs/object', { data: { key: folder.key } });
-      
-      showNotice('Carpeta eliminada exitosamente');
-      await loadClientFiles(currentSubfolder);
-    } catch (e) {
-      setFilesError(e?.response?.data?.message || e?.message || 'No se pudo eliminar la carpeta');
-    } finally {
-      setDeletingFile(null);
-    }
-  };
-
   const onNavigateToSubfolder = async (subfolder) => {
-    // Asegurar que la ruta tenga trailing slash
-    const normalizedSubfolder = subfolder.endsWith('/') ? subfolder : `${subfolder}/`;
-    setCurrentSubfolder(normalizedSubfolder);
-    await loadClientFiles(normalizedSubfolder);
+    setCurrentSubfolder(subfolder);
+    await loadClientFiles(subfolder);
   };
 
   const onNavigateBack = async () => {
@@ -410,42 +372,38 @@ export default function ClientesActivos() {
       }}
     >
       <div className="dash-card" style={{ width: '100%', maxWidth: 1200 }}>
-         <style>{`
-           @keyframes spin {
-             0% { transform: rotate(0deg); }
-             100% { transform: rotate(360deg); }
-           }
-           .only-mobile { display: block; }
-           .only-desktop { display: none; }
-           @media (min-width: 768px) {
-             .only-mobile { display: none; }
-             .only-desktop { display: block; }
-           }
-           @media (max-width: 767px) {
-             .mobile-list { display: grid; gap: 10px; }
-           }
-           /* Header layout */
-           .clients-header { display: grid; gap: 10px; align-items: center; }
-           .clients-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-           @media (min-width: 768px) {
-             .clients-header { grid-template-columns: 1fr auto; }
-           }
-           @media (max-width: 767px) {
-             .clients-actions { grid-template-columns: 1fr; }
-             .clients-actions .btn { width: 100%; }
-           }
-           .mobile-item { border: 1px solid rgba(148,163,184,0.35); border-radius: 10px; overflow: hidden; background: #1b263b; }
-           .mobile-item-header { display: flex; align-items: center; justify-content: space-between; padding: 0; cursor: pointer; height: 44px; }
-           .mobile-item .btn { border-radius: 10px; width: 100%; }
-           .mobile-item-title { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding: 0 12px; }
-           .mobile-item-details { padding: 10px 12px; border-top: 1px solid rgba(148,163,184,0.25); }
-           .kv { display: grid; grid-template-columns: 120px 1fr; gap: 8px; font-size: 14px; }
-           .kv span { opacity: 0.9; }
-           @media (max-width: 480px) {
-             .kv { grid-template-columns: 1fr; }
-             .kv span { font-size: 12px; opacity: 0.8; }
-           }
-         `}</style>
+        <style>{`
+          .only-mobile { display: block; }
+          .only-desktop { display: none; }
+          @media (min-width: 768px) {
+            .only-mobile { display: none; }
+            .only-desktop { display: block; }
+          }
+          @media (max-width: 767px) {
+            .mobile-list { display: grid; gap: 10px; }
+          }
+          /* Header layout */
+          .clients-header { display: grid; gap: 10px; align-items: center; }
+          .clients-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+          @media (min-width: 768px) {
+            .clients-header { grid-template-columns: 1fr auto; }
+          }
+          @media (max-width: 767px) {
+            .clients-actions { grid-template-columns: 1fr; }
+            .clients-actions .btn { width: 100%; }
+          }
+          .mobile-item { border: 1px solid rgba(148,163,184,0.35); border-radius: 10px; overflow: hidden; background: #1b263b; }
+          .mobile-item-header { display: flex; align-items: center; justify-content: space-between; padding: 0; cursor: pointer; height: 44px; }
+          .mobile-item .btn { border-radius: 10px; width: 100%; }
+          .mobile-item-title { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding: 0 12px; }
+          .mobile-item-details { padding: 10px 12px; border-top: 1px solid rgba(148,163,184,0.25); }
+          .kv { display: grid; grid-template-columns: 120px 1fr; gap: 8px; font-size: 14px; }
+          .kv span { opacity: 0.9; }
+          @media (max-width: 480px) {
+            .kv { grid-template-columns: 1fr; }
+            .kv span { font-size: 12px; opacity: 0.8; }
+          }
+        `}</style>
         <div className="dash-header clients-header" style={{ marginBottom: 16 }}>
           <div className="dash-title">Clientes activos</div>
           <div className="clients-actions">
@@ -501,7 +459,7 @@ export default function ClientesActivos() {
                 <tr key={c.id}>
                   <td>
                     <div>{c.name || '-'}</div>
-                    <div style={{ fontSize: 12, opacity: 0.75 }}>Admin asignado: {c.assignedAdmin?.name || '—'}</div>
+                    <div style={{ fontSize: 12, opacity: 0.75 }}>Admin asignado: {c.assignedAdmin?.name || '�'}</div>
                   </td>
                   <td>{c.email || '-'}</td>
                   <td>{c.documentNumber || '-'}</td>
@@ -550,14 +508,14 @@ export default function ClientesActivos() {
                   style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
                   <div className="mobile-item-title">{c.name || '-'}</div>
-                  <div style={{ opacity: 0.9, fontSize: 12, paddingRight: 10 }}>{isOpen ? '▼' : '▶'}</div>
+                  <div style={{ opacity: 0.9, fontSize: 12, paddingRight: 10 }}>{isOpen ? '?' : '?'}</div>
                 </button>
                 {isOpen && (
                   <div className="mobile-item-details">
                     <div className="kv"><span>Email</span><div>{c.email || '-'}</div></div>
-                    <div className="kv" style={{ marginTop: 6 }}><span>Cédula</span><div>{c.documentNumber || '-'}</div></div>
+                    <div className="kv" style={{ marginTop: 6 }}><span>C�dula</span><div>{c.documentNumber || '-'}</div></div>
                     <div className="kv" style={{ marginTop: 6 }}><span>Celular</span><div>{c.phone || '-'}</div></div>
-                    <div className="kv" style={{ marginTop: 6 }}><span>Admin asignado</span><div>{c.assignedAdmin?.name || '—'}</div></div>
+                    <div className="kv" style={{ marginTop: 6 }}><span>Admin asignado</span><div>{c.assignedAdmin?.name || '�'}</div></div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
                       <button
                         className="btn btn-secondary btn-sm"
@@ -642,373 +600,77 @@ export default function ClientesActivos() {
         </div>
       )}
 
-       {filesOpen && (
-         <div
-           role="dialog"
-           aria-modal="true"
-           className="modal-overlay"
-           onClick={(e) => { if (e.target === e.currentTarget) setFilesOpen(false); }}
-         >
-           <div className="modal-card" style={{ 
-             width: '100%', 
-             maxWidth: 1200, 
-             maxHeight: '90vh',
-             overflow: 'hidden',
-             display: 'flex',
-             flexDirection: 'column'
-           }}>
-             <div className="modal-header" style={{ flexShrink: 0 }}>
-               <div>
-                 <div className="dash-title" style={{ fontSize: '24px', fontWeight: '600', marginBottom: '4px' }}>
-                   Gestión de Archivos
-                 </div>
-                 <div className="muted">
-                   Cliente: {filesClient?.name || filesClient?.email || filesClient?.id}
-                 </div>
-               </div>
-               <button 
-                 className="btn btn-secondary btn-sm" 
-                 onClick={() => setFilesOpen(false)}
-               >
-                 Cerrar
-               </button>
-             </div>
-
-             {/* Navegación de carpetas */}
-             <div className="dash-item" style={{ marginBottom: '16px', flexShrink: 0 }}>
-               <div style={{ 
-                 display: 'flex', 
-                 alignItems: 'center', 
-                 gap: '12px', 
-                 marginBottom: '12px',
-                 padding: '12px 16px',
-                 background: 'rgba(79, 209, 197, 0.1)',
-                 borderRadius: '12px',
-                 border: '1px solid rgba(79, 209, 197, 0.2)'
-               }}>
-                 <span className="muted">Ubicación actual:</span>
-                 <code style={{ 
-                   background: '#0c1530', 
-                   color: '#e5e7eb',
-                   padding: '6px 12px', 
-                   borderRadius: '8px',
-                   fontSize: '14px',
-                   fontFamily: 'monospace'
-                 }}>
-                   {(() => {
-                     const currentPath = currentSubfolder || filesFolder;
-                     // Remover el prefijo del cliente (ej: "clientes/1032465160/")
-                     const clientPrefix = filesFolder;
-                     if (currentPath === clientPrefix) {
-                       return 'Carpeta principal';
-                     }
-                     // Extraer solo la subcarpeta
-                     const subfolder = currentPath.replace(clientPrefix, '').replace(/\/$/, '');
-                     return subfolder || 'Carpeta principal';
-                   })()}
-                 </code>
-                 {currentSubfolder !== filesFolder && (
-                   <button 
-                     className="btn btn-secondary btn-sm" 
-                     onClick={onNavigateBack}
-                     style={{ marginLeft: 'auto' }}
-                   >
-                     Volver
-                   </button>
-                 )}
-               </div>
-               
-               <div style={{ 
-                 display: 'flex', 
-                 gap: '12px', 
-                 alignItems: 'center', 
-                 flexWrap: 'wrap',
-                 padding: '12px 16px',
-                 background: 'rgba(79, 209, 197, 0.05)',
-                 borderRadius: '12px',
-                 border: '1px solid rgba(79, 209, 197, 0.1)'
-               }}>
-                 <button 
-                   className="btn btn-primary btn-sm" 
-                   onClick={() => setShowCreateFolder(true)}
-                   disabled={creatingFolder}
-                 >
-                   Crear Carpeta
-                 </button>
-                 
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                   <input 
-                     type="file" 
-                     onChange={(e) => uploadToClient(e.target.files?.[0])} 
-                     disabled={uploading}
-                     className="input"
-                     style={{ fontSize: '14px', padding: '8px 12px' }}
-                   />
-                   <span className="muted">
-                     {uploading ? 'Subiendo...' : 'Subir archivo'}
-                   </span>
-                 </div>
-               </div>
-               
-               {filesError && (
-                 <div className="alert alert-error" style={{ marginTop: '12px' }}>
-                   {filesError}
-                 </div>
-               )}
-               {filesWarning && (
-                 <div style={{ 
-                   background: 'rgba(245, 158, 11, 0.1)', 
-                   color: '#fde68a', 
-                   padding: '10px', 
-                   borderRadius: '10px', 
-                   marginTop: '12px',
-                   border: '1px solid rgba(245, 158, 11, 0.2)',
-                   fontSize: '14px'
-                 }}>
-                   {String(filesWarning) === 'S3_LIST_FORBIDDEN' ? 'No hay permisos para listar el bucket. Puedes descargar si conservas el enlace.' : String(filesWarning)}
-                 </div>
-               )}
-             </div>
-
-             {/* Lista de archivos y carpetas */}
-             <div className="dash-item" style={{ 
-               overflow: 'auto', 
-               flex: 1,
-               minHeight: 0
-             }}>
-               <table className="me-table" style={{ minWidth: 680 }}>
-                 <thead>
-                   <tr style={{ background: 'rgba(79, 209, 197, 0.1)' }}>
-                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Tipo</th>
-                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Nombre</th>
-                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Fecha</th>
-                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Tamaño</th>
-                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Acciones</th>
-                   </tr>
-                 </thead>
-                 <tbody>
-                   {files.filter((f) => {
-                     // Filtrar solo la carpeta raíz exacta del cliente
-                     const key = f.key || '';
-                     const isRootClientFolder = key === filesFolder && f.isFolder;
-                     return !isRootClientFolder;
-                   }).length === 0 && (
-                     <tr>
-                       <td colSpan={5} style={{ 
-                         textAlign: 'center', 
-                         padding: '40px',
-                         color: '#cbd5e1'
-                       }}>
-                         {filesLoading ? (
-                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                             <div style={{ 
-                               width: '20px', 
-                               height: '20px', 
-                               border: '2px solid #4fd1c5', 
-                               borderTop: '2px solid transparent',
-                               borderRadius: '50%',
-                               animation: 'spin 1s linear infinite'
-                             }}></div>
-                             Cargando archivos...
-                           </div>
-                         ) : (
-                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                             <div>No hay archivos o carpetas para mostrar</div>
-                             <div className="muted">
-                               Crea una carpeta o sube un archivo para comenzar
-                             </div>
-                           </div>
-                         )}
-                       </td>
-                     </tr>
-                   )}
-                   {files.filter((f) => {
-                     // Filtrar solo la carpeta raíz exacta del cliente
-                     const key = f.key || '';
-                     const isRootClientFolder = key === filesFolder && f.isFolder;
-                     return !isRootClientFolder;
-                   }).map((f) => {
-                     const dt = f.lastModified ? new Date(f.lastModified) : (f.createdTime ? new Date(f.createdTime) : null);
-                     const name = f.name || (f.key || '').split('/').pop();
-                     const sizeKb = typeof f.size === 'number' ? Math.max(1, Math.round(f.size / 1024)) : null;
-                     const mime = f.mimeType || (name && name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined);
-                     const isFolder = f.isFolder || f.key?.endsWith('/') || f.name?.endsWith('/');
-                     
-                     return (
-                       <tr key={f.key || f.id} style={{ 
-                         borderBottom: '1px solid #394b61'
-                       }}>
-                         <td style={{ padding: '12px 16px' }}>
-                           {isFolder ? (
-                             <span style={{ 
-                               color: '#fc771c',
-                               fontWeight: '500'
-                             }}>
-                               Carpeta
-                             </span>
-                           ) : (
-                             <span style={{ 
-                               color: '#4fd1c5',
-                               fontWeight: '500'
-                             }}>
-                               Archivo
-                             </span>
-                           )}
-                         </td>
-                         <td style={{ padding: '12px 16px' }} title={name}>
-                           {isFolder ? (
-                             <button 
-                               className="btn btn-link" 
-                               onClick={() => onNavigateToSubfolder(f.key)}
-                               style={{ 
-                                 textAlign: 'left', 
-                                 padding: 0, 
-                                 color: '#fc771c',
-                                 fontWeight: '500',
-                                 textDecoration: 'none',
-                                 fontSize: '16px'
-                               }}
-                               onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                               onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-                             >
-                               {name}
-                             </button>
-                           ) : (
-                             <span style={{ 
-                               color: '#e2e8f0',
-                               fontWeight: '500'
-                             }}>
-                               {name}
-                             </span>
-                           )}
-                         </td>
-                         <td style={{ padding: '12px 16px' }} className="muted">
-                           {dt ? dt.toLocaleString() : '-'}
-                         </td>
-                         <td style={{ padding: '12px 16px' }} className="muted">
-                           {isFolder ? '-' : (sizeKb ? `${sizeKb} KB` : '-')}
-                         </td>
-                         <td style={{ padding: '12px 16px' }}>
-                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                             {isFolder ? (
-                               <button 
-                                 className="btn btn-danger btn-sm" 
-                                 onClick={() => onDeleteFolder(f)}
-                                 disabled={deletingFile === f.key}
-                               >
-                                 {deletingFile === f.key ? 'Eliminando...' : 'Eliminar'}
-                               </button>
-                             ) : (
-                               <>
-                                 <button 
-                                   className="btn btn-secondary btn-sm" 
-                                   onClick={() => onDownload(f.key, f.downloadURL || f.downloadUrl || f.webContentLink || f.webViewLink)}
-                                 >
-                                   Descargar
-                                 </button>
-                                 <button 
-                                   className="btn btn-danger btn-sm" 
-                                   onClick={() => onDeleteFile(f)}
-                                   disabled={deletingFile === f.key}
-                                 >
-                                   {deletingFile === f.key ? 'Eliminando...' : 'Eliminar'}
-                                 </button>
-                               </>
-                             )}
-                           </div>
-                         </td>
-                       </tr>
-                     );
-                   })}
-                 </tbody>
-               </table>
-             </div>
-           </div>
-         </div>
-       )}
-
-      {/* Modal para crear carpeta */}
-      {showCreateFolder && (
+      {filesOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          className="modal-overlay"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowCreateFolder(false); }}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 55, padding: 16,
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setFilesOpen(false); }}
         >
-          <div className="modal-card" style={{ 
-            width: '100%', 
-            maxWidth: 600
-          }}>
-            <div className="modal-header">
-              <div>
-                <div className="dash-title" style={{ fontSize: '24px', fontWeight: '600', marginBottom: '4px' }}>
-                  Crear Nueva Carpeta
-                </div>
-                <div className="muted">
-                  Organiza los documentos del cliente por tipo de proceso
-                </div>
+          <div className="dash-card" style={{ width: '100%', maxWidth: 900 }}>
+            <div className="dash-header" style={{ marginBottom: 8 }}>
+              <div className="dash-title">Archivos � {filesClient?.name || filesClient?.email || filesClient?.id}</div>
+              <button className="btn btn-secondary btn-sm" onClick={() => setFilesOpen(false)}>Cerrar</button>
+            </div>
+            <div className="dash-item" style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 13, opacity: 0.85 }}>Carpeta S3: <code>{filesFolder}</code></div>
+              <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <input type="file" onChange={(e) => uploadToClient(e.target.files?.[0])} disabled={uploading} />
+                <span style={{ fontSize: 13, opacity: 0.8 }}>{uploading ? 'Subiendo...' : 'Selecciona un archivo para agregarlo al expediente'}</span>
               </div>
+              {filesError && (
+                <div style={{ background: '#7f1d1d', color: '#fecaca', padding: 8, borderRadius: 6, marginTop: 8 }}>{filesError}</div>
+              )}
+              {filesWarning && (
+                <div style={{ background: '#78350f', color: '#fde68a', padding: 8, borderRadius: 6, marginTop: 8 }}>
+                  Aviso: {String(filesWarning) === 'S3_LIST_FORBIDDEN' ? 'No hay permisos para listar el bucket. Puedes descargar si conservas el enlace.' : String(filesWarning)}
+                </div>
+              )}
             </div>
-            
-            <div className="dash-item">
-              <EditForm>
-                <EditField
-                  label="Tipo de Proceso"
-                  value={selectedFolderPrefix}
-                  onChange={(e) => setSelectedFolderPrefix(e.target.value)}
-                >
-                  <select
-                    value={selectedFolderPrefix}
-                    onChange={(e) => setSelectedFolderPrefix(e.target.value)}
-                    className="select"
-                  >
-                    <option value="">Selecciona un tipo de proceso</option>
-                    {FOLDER_PREFIXES.map((prefix) => (
-                      <option key={prefix.id} value={prefix.id}>
-                        {prefix.label}
-                      </option>
-                    ))}
-                  </select>
-                </EditField>
-                
-                <EditField
-                  label="Nombre de la Carpeta"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  placeholder="Ej: Demanda por despido injustificado"
-                />
-              </EditForm>
-            </div>
-            
-            <div className="dash-actions">
-              <button 
-                className="btn btn-secondary" 
-                onClick={() => setShowCreateFolder(false)}
-                disabled={creatingFolder}
-              >
-                Cancelar
-              </button>
-              <button 
-                className="btn btn-primary" 
-                onClick={onCreateFolder}
-                disabled={creatingFolder || !selectedFolderPrefix || !newFolderName.trim()}
-              >
-                {creatingFolder ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ 
-                      width: '16px', 
-                      height: '16px', 
-                      border: '2px solid #ffffff', 
-                      borderTop: '2px solid transparent',
-                      borderRadius: '50%',
-                      animation: 'spin 1s linear infinite'
-                    }}></div>
-                    Creando...
-                  </div>
-                ) : (
-                  'Crear Carpeta'
-                )}
-              </button>
+
+            <div className="dash-item" style={{ overflowX: 'auto' }}>
+              <table className="me-table" style={{ minWidth: 680 }}>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Tama?o</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {files.length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: 10 }}>
+                        {filesLoading ? 'Cargando...' : 'No hay archivos para mostrar'}
+                      </td>
+                    </tr>
+                  )}
+                  {files.map((f) => {
+                    const dt = f.lastModified ? new Date(f.lastModified) : (f.createdTime ? new Date(f.createdTime) : null);
+                    const name = f.name || (f.key || '').split('/').pop();
+                    const sizeKb = typeof f.size === 'number' ? Math.max(1, Math.round(f.size / 1024)) : null;
+                    const mime = f.mimeType || (name && name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined);
+                    return (
+                      <tr key={f.key || f.id}>
+                        <td>{dt ? dt.toLocaleString() : '-'}</td>
+                        <td title={name}>{name}</td>
+                        <td>{mime ? (mime.split('/')[1] || mime) : '-'}</td>
+                        <td>{sizeKb ? `${sizeKb} KB` : '-'}</td>
+                        <td>
+                          <button className="btn btn-secondary btn-sm" onClick={() => onDownload(f.key, f.downloadURL || f.downloadUrl || f.webContentLink || f.webViewLink)}>
+                            Descargar
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -1038,9 +700,9 @@ export default function ClientesActivos() {
                   disabled={adminsLoading}
                   style={{ background: '#1b263b', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.35)', borderRadius: 8, padding: '8px 10px' }}
                 >
-                  <option value="">— Sin asignar —</option>
+                  <option value="">� Sin asignar �</option>
                   {admins.map((a)=> (
-                    <option key={a.id} value={a.id}>{a.name} — {a.email}</option>
+                    <option key={a.id} value={a.id}>{a.name} � {a.email}</option>
                   ))}
                 </select>
               </label>
@@ -1062,14 +724,14 @@ export default function ClientesActivos() {
         >
           <div className="dash-card" style={{ width: '100%', maxWidth: 520 }}>
             <div className="dash-header" style={{ marginBottom: 8 }}>
-              <div className="dash-title">Confirmar eliminación</div>
+              <div className="dash-title">Confirmar eliminaci�n</div>
             </div>
               <div className="dash-item" style={{ display: 'grid', gap: 10 }}>
                 <div>
-                  ¿Eliminar al cliente <strong>{confirmDeleteClient.name || confirmDeleteClient.email || confirmDeleteClient.id}</strong>?
+                  �Eliminar al cliente <strong>{confirmDeleteClient.name || confirmDeleteClient.email || confirmDeleteClient.id}</strong>?
                 </div>
                 <div style={{ fontSize: 13, opacity: 0.85 }}>
-                  Esta acción eliminará el contenedor del cliente y su carpeta S3 asociada (clientes/{String(confirmDeleteClient.documentNumber || '').trim()}).
+                  Esta acci�n eliminar� el contenedor del cliente y su carpeta S3 asociada (clientes/{String(confirmDeleteClient.documentNumber || '').trim()}).
                 </div>
                 {/* Hidden username trap to discourage browser autofill on page search */}
                 <input
@@ -1081,7 +743,7 @@ export default function ClientesActivos() {
                   style={{ position: 'absolute', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
                 />
                 <label style={{ display: 'grid', gap: 6 }}>
-                  <span>Contraseña de eliminación</span>
+                  <span>Contrase�a de eliminaci�n</span>
                   <input
                     type="password"
                     name="delete-confirm"
@@ -1108,3 +770,6 @@ export default function ClientesActivos() {
     </div>
   );
 }
+
+
+

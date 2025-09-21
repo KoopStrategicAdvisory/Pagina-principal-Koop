@@ -156,7 +156,11 @@ export default function CalendarWidget({
               baseStyle.fontWeight = 700;
             }
             if (inCurrentMonth && dayEvents.length > 0 && !isSelected) {
-              baseStyle.border = '1px solid rgba(56, 189, 248, 0.45)';
+              // Resaltar el día con anotaciones
+              baseStyle.background = '#f5b891';
+              baseStyle.color = '#0f172a';
+              baseStyle.border = '1px solid rgba(245, 184, 145, 0.65)';
+              baseStyle.fontWeight = 600;
             }
 
             return (
@@ -178,7 +182,7 @@ export default function CalendarWidget({
                       width: 6,
                       height: 6,
                       borderRadius: '999px',
-                      background: isSelected ? '#0f172a' : '#38bdf8',
+                      background: isSelected ? '#0f172a' : (inCurrentMonth ? '#7c3a00' : '#38bdf8'),
                     }}
                   />
                 )}

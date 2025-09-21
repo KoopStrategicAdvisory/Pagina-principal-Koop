@@ -10,7 +10,7 @@ export default function MiExpediente() {
   const [activeTab, setActiveTab] = useState('docs');
   const { user } = useAuth();
   const displayName = normalizeUpperAscii(user?.name || '');
-  const DEFAULT_FOLDER = 'documentos_iniciales';
+  const DEFAULT_FOLDER = 'clientes';
   const roles = Array.isArray(user?.roles) ? user.roles : (user?.roles ? [user?.roles] : []);
   const isAdmin = roles.map((r)=>String(r||'').trim().toLowerCase()).includes('admin');
   // Clientes asignados (solo admin)

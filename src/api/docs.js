@@ -2,7 +2,6 @@
 
 
 export async function listRecentDocs({ limit, subfolder } = {}) {
-api.getSigned();
   const params = {};
   if (typeof limit === 'number') params.limit = limit;
   if (subfolder) params.subfolder = subfolder;
@@ -38,8 +37,15 @@ export async function getDownloadUrl(key, expiresIn = 600) {
   return data;
 }
 
-export async function createFolder(subfolder) {
-  const payload = typeof subfolder === 'string' ? { subfolder } : (subfolder || {});
+export async function createFolder({ subfolder } = {}) {
+  const payload = { subfolder };
   const { data } = await api.post('/docs/folder', payload);
+  return data;
+}
+
+export async function getDiagnostics({ subfolder } = {}) {
+  const params = {};
+  if (subfolder) params.subfolder = subfolder;
+  const { data } = await api.get('/docs/diag', { params });
   return data;
 }

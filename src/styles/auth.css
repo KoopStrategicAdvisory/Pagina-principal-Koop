@@ -24,7 +24,7 @@
   max-width: 420px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   text-align: center;
-  font-family: 'Montserrat', Arial, sans-serif;
+  font-family: var(--ff-base);
   position: relative;
   z-index: 2; /* por encima del overlay y video */
   border: 1px solid rgba(57, 75, 97, 0.5);

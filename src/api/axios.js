@@ -1,5 +1,5 @@
 ﻿import axios from "axios";
-const BASE = import.meta.env?.VITE_API_BASE || 'https://koop-api-a28ac382dd56.herokuapp.com/api';
+const BASE = import.meta.env?.VITE_API_BASE || 'http://localhost:4000/api';
 
 const api = axios.create({
   baseURL: BASE,
@@ -37,7 +37,9 @@ export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogou
         config.headers = config.headers || {};
         config.headers.Authorization = `Bearer ${token}`;
       }
-    } catch {}
+    } catch (e) {
+      console.error('[axios] Request interceptor error:', e);
+    }
     return config;
   });
 
@@ -93,25 +95,5 @@ export function setupAxiosInterceptors({ getAccessToken, setAccessToken, onLogou
     }
   );
 }
-
-const GETEndpoint = getSignedURLEndpoint('project-1/avatar/theosassler.png', 'getObject');
-
-axios.get(GETEndpoint)
-  .then(res => console.log(res))
-  .catch(err => console.log(err));
-
-async function getSignedURLEndpoint(key, operation) {
-
-  var options = {
-    Bucket: process.env.AWS_BUCKET,
-    Key: key, /* Filename in the bucket */
-    Expires: 3000 /* Seconds */
-  };
-
-  const url = await s3.getSignedUrlPromise(operation, options);
-  return url;
-}
-
-
 
 export default api;

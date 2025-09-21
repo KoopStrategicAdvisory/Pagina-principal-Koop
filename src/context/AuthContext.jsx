@@ -135,6 +135,7 @@ export function AuthProvider({ children }) {
     [accessToken, user, isAuthenticated, loading]
   );
 
+
   // Setup Axios interceptors once
   const onceRef = useRef(false);
   useEffect(() => {

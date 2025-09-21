@@ -112,6 +112,13 @@ html.route-fade-in #root {
 /* Fallback de acento (por si el HTML legacy no define la variable) */
 :root { --koop-acento: #ee9626; }
 
+/* Global font variables */
+:root {
+  --ff-base: 'Montserrat', Arial, sans-serif;
+  --ff-heading: var(--ff-base);
+  --ff-accent: var(--ff-base);
+}
+
 /* Hide legacy in-page navbars when using global Navbar */
 .navbar.legacy { display: none !important; }
 
@@ -193,9 +200,7 @@ html.route-fade-in #root {
 }
 
 /* Unificar tipografda global con la usada en la navbar */
-html, body {
-  font-family: 'Montserrat', Arial, sans-serif;
-}
+html, body { font-family: var(--ff-base); }
 
 /* Forzar: ocultar tarjetas móviles en escritorio y mostrar solo-desktop */
 @media (min-width: 768px) {

@@ -19,3 +19,10 @@ export async function createClientFromUser(id, payload) {
   const { data } = await api.post(`/admin/clients/from-user/${id}`, payload);
   return data;
 }
+
+export async function deleteClient(id, adminDeletePass) {
+  const headers = {};
+  if (adminDeletePass) headers['x-delete-pass'] = adminDeletePass;
+  const { data } = await api.delete(`/admin/clients/${id}`, { headers });
+  return data;
+}
