@@ -49,3 +49,15 @@ export async function getDiagnostics({ subfolder } = {}) {
   const { data } = await api.get('/docs/diag', { params });
   return data;
 }
+
+export async function getClientDocumentHistory({ documentNumber, limit = 50, offset = 0, folder } = {}) {
+  const params = { limit, offset };
+  if (folder) params.folder = folder;
+  const { data } = await api.get(`/docs/client/${documentNumber}/history`, { params });
+  return data;
+}
+
+export async function updateDownloadStats(documentId) {
+  const { data } = await api.post(`/docs/document/${documentId}/download`);
+  return data;
+}

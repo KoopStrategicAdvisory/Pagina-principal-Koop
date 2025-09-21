@@ -7,22 +7,10 @@ import api from '../api/axios';
 import '../styles/dashboard.css';
 import { SuccessNotice, DangerNotice } from '../components/common/Notice';
 import { EditForm, EditField, EditRow } from '../components/common/EditFormKit';
+import FileManager from '../components/common/FileManager';
 
 const ALLOWED_ROLES = ['admin', 'user'];
 
-// Prefijos predeterminados para carpetas
-const FOLDER_PREFIXES = [
-  { id: 'laboral', label: '1. Proceso Laboral' },
-  { id: 'penal', label: '2. Proceso Penal' },
-  { id: 'administrativo', label: '3. Proceso Administrativo' },
-  { id: 'civil-declarativo', label: '4. Proceso Civil Declarativo' },
-  { id: 'ejecutivo', label: '5. Proceso Ejecutivo' },
-  { id: 'familia', label: '6. Proceso de Familia' },
-  { id: 'arbitral', label: '7. Proceso Arbitral' },
-  { id: 'notarial', label: '8. Trámite Notarial' },
-  { id: 'varios', label: '9. Trámites Varios' },
-  { id: 'otros', label: '10. Otros' }
-];
 
 function normalizeRoles(value, { defaultRole = 'user' } = {}) {
   const normalizedDefault = String(defaultRole || 'user').trim().toLowerCase();
@@ -62,20 +50,9 @@ export default function ClientesActivos() {
   // Archivos por cliente (S3)
   const [filesOpen, setFilesOpen] = useState(false);
   const [filesClient, setFilesClient] = useState(null);
-  const [filesFolder, setFilesFolder] = useState('');
-  const [files, setFiles] = useState([]);
-  const [filesLoading, setFilesLoading] = useState(false);
-  const [filesError, setFilesError] = useState(null);
-  const [filesWarning, setFilesWarning] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  
-  // Sistema de carpetas con prefijos
-  const [showCreateFolder, setShowCreateFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [selectedFolderPrefix, setSelectedFolderPrefix] = useState('');
-  const [creatingFolder, setCreatingFolder] = useState(false);
-  const [currentSubfolder, setCurrentSubfolder] = useState('');
-  const [deletingFile, setDeletingFile] = useState(null);
+  const [expandedClient, setExpandedClient] = useState(null);
+  const [clientFiles, setClientFiles] = useState({});
+  const [loadingFiles, setLoadingFiles] = useState({});
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [confirmDeleteClient, setConfirmDeleteClient] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -221,165 +198,57 @@ export default function ClientesActivos() {
     }
   };
 
+  const openFilesModal = async (client) => {
+    setFilesClient(client);
+    setFilesOpen(true);
+  };
+
+  // Función para obtener la carpeta del cliente
   const folderForClient = (c) => {
     const idPart = String(c?.documentNumber || c?.id || '').trim();
     return idPart ? `clientes/${idPart}/` : 'clientes/sin-id/';
   };
 
-  const loadClientFiles = async (folder) => {
-    setFilesLoading(true);
-    setFilesError(null);
-    setFilesWarning(null);
+  // Función para cargar archivos de un cliente
+  const loadClientFiles = async (client) => {
+    const clientId = client.id;
+    const folder = folderForClient(client);
+    
+    setLoadingFiles(prev => ({ ...prev, [clientId]: true }));
+    
     try {
-      // El backend espera 'clientes' o 'clientes/cedula' como subfolder
       const subfolder = folder.startsWith('clientes/') ? folder.replace(/\/$/, '') : folder;
-      
       const data = await listRecentDocs({ limit: 50, subfolder });
-      setFiles(Array.isArray(data?.items) ? data.items : []);
-      if (data?.warning) setFilesWarning(data.warning);
+      const files = Array.isArray(data?.items) ? data.items : [];
+      
+      setClientFiles(prev => ({ ...prev, [clientId]: files }));
     } catch (e) {
       console.error('Error al cargar archivos:', e);
-      setFilesError(e?.response?.data?.message || e?.message || 'No se pudieron cargar archivos');
+      setClientFiles(prev => ({ ...prev, [clientId]: [] }));
     } finally {
-      setFilesLoading(false);
+      setLoadingFiles(prev => ({ ...prev, [clientId]: false }));
     }
   };
 
-  const openFilesModal = async (client) => {
-    const folder = folderForClient(client);
-    setFilesClient(client);
-    setFilesFolder(folder);
-    setCurrentSubfolder(folder);
-    setFilesOpen(true);
-    setShowCreateFolder(false);
-    setNewFolderName('');
-    setSelectedFolderPrefix('');
+  // Función para expandir/contraer cliente
+  const toggleClientExpansion = async (client) => {
+    const clientId = client.id;
     
-    await loadClientFiles(folder);
-  };
-
-  const ensureFolderAndOpen = async (client) => {
-    const folder = folderForClient(client);
-    try {
-      await createFolder({ subfolder: folder });
-    } catch (_) { /* idempotente si ya existe */ }
-    await openFilesModal(client);
-  };
-
-  const uploadToClient = async (file) => {
-    if (!file || !currentSubfolder) return;
-    try {
-      setUploading(true);
-      setFilesError(null);
-      await uploadDoc(file, { subfolder: currentSubfolder });
-      await loadClientFiles(currentSubfolder);
-    } catch (e) {
-      setFilesError(e?.response?.data?.message || e?.message || 'No se pudo subir el archivo');
-    } finally {
-      setUploading(false);
+    if (expandedClient === clientId) {
+      // Contraer
+      setExpandedClient(null);
+    } else {
+      // Expandir
+      setExpandedClient(clientId);
+      
+      // Cargar archivos si no están cargados
+      if (!clientFiles[clientId]) {
+        await loadClientFiles(client);
+      }
     }
   };
 
-  const onDownload = async (key, fallbackUrl) => {
-    try {
-      const { url } = await getDownloadUrl(key, 600);
-      window.open(url || fallbackUrl, '_blank');
-    } catch (e) {
-      if (fallbackUrl) window.open(fallbackUrl, '_blank');
-    }
-  };
 
-  // Funciones para el sistema de carpetas
-  const onCreateFolder = async () => {
-    if (!selectedFolderPrefix || !newFolderName.trim()) return;
-    
-    try {
-      setCreatingFolder(true);
-      setFilesError(null);
-      
-      // Crear la carpeta con el prefijo + nombre personalizado
-      // El backend sanitiza los nombres, así que usamos formato simple
-      const selectedPrefix = FOLDER_PREFIXES.find(p => p.id === selectedFolderPrefix);
-      const folderName = `${selectedPrefix.id}-${newFolderName.trim().replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-')}`;
-      const folderPath = `${currentSubfolder}${folderName}/`;
-      
-      console.log('Creando carpeta:', {
-        selectedPrefix,
-        folderName,
-        folderPath,
-        currentSubfolder
-      });
-      
-      const result = await createFolder({ subfolder: folderPath });
-      console.log('Resultado de crear carpeta:', result);
-      
-      setShowCreateFolder(false);
-      setNewFolderName('');
-      setSelectedFolderPrefix('');
-      showNotice('Carpeta creada exitosamente');
-      
-      // Recargar archivos para mostrar la nueva carpeta
-      await loadClientFiles(currentSubfolder);
-    } catch (e) {
-      console.error('Error al crear carpeta:', e);
-      setFilesError(e?.response?.data?.message || e?.message || 'No se pudo crear la carpeta');
-    } finally {
-      setCreatingFolder(false);
-    }
-  };
-
-  const onDeleteFile = async (file) => {
-    if (!file?.key) return;
-    
-    try {
-      setDeletingFile(file.key);
-      setFilesError(null);
-      
-      // Llamar a la API para eliminar el archivo
-      await api.delete('/docs/object', { data: { key: file.key } });
-      
-      showNotice('Archivo eliminado exitosamente');
-      await loadClientFiles(currentSubfolder);
-    } catch (e) {
-      setFilesError(e?.response?.data?.message || e?.message || 'No se pudo eliminar el archivo');
-    } finally {
-      setDeletingFile(null);
-    }
-  };
-
-  const onDeleteFolder = async (folder) => {
-    if (!folder?.key) return;
-    
-    try {
-      setDeletingFile(folder.key);
-      setFilesError(null);
-      
-      // Llamar a la API para eliminar la carpeta (objeto con trailing slash)
-      await api.delete('/docs/object', { data: { key: folder.key } });
-      
-      showNotice('Carpeta eliminada exitosamente');
-      await loadClientFiles(currentSubfolder);
-    } catch (e) {
-      setFilesError(e?.response?.data?.message || e?.message || 'No se pudo eliminar la carpeta');
-    } finally {
-      setDeletingFile(null);
-    }
-  };
-
-  const onNavigateToSubfolder = async (subfolder) => {
-    // Asegurar que la ruta tenga trailing slash
-    const normalizedSubfolder = subfolder.endsWith('/') ? subfolder : `${subfolder}/`;
-    setCurrentSubfolder(normalizedSubfolder);
-    await loadClientFiles(normalizedSubfolder);
-  };
-
-  const onNavigateBack = async () => {
-    if (currentSubfolder) {
-      const parentFolder = currentSubfolder.split('/').slice(0, -2).join('/') + '/';
-      setCurrentSubfolder(parentFolder);
-      await loadClientFiles(parentFolder);
-    }
-  };
 
   if (!isAdmin) {
     return (
@@ -498,34 +367,183 @@ export default function ClientesActivos() {
                 </tr>
               )}
               {filtered.map((c) => (
-                <tr key={c.id}>
-                  <td>
-                    <div>{c.name || '-'}</div>
-                    <div style={{ fontSize: 12, opacity: 0.75 }}>Admin asignado: {c.assignedAdmin?.name || '—'}</div>
-                  </td>
-                  <td>{c.email || '-'}</td>
-                  <td>{c.documentNumber || '-'}</td>
-                  <td>{c.phone || '-'}</td>
-                  <td>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => openAssignModal(c)}
-                        title={getAssignedFor(c.id) ? `Asignado a ${getAssignedFor(c.id)?.name || ''}` : 'Asignar administrador'}
+                <>
+                  <tr key={c.id}>
+                    <td>
+                      <div 
+                        style={{ 
+                          cursor: 'pointer', 
+                          color: '#4fd1c5', 
+                          fontWeight: '500',
+                          textDecoration: 'underline'
+                        }}
+                        onClick={() => toggleClientExpansion(c)}
+                        onMouseOver={(e) => e.target.style.color = '#6ee7d7'}
+                        onMouseOut={(e) => e.target.style.color = '#4fd1c5'}
                       >
-                        {getAssignedFor(c.id) ? 'Asignado' : 'Asignar'}
-                      </button>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        onClick={() => ensureFolderAndOpen(c)}
-                      >
-                        Archivos
-                      </button>
-                      <button className="btn btn-primary btn-sm" onClick={() => onEdit(c)}>Editar</button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => onAskDelete(c)}>Eliminar</button>
-                    </div>
-                  </td>
-                </tr>
+                        {c.name || '-'} {expandedClient === c.id ? '▼' : '▶'}
+                      </div>
+                      <div style={{ fontSize: 12, opacity: 0.75 }}>Admin asignado: {c.assignedAdmin?.name || '—'}</div>
+                    </td>
+                    <td>{c.email || '-'}</td>
+                    <td>{c.documentNumber || '-'}</td>
+                    <td>{c.phone || '-'}</td>
+                    <td>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => openAssignModal(c)}
+                          title={getAssignedFor(c.id) ? `Asignado a ${getAssignedFor(c.id)?.name || ''}` : 'Asignar administrador'}
+                        >
+                          {getAssignedFor(c.id) ? 'Asignado' : 'Asignar'}
+                        </button>
+                        <button 
+                          className="btn btn-primary btn-sm"
+                          onClick={() => openFilesModal(c)}
+                        >
+                          Archivos
+                        </button>
+                        <button className="btn btn-primary btn-sm" onClick={() => onEdit(c)}>Editar</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => onAskDelete(c)}>Eliminar</button>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  {/* Fila expandible con archivos */}
+                  {expandedClient === c.id && (
+                    <tr>
+                      <td colSpan={5} style={{ padding: 0, background: '#0c1530' }}>
+                        <div style={{ padding: '20px' }}>
+                          <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{ margin: 0, color: '#e2e8f0' }}>
+                              Archivos y Carpetas - {c.name}
+                            </h4>
+                            <button 
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => setExpandedClient(null)}
+                            >
+                              Cerrar
+                            </button>
+                          </div>
+                          
+                          {loadingFiles[c.id] ? (
+                            <div style={{ 
+                              textAlign: 'center', 
+                              padding: '40px',
+                              color: '#cbd5e1'
+                            }}>
+                              <div style={{ 
+                                display: 'inline-block',
+                                width: '20px',
+                                height: '20px',
+                                border: '2px solid #4fd1c5',
+                                borderTop: '2px solid transparent',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite',
+                                marginRight: '8px'
+                              }}></div>
+                              Cargando archivos...
+                            </div>
+                          ) : (
+                            <div style={{ 
+                              border: '1px solid #394b61', 
+                              borderRadius: '8px', 
+                              overflow: 'hidden',
+                              background: '#1b263b'
+                            }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead style={{ background: '#0c1530' }}>
+                                  <tr>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', textAlign: 'left' }}>Nombre</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', textAlign: 'left' }}>Tipo</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', textAlign: 'left' }}>Fecha</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', textAlign: 'left' }}>Tamaño</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {(!clientFiles[c.id] || clientFiles[c.id].length === 0) ? (
+                                    <tr>
+                                      <td colSpan={4} style={{ 
+                                        textAlign: 'center', 
+                                        padding: '40px',
+                                        color: '#cbd5e1'
+                                      }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                          <div>No hay archivos o carpetas para mostrar</div>
+                                          <div style={{ fontSize: '14px', opacity: 0.7 }}>
+                                            Haz clic en "Archivos" para gestionar documentos
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ) : (
+                                    clientFiles[c.id]
+                                      .filter((f) => {
+                                        const key = f.key || '';
+                                        const folder = folderForClient(c);
+                                        const isRootClientFolder = key === folder && f.isFolder;
+                                        return !isRootClientFolder;
+                                      })
+                                      .map((f) => {
+                                        const dt = f.lastModified ? new Date(f.lastModified) : (f.createdTime ? new Date(f.createdTime) : null);
+                                        const isFolder = f.isFolder || f.key?.endsWith('/') || f.name?.endsWith('/');
+                                        
+                                        // Extraer solo el nombre de la carpeta/archivo, sin la ruta completa
+                                        let name = f.name || (f.key || '').split('/').pop();
+                                        if (isFolder && name && folderForClient(c)) {
+                                          const clientPrefix = folderForClient(c).replace(/\/$/, '');
+                                          if (f.key && f.key.startsWith(clientPrefix)) {
+                                            const relativePath = f.key.replace(clientPrefix + '/', '');
+                                            name = relativePath.replace(/\/$/, '');
+                                          }
+                                        }
+                                        
+                                        const sizeKb = typeof f.size === 'number' ? Math.max(1, Math.round(f.size / 1024)) : null;
+                                        
+                                        return (
+                                          <tr key={f.key || f.id} style={{ 
+                                            borderBottom: '1px solid #394b61'
+                                          }}>
+                                            <td style={{ padding: '12px 16px' }}>
+                                              <span style={{ 
+                                                color: isFolder ? '#fc771c' : '#e2e8f0',
+                                                fontWeight: '500'
+                                              }}>
+                                                {name}
+                                              </span>
+                                            </td>
+                                            <td style={{ padding: '12px 16px' }}>
+                                              <span style={{ 
+                                                color: isFolder ? '#fc771c' : '#4fd1c5',
+                                                fontWeight: '500'
+                                              }}>
+                                                {isFolder ? 'Carpeta' : 'Archivo'}
+                                              </span>
+                                            </td>
+                                            <td style={{ padding: '12px 16px', color: '#cbd5e1' }}>
+                                              {dt ? dt.toLocaleDateString('es-CO') : '-'}
+                                            </td>
+                                            <td style={{ padding: '12px 16px', color: '#cbd5e1' }}>
+                                              {sizeKb ? `${sizeKb} KB` : '-'}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
               ))}
             </tbody>
           </table>
@@ -545,7 +563,12 @@ export default function ClientesActivos() {
                 <button
                   type="button"
                   className="btn btn-primary btn-sm mobile-item-header"
-                  onClick={() => setExpandedId((prev) => (prev === c.id ? null : c.id))}
+                  onClick={() => {
+                    setExpandedId((prev) => (prev === c.id ? null : c.id));
+                    if (!isOpen) {
+                      toggleClientExpansion(c);
+                    }
+                  }}
                   aria-expanded={isOpen}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
@@ -569,13 +592,114 @@ export default function ClientesActivos() {
                       </button>
                       <button
                         className="btn btn-primary btn-sm"
-                        onClick={() => ensureFolderAndOpen(c)}
+                        onClick={() => openFilesModal(c)}
                         style={{ marginRight: 8 }}
                       >
                         Archivos
                       </button>
                       <button className="btn btn-primary btn-sm" onClick={() => onEdit(c)} style={{ marginRight: 8 }}>Editar</button>
                       <button className="btn btn-secondary btn-sm" onClick={() => onAskDelete(c)}>Eliminar</button>
+                    </div>
+                    
+                    {/* Sección de archivos en móvil */}
+                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #394b61' }}>
+                      <h5 style={{ margin: '0 0 12px 0', color: '#e2e8f0', fontSize: '16px' }}>
+                        Archivos y Carpetas
+                      </h5>
+                      
+                      {loadingFiles[c.id] ? (
+                        <div style={{ 
+                          textAlign: 'center', 
+                          padding: '20px',
+                          color: '#cbd5e1'
+                        }}>
+                          <div style={{ 
+                            display: 'inline-block',
+                            width: '16px',
+                            height: '16px',
+                            border: '2px solid #4fd1c5',
+                            borderTop: '2px solid transparent',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite',
+                            marginRight: '8px'
+                          }}></div>
+                          Cargando archivos...
+                        </div>
+                      ) : (
+                        <div>
+                          {(!clientFiles[c.id] || clientFiles[c.id].length === 0) ? (
+                            <div style={{ 
+                              textAlign: 'center', 
+                              padding: '20px',
+                              color: '#cbd5e1',
+                              fontSize: '14px'
+                            }}>
+                              <div>No hay archivos o carpetas para mostrar</div>
+                              <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '4px' }}>
+                                Haz clic en "Archivos" para gestionar documentos
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ 
+                              border: '1px solid #394b61', 
+                              borderRadius: '6px', 
+                              overflow: 'hidden',
+                              background: '#1b263b'
+                            }}>
+                              {clientFiles[c.id]
+                                .filter((f) => {
+                                  const key = f.key || '';
+                                  const folder = folderForClient(c);
+                                  const isRootClientFolder = key === folder && f.isFolder;
+                                  return !isRootClientFolder;
+                                })
+                                .map((f) => {
+                                  const dt = f.lastModified ? new Date(f.lastModified) : (f.createdTime ? new Date(f.createdTime) : null);
+                                  const isFolder = f.isFolder || f.key?.endsWith('/') || f.name?.endsWith('/');
+                                  
+                                  // Extraer solo el nombre de la carpeta/archivo, sin la ruta completa
+                                  let name = f.name || (f.key || '').split('/').pop();
+                                  if (isFolder && name && folderForClient(c)) {
+                                    const clientPrefix = folderForClient(c).replace(/\/$/, '');
+                                    if (f.key && f.key.startsWith(clientPrefix)) {
+                                      const relativePath = f.key.replace(clientPrefix + '/', '');
+                                      name = relativePath.replace(/\/$/, '');
+                                    }
+                                  }
+                                  
+                                  const sizeKb = typeof f.size === 'number' ? Math.max(1, Math.round(f.size / 1024)) : null;
+                                  
+                                  return (
+                                    <div key={f.key || f.id} style={{ 
+                                      padding: '12px',
+                                      borderBottom: '1px solid #394b61',
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center'
+                                    }}>
+                                      <div>
+                                        <div style={{ 
+                                          color: isFolder ? '#fc771c' : '#e2e8f0',
+                                          fontWeight: '500',
+                                          fontSize: '14px'
+                                        }}>
+                                          {name}
+                                        </div>
+                                        <div style={{ 
+                                          color: '#cbd5e1',
+                                          fontSize: '12px',
+                                          marginTop: '2px'
+                                        }}>
+                                          {isFolder ? 'Carpeta' : 'Archivo'} • {dt ? dt.toLocaleDateString('es-CO') : '-'} • {sizeKb ? `${sizeKb} KB` : '-'}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -642,377 +766,13 @@ export default function ClientesActivos() {
         </div>
       )}
 
-       {filesOpen && (
-         <div
-           role="dialog"
-           aria-modal="true"
-           className="modal-overlay"
-           onClick={(e) => { if (e.target === e.currentTarget) setFilesOpen(false); }}
-         >
-           <div className="modal-card" style={{ 
-             width: '100%', 
-             maxWidth: 1200, 
-             maxHeight: '90vh',
-             overflow: 'hidden',
-             display: 'flex',
-             flexDirection: 'column'
-           }}>
-             <div className="modal-header" style={{ flexShrink: 0 }}>
-               <div>
-                 <div className="dash-title" style={{ fontSize: '24px', fontWeight: '600', marginBottom: '4px' }}>
-                   Gestión de Archivos
-                 </div>
-                 <div className="muted">
-                   Cliente: {filesClient?.name || filesClient?.email || filesClient?.id}
-                 </div>
-               </div>
-               <button 
-                 className="btn btn-secondary btn-sm" 
-                 onClick={() => setFilesOpen(false)}
-               >
-                 Cerrar
-               </button>
-             </div>
-
-             {/* Navegación de carpetas */}
-             <div className="dash-item" style={{ marginBottom: '16px', flexShrink: 0 }}>
-               <div style={{ 
-                 display: 'flex', 
-                 alignItems: 'center', 
-                 gap: '12px', 
-                 marginBottom: '12px',
-                 padding: '12px 16px',
-                 background: 'rgba(79, 209, 197, 0.1)',
-                 borderRadius: '12px',
-                 border: '1px solid rgba(79, 209, 197, 0.2)'
-               }}>
-                 <span className="muted">Ubicación actual:</span>
-                 <code style={{ 
-                   background: '#0c1530', 
-                   color: '#e5e7eb',
-                   padding: '6px 12px', 
-                   borderRadius: '8px',
-                   fontSize: '14px',
-                   fontFamily: 'monospace'
-                 }}>
-                   {(() => {
-                     const currentPath = currentSubfolder || filesFolder;
-                     // Remover el prefijo del cliente (ej: "clientes/1032465160/")
-                     const clientPrefix = filesFolder;
-                     if (currentPath === clientPrefix) {
-                       return 'Carpeta principal';
-                     }
-                     // Extraer solo la subcarpeta
-                     const subfolder = currentPath.replace(clientPrefix, '').replace(/\/$/, '');
-                     return subfolder || 'Carpeta principal';
-                   })()}
-                 </code>
-                 {currentSubfolder !== filesFolder && (
-                   <button 
-                     className="btn btn-secondary btn-sm" 
-                     onClick={onNavigateBack}
-                     style={{ marginLeft: 'auto' }}
-                   >
-                     Volver
-                   </button>
-                 )}
-               </div>
-               
-               <div style={{ 
-                 display: 'flex', 
-                 gap: '12px', 
-                 alignItems: 'center', 
-                 flexWrap: 'wrap',
-                 padding: '12px 16px',
-                 background: 'rgba(79, 209, 197, 0.05)',
-                 borderRadius: '12px',
-                 border: '1px solid rgba(79, 209, 197, 0.1)'
-               }}>
-                 <button 
-                   className="btn btn-primary btn-sm" 
-                   onClick={() => setShowCreateFolder(true)}
-                   disabled={creatingFolder}
-                 >
-                   Crear Carpeta
-                 </button>
-                 
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                   <input 
-                     type="file" 
-                     onChange={(e) => uploadToClient(e.target.files?.[0])} 
-                     disabled={uploading}
-                     className="input"
-                     style={{ fontSize: '14px', padding: '8px 12px' }}
-                   />
-                   <span className="muted">
-                     {uploading ? 'Subiendo...' : 'Subir archivo'}
-                   </span>
-                 </div>
-               </div>
-               
-               {filesError && (
-                 <div className="alert alert-error" style={{ marginTop: '12px' }}>
-                   {filesError}
-                 </div>
-               )}
-               {filesWarning && (
-                 <div style={{ 
-                   background: 'rgba(245, 158, 11, 0.1)', 
-                   color: '#fde68a', 
-                   padding: '10px', 
-                   borderRadius: '10px', 
-                   marginTop: '12px',
-                   border: '1px solid rgba(245, 158, 11, 0.2)',
-                   fontSize: '14px'
-                 }}>
-                   {String(filesWarning) === 'S3_LIST_FORBIDDEN' ? 'No hay permisos para listar el bucket. Puedes descargar si conservas el enlace.' : String(filesWarning)}
-                 </div>
-               )}
-             </div>
-
-             {/* Lista de archivos y carpetas */}
-             <div className="dash-item" style={{ 
-               overflow: 'auto', 
-               flex: 1,
-               minHeight: 0
-             }}>
-               <table className="me-table" style={{ minWidth: 680 }}>
-                 <thead>
-                   <tr style={{ background: 'rgba(79, 209, 197, 0.1)' }}>
-                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Tipo</th>
-                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Nombre</th>
-                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Fecha</th>
-                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Tamaño</th>
-                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Acciones</th>
-                   </tr>
-                 </thead>
-                 <tbody>
-                   {files.filter((f) => {
-                     // Filtrar solo la carpeta raíz exacta del cliente
-                     const key = f.key || '';
-                     const isRootClientFolder = key === filesFolder && f.isFolder;
-                     return !isRootClientFolder;
-                   }).length === 0 && (
-                     <tr>
-                       <td colSpan={5} style={{ 
-                         textAlign: 'center', 
-                         padding: '40px',
-                         color: '#cbd5e1'
-                       }}>
-                         {filesLoading ? (
-                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                             <div style={{ 
-                               width: '20px', 
-                               height: '20px', 
-                               border: '2px solid #4fd1c5', 
-                               borderTop: '2px solid transparent',
-                               borderRadius: '50%',
-                               animation: 'spin 1s linear infinite'
-                             }}></div>
-                             Cargando archivos...
-                           </div>
-                         ) : (
-                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                             <div>No hay archivos o carpetas para mostrar</div>
-                             <div className="muted">
-                               Crea una carpeta o sube un archivo para comenzar
-                             </div>
-                           </div>
-                         )}
-                       </td>
-                     </tr>
-                   )}
-                   {files.filter((f) => {
-                     // Filtrar solo la carpeta raíz exacta del cliente
-                     const key = f.key || '';
-                     const isRootClientFolder = key === filesFolder && f.isFolder;
-                     return !isRootClientFolder;
-                   }).map((f) => {
-                     const dt = f.lastModified ? new Date(f.lastModified) : (f.createdTime ? new Date(f.createdTime) : null);
-                     const name = f.name || (f.key || '').split('/').pop();
-                     const sizeKb = typeof f.size === 'number' ? Math.max(1, Math.round(f.size / 1024)) : null;
-                     const mime = f.mimeType || (name && name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined);
-                     const isFolder = f.isFolder || f.key?.endsWith('/') || f.name?.endsWith('/');
-                     
-                     return (
-                       <tr key={f.key || f.id} style={{ 
-                         borderBottom: '1px solid #394b61'
-                       }}>
-                         <td style={{ padding: '12px 16px' }}>
-                           {isFolder ? (
-                             <span style={{ 
-                               color: '#fc771c',
-                               fontWeight: '500'
-                             }}>
-                               Carpeta
-                             </span>
-                           ) : (
-                             <span style={{ 
-                               color: '#4fd1c5',
-                               fontWeight: '500'
-                             }}>
-                               Archivo
-                             </span>
-                           )}
-                         </td>
-                         <td style={{ padding: '12px 16px' }} title={name}>
-                           {isFolder ? (
-                             <button 
-                               className="btn btn-link" 
-                               onClick={() => onNavigateToSubfolder(f.key)}
-                               style={{ 
-                                 textAlign: 'left', 
-                                 padding: 0, 
-                                 color: '#fc771c',
-                                 fontWeight: '500',
-                                 textDecoration: 'none',
-                                 fontSize: '16px'
-                               }}
-                               onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                               onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-                             >
-                               {name}
-                             </button>
-                           ) : (
-                             <span style={{ 
-                               color: '#e2e8f0',
-                               fontWeight: '500'
-                             }}>
-                               {name}
-                             </span>
-                           )}
-                         </td>
-                         <td style={{ padding: '12px 16px' }} className="muted">
-                           {dt ? dt.toLocaleString() : '-'}
-                         </td>
-                         <td style={{ padding: '12px 16px' }} className="muted">
-                           {isFolder ? '-' : (sizeKb ? `${sizeKb} KB` : '-')}
-                         </td>
-                         <td style={{ padding: '12px 16px' }}>
-                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                             {isFolder ? (
-                               <button 
-                                 className="btn btn-danger btn-sm" 
-                                 onClick={() => onDeleteFolder(f)}
-                                 disabled={deletingFile === f.key}
-                               >
-                                 {deletingFile === f.key ? 'Eliminando...' : 'Eliminar'}
-                               </button>
-                             ) : (
-                               <>
-                                 <button 
-                                   className="btn btn-secondary btn-sm" 
-                                   onClick={() => onDownload(f.key, f.downloadURL || f.downloadUrl || f.webContentLink || f.webViewLink)}
-                                 >
-                                   Descargar
-                                 </button>
-                                 <button 
-                                   className="btn btn-danger btn-sm" 
-                                   onClick={() => onDeleteFile(f)}
-                                   disabled={deletingFile === f.key}
-                                 >
-                                   {deletingFile === f.key ? 'Eliminando...' : 'Eliminar'}
-                                 </button>
-                               </>
-                             )}
-                           </div>
-                         </td>
-                       </tr>
-                     );
-                   })}
-                 </tbody>
-               </table>
-             </div>
-           </div>
-         </div>
-       )}
-
-      {/* Modal para crear carpeta */}
-      {showCreateFolder && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="modal-overlay"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowCreateFolder(false); }}
-        >
-          <div className="modal-card" style={{ 
-            width: '100%', 
-            maxWidth: 600
-          }}>
-            <div className="modal-header">
-              <div>
-                <div className="dash-title" style={{ fontSize: '24px', fontWeight: '600', marginBottom: '4px' }}>
-                  Crear Nueva Carpeta
-                </div>
-                <div className="muted">
-                  Organiza los documentos del cliente por tipo de proceso
-                </div>
-              </div>
-            </div>
-            
-            <div className="dash-item">
-              <EditForm>
-                <EditField
-                  label="Tipo de Proceso"
-                  value={selectedFolderPrefix}
-                  onChange={(e) => setSelectedFolderPrefix(e.target.value)}
-                >
-                  <select
-                    value={selectedFolderPrefix}
-                    onChange={(e) => setSelectedFolderPrefix(e.target.value)}
-                    className="select"
-                  >
-                    <option value="">Selecciona un tipo de proceso</option>
-                    {FOLDER_PREFIXES.map((prefix) => (
-                      <option key={prefix.id} value={prefix.id}>
-                        {prefix.label}
-                      </option>
-                    ))}
-                  </select>
-                </EditField>
-                
-                <EditField
-                  label="Nombre de la Carpeta"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  placeholder="Ej: Demanda por despido injustificado"
-                />
-              </EditForm>
-            </div>
-            
-            <div className="dash-actions">
-              <button 
-                className="btn btn-secondary" 
-                onClick={() => setShowCreateFolder(false)}
-                disabled={creatingFolder}
-              >
-                Cancelar
-              </button>
-              <button 
-                className="btn btn-primary" 
-                onClick={onCreateFolder}
-                disabled={creatingFolder || !selectedFolderPrefix || !newFolderName.trim()}
-              >
-                {creatingFolder ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ 
-                      width: '16px', 
-                      height: '16px', 
-                      border: '2px solid #ffffff', 
-                      borderTop: '2px solid transparent',
-                      borderRadius: '50%',
-                      animation: 'spin 1s linear infinite'
-                    }}></div>
-                    Creando...
-                  </div>
-                ) : (
-                  'Crear Carpeta'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+       {/* Componente de gestión de archivos */}
+      <FileManager 
+        client={filesClient}
+        isOpen={filesOpen}
+        onClose={() => setFilesOpen(false)}
+        showNotice={showNotice}
+      />
 
       {assignOpen && assignClient && (
         <div
@@ -1105,6 +865,14 @@ export default function ClientesActivos() {
           </div>
         </div>
       )}
+      
+      {/* Estilos CSS */}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
