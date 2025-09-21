@@ -120,7 +120,7 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <Link to="/login" className="koop-cta" aria-label="CLIENTE KOOP">
+            <Link to="/login" className="koop-cta" aria-label="CLIENTE KOOP" translate="no">
               {"CLIENTE KOOP".split('').map((ch, i) => (
                 <span className="letter" style={{ '--i': i }} key={i}>
                   {ch === ' ' ? '\u00A0' : ch}

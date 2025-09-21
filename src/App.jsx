@@ -31,12 +31,12 @@ import Dashboard from './components/protected/Dashboard.jsx';
 import MiExpediente from './pages/MiExpediente.jsx';
 import MisCasos from './pages/MisCasos.jsx';
 import Logout from './pages/Logout.jsx';
+import SpotifyCallback from './pages/SpotifyCallback.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import api from './api/axios';
 import Navbar from './components/Navbar.jsx';
-import SpotifyPlayerAdmin from './components/SpotifyPlayerAdmin.jsx';
 import FontProvider from './theme/FontProvider.jsx';
 
 function App() {
@@ -89,6 +89,7 @@ function App() {
           />
           <Route path="/register" element={<Register />} />
           <Route path="/logout" element={<Logout />} />
+          <Route path="/callback" element={<SpotifyCallback />} />
           <Route
             path="/panel"
             element={
@@ -169,8 +170,6 @@ function App() {
           <Route path="/tramites-notariales.html" element={<Navigate to="/tramites-notariales" replace />} />
           <Route path="/acciones-de-tutela.html" element={<Navigate to="/acciones-de-tutela" replace />} />
         </Routes>
-        {/* Reproductor de Spotify flotante solo para administradores */}
-        <SpotifyPlayerAdmin />
       </>
     );
   };

@@ -13,6 +13,7 @@ import CalendarWidget from "../common/CalendarWidget.jsx";
 import AiChat from "./AiChat.jsx";
 import KpiCard from "./KpiCard";
 import RecentDocuments from "./RecentDocuments";
+import SpotifyWidget from "../../../SpotifyWidget.jsx";
 
 function toDateKey(date) {
   if (!(date instanceof Date)) return null;
@@ -826,6 +827,10 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+      
+      {/* Widget de Spotify */}
+      <SpotifyWidget />
+      
     </div>
   );
 }

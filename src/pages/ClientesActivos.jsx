@@ -7,7 +7,7 @@ import api from '../api/axios';
 import '../styles/dashboard.css';
 import { SuccessNotice, DangerNotice } from '../components/common/Notice';
 import { EditForm, EditField, EditRow } from '../components/common/EditFormKit';
-import FileManager from '../components/common/FileManager';
+import MiExpediente from './MiExpediente';
 
 const ALLOWED_ROLES = ['admin', 'user'];
 
@@ -767,12 +767,37 @@ export default function ClientesActivos() {
       )}
 
        {/* Componente de gestión de archivos */}
-      <FileManager 
-        client={filesClient}
-        isOpen={filesOpen}
-        onClose={() => setFilesOpen(false)}
-        showNotice={showNotice}
-      />
+      {filesOpen && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(0,0,0,0.6)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 60, 
+            padding: 16 
+          }}
+          onClick={() => setFilesOpen(false)}
+        >
+          <div 
+            style={{ 
+              width: '100%', 
+              maxWidth: '95vw', 
+              maxHeight: '95vh',
+              background: 'transparent'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MiExpediente 
+              selectedClient={filesClient}
+              isModal={true}
+              onClose={() => setFilesOpen(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {assignOpen && assignClient && (
         <div

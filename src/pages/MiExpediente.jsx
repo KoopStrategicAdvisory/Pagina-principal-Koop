@@ -6,7 +6,7 @@ import { normalizeUpperAscii } from '../utils/strings.js';
 import { listRecentDocs, uploadDoc, getDownloadUrl, getClientDocumentHistory, getDiagnostics } from '../api/docs';
 import { listActiveClients } from '../api/clients';
 
-export default function MiExpediente() {
+export default function MiExpediente({ selectedClient: propSelectedClient, isModal = false, onClose }) {
   const [activeTab, setActiveTab] = useState('docs');
   const { user, accessToken } = useAuth();
   const displayName = normalizeUpperAscii(user?.name || '');
@@ -25,7 +25,7 @@ export default function MiExpediente() {
   const fileInputRef = useRef(null);
 
   // Estados para gesti�n de carpetas de clientes
-  const [selectedClient, setSelectedClient] = useState(null);
+  const [selectedClient, setSelectedClient] = useState(propSelectedClient || null);
   const [clientFolders, setClientFolders] = useState({});
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [loadingFolders, setLoadingFolders] = useState(false);
@@ -36,6 +36,23 @@ export default function MiExpediente() {
   const [selectedUserFolder, setSelectedUserFolder] = useState(null);
   const [loadingUserFolders, setLoadingUserFolders] = useState(false);
   const [expandedUserFolders, setExpandedUserFolders] = useState(new Set());
+
+  // Estados para funcionalidades del expediente
+  const [showCreateProcess, setShowCreateProcess] = useState(false);
+  const [showAddFile, setShowAddFile] = useState(false);
+  const [showRenameFile, setShowRenameFile] = useState(false);
+  const [showDeleteFile, setShowDeleteFile] = useState(false);
+  const [showProcessInfo, setShowProcessInfo] = useState(false);
+  const [selectedFileForAction, setSelectedFileForAction] = useState(null);
+  const [newFileName, setNewFileName] = useState('');
+  const [processData, setProcessData] = useState({
+    radicado: '',
+    clase: '',
+    demandante: '',
+    demandado: '',
+    juzgado: '',
+    estado: ''
+  });
 
   const loadDocs = async () => {
     setLoading(true);
@@ -63,6 +80,14 @@ export default function MiExpediente() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, isAdmin]);
+
+  // Efecto para cargar carpetas cuando se pasa un cliente como prop (modo modal)
+  useEffect(() => {
+    if (propSelectedClient && isModal) {
+      setSelectedClient(propSelectedClient);
+      loadClientFolders(propSelectedClient);
+    }
+  }, [propSelectedClient, isModal]);
 
   // Cargar clientes asignados al admin actual
   useEffect(() => {
@@ -115,6 +140,7 @@ export default function MiExpediente() {
       if (fallbackUrl) window.open(fallbackUrl, '_blank');
     }
   };
+
 
   // Funci�n para cargar carpetas de un cliente
   const loadClientFolders = async (client) => {
@@ -422,6 +448,44 @@ export default function MiExpediente() {
     }
   };
 
+  // Funciones para acciones del expediente
+  const onCreateProcess = async () => {
+    try {
+      // Aquí implementarías la lógica para crear un nuevo proceso
+      console.log('Creando nuevo proceso...');
+      setShowCreateProcess(false);
+      setError(null);
+    } catch (e) {
+      setError('Error creando proceso: ' + e.message);
+    }
+  };
+
+  const onAddFileWithRename = () => {
+    setShowAddFile(true);
+  };
+
+  const onRenameFile = (file) => {
+    setSelectedFileForAction(file);
+    setNewFileName(file.name || file.key?.split('/').pop() || '');
+    setShowRenameFile(true);
+  };
+
+  const onDeleteFile = (file) => {
+    setSelectedFileForAction(file);
+    setShowDeleteFile(true);
+  };
+
+  const onSaveProcessInfo = async () => {
+    try {
+      // Aquí implementarías la lógica para guardar la información del proceso
+      console.log('Guardando información del proceso:', processData);
+      setShowProcessInfo(false);
+      setError(null);
+    } catch (e) {
+      setError('Error guardando información: ' + e.message);
+    }
+  };
+
   return (
     <div
       className="dash-page"
@@ -435,7 +499,14 @@ export default function MiExpediente() {
     >
       <div className="dash-card" style={{ width: '100%', maxWidth: 1320 }}>
         <div className="dash-header">
-          <div className="dash-title">{isAdmin ? 'Mis expedientes' : 'Mi expediente'}</div>
+          <div className="dash-title">
+            {isModal ? `Expediente - ${selectedClient?.name || 'Cliente'}` : (isAdmin ? 'Mis expedientes' : 'Mi expediente')}
+          </div>
+          {isModal && onClose && (
+            <button className="btn btn-secondary" onClick={onClose} style={{ marginLeft: 'auto' }}>
+              ✕ Cerrar
+            </button>
+          )}
         </div>
 
         {/* Barra de acciones / b?squeda */}
@@ -460,7 +531,7 @@ export default function MiExpediente() {
         <div className="me-layout">
           {/* Izquierda: Clientes asignados al admin (o mensaje) */}
           <aside className="me-left dash-item">
-            <div className="me-head">{isAdmin ? 'CLIENTE' : 'CARPETAS'}</div>
+            <div className="me-head">{isAdmin ? (isModal ? 'CARPETAS' : 'CLIENTE') : 'CARPETAS'}</div>
             <div className="me-tree">
               {!isAdmin && (
                 <>
@@ -520,16 +591,106 @@ export default function MiExpediente() {
                   )}
                 </>
               )}
-              {isAdmin && assignedError && (
+              {/* Mostrar carpetas del cliente cuando está en modo modal */}
+              {isAdmin && isModal && selectedClient && (
+                <>
+                  {loadingFolders ? (
+                    <div className="me-leaf" style={{ opacity: .8 }}>
+                      Cargando carpetas...
+                    </div>
+                  ) : (
+                    <div>
+                      {Object.values(clientFolders[selectedClient.id] || {}).map((folder, index) => (
+                        <div 
+                          key={index}
+                          style={{ 
+                            cursor: 'pointer',
+                            backgroundColor: selectedFolder?.path === folder.path ? '#2a3a51' : '#1e2a3a',
+                            borderRadius: '8px',
+                            margin: '4px 0',
+                            padding: '12px 16px',
+                            border: selectedFolder?.path === folder.path ? '1px solid #4fd1c5' : '1px solid #394b61',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px'
+                          }}
+                          onClick={() => onFolderClick(folder)}
+                          onMouseEnter={(e) => {
+                            if (selectedFolder?.path !== folder.path) {
+                              e.target.style.backgroundColor = '#2a3a51';
+                              e.target.style.borderColor = '#4fd1c5';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (selectedFolder?.path !== folder.path) {
+                              e.target.style.backgroundColor = '#1e2a3a';
+                              e.target.style.borderColor = '#394b61';
+                            }
+                          }}
+                        >
+                          {/* Icono de carpeta moderno */}
+                          <div style={{
+                            width: '24px',
+                            height: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: selectedFolder?.path === folder.path ? '#4fd1c5' : '#fc771c'
+                          }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                            </svg>
+                          </div>
+                          
+                          {/* Contenido de la carpeta */}
+                          <div style={{ flex: 1 }}>
+                            <div style={{ 
+                              color: selectedFolder?.path === folder.path ? '#4fd1c5' : '#e5edf7',
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              marginBottom: '2px'
+                            }}>
+                              {folder.name}
+                            </div>
+                            <div style={{ 
+                              color: '#9fb3cc',
+                              fontSize: '11px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <span style={{
+                                display: 'inline-block',
+                                width: '4px',
+                                height: '4px',
+                                borderRadius: '50%',
+                                backgroundColor: folder.documents?.length > 0 ? '#10b981' : '#6b7280'
+                              }}></span>
+                              {folder.documents?.length || 0} documentos
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {Object.keys(clientFolders[selectedClient.id] || {}).length === 0 && !loadingFolders && (
+                        <div style={{ color: '#9fb3cc', fontSize: '12px' }}>
+                          No hay carpetas disponibles
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+              {isAdmin && !isModal && assignedError && (
                 <div className="me-leaf" style={{ color: '#fecaca' }}>{assignedError}</div>
               )}
-              {isAdmin && !assignedError && assignedLoading && (
+              {isAdmin && !isModal && !assignedError && assignedLoading && (
                 <div className="me-leaf" style={{ opacity: .8 }}>Cargando clientes�</div>
               )}
-              {isAdmin && !assignedLoading && assignedClients.length === 0 && (
+              {isAdmin && !isModal && !assignedLoading && assignedClients.length === 0 && (
                 <div className="me-leaf" style={{ opacity: .8 }}>No tienes clientes asignados</div>
               )}
-              {isAdmin && assignedClients.length > 0 && (
+              {isAdmin && !isModal && assignedClients.length > 0 && (
                 <>
                   {assignedClients.map((c) => {
                     const isExpanded = expandedClients.has(c.id);
@@ -789,12 +950,33 @@ export default function MiExpediente() {
                           <td>{mime ? (mime.split('/')[1] || mime) : '-'}</td>
                           <td>{sizeKb ? `${sizeKb} KB` : '-'}</td>
                           <td>
-                            <button
-                              className="btn btn-secondary btn-sm"
-                              onClick={() => onDownload(d.key, d.downloadURL || d.downloadUrl || d.webContentLink || d.webViewLink)}
-                            >
-                              Descargar
-                            </button>
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => onDownload(d.key, d.downloadURL || d.downloadUrl || d.webContentLink || d.webViewLink)}
+                                title="Descargar archivo"
+                              >
+                                {isModal ? '📥' : 'Descargar'}
+                              </button>
+                              {isModal && (
+                                <>
+                                  <button
+                                    className="btn btn-primary btn-sm"
+                                    onClick={() => onRenameFile(d)}
+                                    title="Renombrar archivo"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    className="btn btn-danger btn-sm"
+                                    onClick={() => onDeleteFile(d)}
+                                    title="Eliminar archivo"
+                                  >
+                                    🗑️
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
@@ -828,24 +1010,497 @@ export default function MiExpediente() {
             )}
           </main>
 
-          {/* Derecha: Datos del Proceso */}
+          {/* Derecha: Herramientas del Expediente (solo en modo modal) o Datos del Proceso (modo normal) */}
           <aside className="me-right dash-item">
-            <div className="me-head">Datos del Proceso Judicial</div>
-            <div className="me-right-content">
-              <div className="me-proc-grid">
-                <div className="me-tag">Radicado</div><div>110014105009-20250011400</div>
-                <div className="me-tag">Clase</div><div>Laboral ? Ordinario</div>
-                <div className="me-tag">Demandante</div><div>Juan P?rez</div>
-                <div className="me-tag">Demandado</div><div>Acme S.A.S.</div>
-                <div className="me-tag">Juzgado</div><div>JDO 009 MPC</div>
-                <div className="me-tag">Estado</div><div>En tr?mite</div>
-              </div>
-              <hr className="me-hr" />
-              <button className="btn btn-primary" style={{ width: '100%' }}>Descargar expediente</button>
-            </div>
+            {isModal ? (
+              <>
+                <div className="me-head">Herramientas del Expediente</div>
+                <div className="me-right-content" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={onAddFileWithRename}
+                    style={{ width: '100%', padding: '12px' }}
+                  >
+                    📁 Agregar Archivo
+                  </button>
+                  
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => setShowCreateProcess(true)}
+                    style={{ width: '100%', padding: '12px' }}
+                  >
+                    📋 Crear Proceso
+                  </button>
+                  
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => setShowProcessInfo(true)}
+                    style={{ width: '100%', padding: '12px' }}
+                  >
+                    ℹ️ Información del Expediente
+                  </button>
+                  
+                  <hr className="me-hr" />
+                  
+                  <div style={{ fontSize: '12px', color: '#9fb3cc', textAlign: 'center' }}>
+                    Selecciona un archivo en la tabla para renombrar o eliminar
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="me-head">Datos del Proceso Judicial</div>
+                <div className="me-right-content">
+                  <div className="me-proc-grid">
+                    <div className="me-tag">Radicado</div><div>110014105009-20250011400</div>
+                    <div className="me-tag">Clase</div><div>Laboral - Ordinario</div>
+                    <div className="me-tag">Demandante</div><div>Juan Pérez</div>
+                    <div className="me-tag">Demandado</div><div>Acme S.A.S.</div>
+                    <div className="me-tag">Juzgado</div><div>JDO 009 MPC</div>
+                    <div className="me-tag">Estado</div><div>En trámite</div>
+                  </div>
+                  <hr className="me-hr" />
+                  <button className="btn btn-primary" style={{ width: '100%' }}>Descargar expediente</button>
+                </div>
+              </>
+            )}
           </aside>
         </div>
       </div>
+
+      {/* Modal para crear proceso (solo en modo modal) */}
+      {isModal && showCreateProcess && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(0,0,0,0.6)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 60, 
+            padding: 16 
+          }}
+          onClick={() => setShowCreateProcess(false)}
+        >
+          <div 
+            className="dash-card" 
+            style={{ maxWidth: '500px', width: '100%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="dash-header" style={{ marginBottom: 8 }}>
+              <div className="dash-title">Crear Nuevo Proceso</div>
+            </div>
+            
+            <div className="dash-item" style={{ display: 'grid', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Nombre del Proceso:
+                </label>
+                <input 
+                  type="text" 
+                  className="me-input" 
+                  placeholder="Ej: Demanda por despido injustificado"
+                  style={{ width: '100%' }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Tipo de Proceso:
+                </label>
+                <select className="me-select" style={{ width: '100%' }}>
+                  <option value="">Selecciona un tipo...</option>
+                  <option value="laboral">Proceso Laboral</option>
+                  <option value="penal">Proceso Penal</option>
+                  <option value="civil">Proceso Civil</option>
+                  <option value="administrativo">Proceso Administrativo</option>
+                </select>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowCreateProcess(false)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={onCreateProcess}
+              >
+                Crear Proceso
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para agregar archivo con renombrado (solo en modo modal) */}
+      {isModal && showAddFile && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(0,0,0,0.6)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 60, 
+            padding: 16 
+          }}
+          onClick={() => setShowAddFile(false)}
+        >
+          <div 
+            className="dash-card" 
+            style={{ maxWidth: '500px', width: '100%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="dash-header" style={{ marginBottom: 8 }}>
+              <div className="dash-title">Agregar Archivo</div>
+            </div>
+            
+            <div className="dash-item" style={{ display: 'grid', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Seleccionar Archivo:
+                </label>
+                <input 
+                  type="file" 
+                  className="me-input" 
+                  style={{ width: '100%' }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setNewFileName(file.name);
+                    }
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Nombre del Archivo (opcional):
+                </label>
+                <input 
+                  type="text" 
+                  className="me-input" 
+                  value={newFileName}
+                  onChange={(e) => setNewFileName(e.target.value)}
+                  placeholder="Dejar vacío para usar el nombre original"
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowAddFile(false)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => {
+                  // Aquí implementarías la lógica para subir el archivo con el nuevo nombre
+                  console.log('Subiendo archivo con nombre:', newFileName);
+                  setShowAddFile(false);
+                }}
+              >
+                Subir Archivo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para renombrar archivo (solo en modo modal) */}
+      {isModal && showRenameFile && selectedFileForAction && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(0,0,0,0.6)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 60, 
+            padding: 16 
+          }}
+          onClick={() => setShowRenameFile(false)}
+        >
+          <div 
+            className="dash-card" 
+            style={{ maxWidth: '500px', width: '100%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="dash-header" style={{ marginBottom: 8 }}>
+              <div className="dash-title">Renombrar Archivo</div>
+            </div>
+            
+            <div className="dash-item" style={{ display: 'grid', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Archivo actual:
+                </label>
+                <div style={{ 
+                  background: '#1e2a3a', 
+                  padding: '8px 12px', 
+                  borderRadius: '6px',
+                  color: '#9fb3cc',
+                  fontSize: '14px'
+                }}>
+                  {selectedFileForAction.name || selectedFileForAction.key?.split('/').pop()}
+                </div>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Nuevo nombre:
+                </label>
+                <input 
+                  type="text" 
+                  className="me-input" 
+                  value={newFileName}
+                  onChange={(e) => setNewFileName(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowRenameFile(false)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => {
+                  // Aquí implementarías la lógica para renombrar el archivo
+                  console.log('Renombrando archivo:', selectedFileForAction.key, 'a:', newFileName);
+                  setShowRenameFile(false);
+                }}
+              >
+                Renombrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para eliminar archivo (solo en modo modal) */}
+      {isModal && showDeleteFile && selectedFileForAction && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(0,0,0,0.6)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 60, 
+            padding: 16 
+          }}
+          onClick={() => setShowDeleteFile(false)}
+        >
+          <div 
+            className="dash-card" 
+            style={{ maxWidth: '500px', width: '100%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="dash-header" style={{ marginBottom: 8 }}>
+              <div className="dash-title">Confirmar Eliminación</div>
+            </div>
+            
+            <div className="dash-item" style={{ display: 'grid', gap: 16 }}>
+              <div>
+                ¿Estás seguro de que quieres eliminar el archivo?
+              </div>
+              
+              <div style={{ 
+                background: '#1e2a3a', 
+                padding: '12px', 
+                borderRadius: '6px',
+                color: '#e5edf7',
+                fontSize: '14px'
+              }}>
+                <strong>Archivo:</strong> {selectedFileForAction.name || selectedFileForAction.key?.split('/').pop()}
+              </div>
+              
+              <div style={{ 
+                background: '#7f1d1d', 
+                color: '#fecaca', 
+                padding: '8px 12px', 
+                borderRadius: '6px',
+                fontSize: '12px'
+              }}>
+                ⚠️ Esta acción no se puede deshacer
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowDeleteFile(false)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn btn-danger" 
+                onClick={() => {
+                  // Aquí implementarías la lógica para eliminar el archivo
+                  console.log('Eliminando archivo:', selectedFileForAction.key);
+                  setShowDeleteFile(false);
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para información del expediente (solo en modo modal) */}
+      {isModal && showProcessInfo && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(0,0,0,0.6)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 60, 
+            padding: 16 
+          }}
+          onClick={() => setShowProcessInfo(false)}
+        >
+          <div 
+            className="dash-card" 
+            style={{ maxWidth: '600px', width: '100%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="dash-header" style={{ marginBottom: 8 }}>
+              <div className="dash-title">Información del Expediente</div>
+            </div>
+            
+            <div className="dash-item" style={{ display: 'grid', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Radicado:
+                  </label>
+                  <input 
+                    type="text" 
+                    className="me-input" 
+                    value={processData.radicado}
+                    onChange={(e) => setProcessData(prev => ({ ...prev, radicado: e.target.value }))}
+                    placeholder="110014105009-20250011400"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Clase:
+                  </label>
+                  <input 
+                    type="text" 
+                    className="me-input" 
+                    value={processData.clase}
+                    onChange={(e) => setProcessData(prev => ({ ...prev, clase: e.target.value }))}
+                    placeholder="Laboral - Ordinario"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Demandante:
+                  </label>
+                  <input 
+                    type="text" 
+                    className="me-input" 
+                    value={processData.demandante}
+                    onChange={(e) => setProcessData(prev => ({ ...prev, demandante: e.target.value }))}
+                    placeholder="Juan Pérez"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Demandado:
+                  </label>
+                  <input 
+                    type="text" 
+                    className="me-input" 
+                    value={processData.demandado}
+                    onChange={(e) => setProcessData(prev => ({ ...prev, demandado: e.target.value }))}
+                    placeholder="Acme S.A.S."
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Juzgado:
+                  </label>
+                  <input 
+                    type="text" 
+                    className="me-input" 
+                    value={processData.juzgado}
+                    onChange={(e) => setProcessData(prev => ({ ...prev, juzgado: e.target.value }))}
+                    placeholder="JDO 009 MPC"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                    Estado:
+                  </label>
+                  <select 
+                    className="me-select" 
+                    value={processData.estado}
+                    onChange={(e) => setProcessData(prev => ({ ...prev, estado: e.target.value }))}
+                    style={{ width: '100%' }}
+                  >
+                    <option value="">Selecciona un estado...</option>
+                    <option value="en-tramite">En trámite</option>
+                    <option value="sentencia">Sentencia</option>
+                    <option value="archivado">Archivado</option>
+                    <option value="suspension">Suspensión</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowProcessInfo(false)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={onSaveProcessInfo}
+              >
+                Guardar Información
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

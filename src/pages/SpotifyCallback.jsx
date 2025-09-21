@@ -1,0 +1,87 @@
+import React, { useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
+export default function SpotifyCallback() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const code = searchParams.get('code');
+    const error = searchParams.get('error');
+
+    if (error) {
+      console.error('Spotify authorization error:', error);
+      navigate('/admin/dashboard');
+      return;
+    }
+
+    if (code) {
+      // Intercambiar código por token
+      exchangeCodeForToken(code);
+    } else {
+      navigate('/admin/dashboard');
+    }
+  }, [searchParams, navigate]);
+
+  const exchangeCodeForToken = async (code) => {
+    try {
+      const response = await fetch('http://localhost:4000/api/spotify/auth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ code })
+      });
+
+      if (response.ok) {
+        // Redirigir al dashboard
+        navigate('/admin/dashboard');
+      } else {
+        console.error('Error exchanging code for token');
+        navigate('/admin/dashboard');
+      }
+    } catch (error) {
+      console.error('Error exchanging code for token:', error);
+      navigate('/admin/dashboard');
+    }
+  };
+
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
+      backgroundColor: '#191414'
+    }}>
+      <div style={{
+        textAlign: 'center',
+        color: '#1db954'
+      }}>
+        <div style={{
+          fontSize: '24px',
+          marginBottom: '16px'
+        }}>
+          Conectando con Spotify...
+        </div>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '4px solid #1db954',
+          borderTop: '4px solid transparent',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          margin: '0 auto'
+        }}></div>
+      </div>
+      
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}

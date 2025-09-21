@@ -27,23 +27,32 @@ export default function SpotifyPlayerAdmin() {
     localStorage.setItem('spotifyAdminPlayerPosition', JSON.stringify(position));
   }, [isExpanded, position]);
 
-  // Funciones para arrastrar
-  const handleMouseDown = (e) => {
+  // Funciones para arrastrar (soporte para mouse y touch)
+  const handleStart = (e) => {
     if (e.target.closest('iframe')) return; // No arrastrar si se hace click en el iframe
     
     setIsDragging(true);
     const rect = playerRef.current.getBoundingClientRect();
+    
+    // Obtener coordenadas según el tipo de evento
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
     setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      x: clientX - rect.left,
+      y: clientY - rect.top
     });
   };
 
-  const handleMouseMove = (e) => {
+  const handleMove = (e) => {
     if (!isDragging) return;
     
-    const newX = e.clientX - dragOffset.x;
-    const newY = e.clientY - dragOffset.y;
+    // Obtener coordenadas según el tipo de evento
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
+    const newX = clientX - dragOffset.x;
+    const newY = clientY - dragOffset.y;
     
     // Limitar a los bordes de la ventana
     const maxX = window.innerWidth - 50; // 50px es el ancho del botón
@@ -55,17 +64,25 @@ export default function SpotifyPlayerAdmin() {
     });
   };
 
-  const handleMouseUp = () => {
+  const handleEnd = () => {
     setIsDragging(false);
   };
 
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      // Eventos de mouse
+      document.addEventListener('mousemove', handleMove);
+      document.addEventListener('mouseup', handleEnd);
+      
+      // Eventos táctiles
+      document.addEventListener('touchmove', handleMove, { passive: false });
+      document.addEventListener('touchend', handleEnd);
+      
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('mousemove', handleMove);
+        document.removeEventListener('mouseup', handleEnd);
+        document.removeEventListener('touchmove', handleMove);
+        document.removeEventListener('touchend', handleEnd);
       };
     }
   }, [isDragging, dragOffset]);
@@ -94,12 +111,8 @@ export default function SpotifyPlayerAdmin() {
   }, [isExpanded]);
 
   
-  // Solo mostrar para administradores
-  const isAdmin = user?.roles?.some(role => 
-    String(role || '').toLowerCase() === 'admin'
-  );
-  
-  if (!isAdmin) return null;
+  // Mostrar para todos los usuarios autenticados
+  if (!user) return null;
 
   return (
     <div 
@@ -116,7 +129,8 @@ export default function SpotifyPlayerAdmin() {
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none'
       }}
-      onMouseDown={handleMouseDown}
+      onMouseDown={handleStart}
+      onTouchStart={handleStart}
     >
       {/* Botón de expandir/contraer */}
       <div
