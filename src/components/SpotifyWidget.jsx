@@ -7,6 +7,8 @@ export default function SpotifyWidget() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [playlists, setPlaylists] = useState([]);
+  const [currentPlayback, setCurrentPlayback] = useState(null);
   const [position, setPosition] = useState({ x: window.innerWidth - 80, y: window.innerHeight - 80 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -246,6 +248,10 @@ export default function SpotifyWidget() {
           setUserProfile(userData);
           setIsAuthenticated(true);
           console.log('✅ Usuario de Spotify autenticado:', userData.display_name);
+          
+          // Cargar playlists y estado de reproducción
+          await loadPlaylists(spotifyToken);
+          await loadCurrentPlayback(spotifyToken);
         } else {
           throw new Error('Token de Spotify inválido');
         }
@@ -259,6 +265,62 @@ export default function SpotifyWidget() {
       console.log('No hay sesión de Spotify activa');
       setIsAuthenticated(false);
       setUserProfile(null);
+    }
+  };
+
+  const loadPlaylists = async (token) => {
+    try {
+      const response = await fetch('https://api.spotify.com/v1/me/playlists?limit=10', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPlaylists(data.items);
+        console.log('📋 Playlists cargadas:', data.items.length);
+      }
+    } catch (error) {
+      console.error('Error cargando playlists:', error);
+    }
+  };
+
+  const loadCurrentPlayback = async (token) => {
+    try {
+      const response = await fetch('https://api.spotify.com/v1/me/player', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentPlayback(data);
+        console.log('🎵 Estado de reproducción:', data?.is_playing ? 'Reproduciendo' : 'Pausado');
+      }
+    } catch (error) {
+      console.error('Error cargando estado de reproducción:', error);
+    }
+  };
+
+  const controlPlayback = async (action) => {
+    try {
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+      const response = await fetch(`https://api.spotify.com/v1/me/player/${action}`, {
+        method: action === 'play' || action === 'pause' ? 'PUT' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${spotifyToken}`
+        }
+      });
+      
+      if (response.ok) {
+        console.log(`🎵 ${action} ejecutado`);
+        // Recargar estado de reproducción
+        await loadCurrentPlayback(spotifyToken);
+      }
+    } catch (error) {
+      console.error(`Error ejecutando ${action}:`, error);
     }
   };
 
