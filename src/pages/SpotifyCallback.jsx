@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import api from '../api/axios';
 
 export default function SpotifyCallback() {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function SpotifyCallback() {
 
     if (error) {
       console.error('Spotify authorization error:', error);
-      navigate('/admin/dashboard');
+      navigate('/dashboard');
       return;
     }
 
@@ -19,31 +20,24 @@ export default function SpotifyCallback() {
       // Intercambiar código por token
       exchangeCodeForToken(code);
     } else {
-      navigate('/admin/dashboard');
+      navigate('/dashboard');
     }
   }, [searchParams, navigate]);
 
   const exchangeCodeForToken = async (code) => {
     try {
-      const response = await fetch('http://localhost:4000/api/spotify/auth/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ code })
-      });
+      const response = await api.post('/spotify/auth/token', { code });
 
-      if (response.ok) {
+      if (response.status === 200) {
         // Redirigir al dashboard
-        navigate('/admin/dashboard');
+        navigate('/dashboard');
       } else {
         console.error('Error exchanging code for token');
-        navigate('/admin/dashboard');
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error('Error exchanging code for token:', error);
-      navigate('/admin/dashboard');
+      navigate('/dashboard');
     }
   };
 
