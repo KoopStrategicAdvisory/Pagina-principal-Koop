@@ -19,6 +19,7 @@ export default function SpotifyWidget() {
   const [currentPlaylistId, setCurrentPlaylistId] = useState('1Zf1rz0XX6fyNxKOq4XvgN');
   const widgetRef = useRef(null);
   const hiddenIframeRef = useRef(null);
+  const visibleIframeRef = useRef(null);
 
   const isAdmin = user?.roles?.includes('admin');
 
@@ -253,6 +254,9 @@ export default function SpotifyWidget() {
     // Cambiar tanto el iframe oculto como el visible
     if (hiddenIframeRef.current) {
       hiddenIframeRef.current.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
+    }
+    if (visibleIframeRef.current) {
+      visibleIframeRef.current.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
     }
     setShowPlaylists(false);
   };
@@ -597,41 +601,28 @@ export default function SpotifyWidget() {
                       ))}
                     </div>
                   ) : (
-                    /* Reproductor de Spotify embebido - SOLO VISUAL */
+                    /* Reproductor de Spotify embebido - VISIBLE */
                     <div style={{
                       width: '100%',
                       height: '220px',
                       borderRadius: '6px',
                       overflow: 'hidden',
                       backgroundColor: 'rgba(40, 40, 40, 0.8)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexDirection: 'column',
-                      gap: '12px'
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
                     }}>
-                      <div style={{
-                        fontSize: '48px',
-                        color: '#1db954'
-                      }}>
-                        ♪
-                      </div>
-                      <div style={{
-                        textAlign: 'center',
-                        color: '#94a3b8',
-                        fontSize: '14px'
-                      }}>
-                        Música reproduciéndose en segundo plano
-                      </div>
-                      <div style={{
-                        textAlign: 'center',
-                        color: '#1db954',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
-                      }}>
-                        {isPlaying ? '▶️ Reproduciendo' : '⏸️ Pausado'}
-                      </div>
+                      <iframe
+                        ref={visibleIframeRef}
+                        src={`https://open.spotify.com/embed/playlist/${currentPlaylistId}?utm_source=generator&theme=0`}
+                        width="100%"
+                        height="220"
+                        frameBorder="0"
+                        allowtransparency="true"
+                        allow="encrypted-media"
+                        style={{
+                          borderRadius: '6px',
+                          border: 'none'
+                        }}
+                      />
                     </div>
                   )}
                 </div>
