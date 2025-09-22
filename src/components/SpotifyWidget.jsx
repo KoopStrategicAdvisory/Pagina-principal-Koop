@@ -18,7 +18,7 @@ export default function SpotifyWidget() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPlaylistId, setCurrentPlaylistId] = useState('1Zf1rz0XX6fyNxKOq4XvgN');
   const widgetRef = useRef(null);
-  const iframeRef = useRef(null);
+  const hiddenIframeRef = useRef(null);
 
   const isAdmin = user?.roles?.includes('admin');
 
@@ -209,6 +209,28 @@ export default function SpotifyWidget() {
     };
   }, [isDragging, dragOffset, startPosition]);
 
+  // Detectar click fuera del widget para minimizar
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (widgetRef.current && !widgetRef.current.contains(event.target)) {
+        if (isExpanded) {
+          setIsExpanded(false);
+          setIsMinimized(true);
+        }
+      }
+    };
+
+    if (isExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isExpanded]);
+
   // Detectar cuando se inicia la reproducción
   useEffect(() => {
     const handleMessage = (event) => {
@@ -228,8 +250,9 @@ export default function SpotifyWidget() {
   // Función para cambiar playlist
   const changePlaylist = (playlistId) => {
     setCurrentPlaylistId(playlistId);
-    if (iframeRef.current) {
-      iframeRef.current.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
+    // Cambiar tanto el iframe oculto como el visible
+    if (hiddenIframeRef.current) {
+      hiddenIframeRef.current.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
     }
     setShowPlaylists(false);
   };
@@ -281,10 +304,10 @@ export default function SpotifyWidget() {
 
   return (
     <>
-      {/* Iframe oculto que siempre mantiene la música */}
+      {/* Iframe oculto que SIEMPRE mantiene la música */}
       {isAuthenticated && (
         <iframe
-          ref={iframeRef}
+          ref={hiddenIframeRef}
           src={`https://open.spotify.com/embed/playlist/${currentPlaylistId}?utm_source=generator&theme=0`}
           width="1"
           height="1"
@@ -574,27 +597,41 @@ export default function SpotifyWidget() {
                       ))}
                     </div>
                   ) : (
-                    /* Reproductor de Spotify embebido */
+                    /* Reproductor de Spotify embebido - SOLO VISUAL */
                     <div style={{
                       width: '100%',
                       height: '220px',
                       borderRadius: '6px',
                       overflow: 'hidden',
                       backgroundColor: 'rgba(40, 40, 40, 0.8)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'column',
+                      gap: '12px'
                     }}>
-                      <iframe
-                        src={`https://open.spotify.com/embed/playlist/${currentPlaylistId}?utm_source=generator&theme=0`}
-                        width="100%"
-                        height="220"
-                        frameBorder="0"
-                        allowtransparency="true"
-                        allow="encrypted-media"
-                        style={{
-                          borderRadius: '6px',
-                          border: 'none'
-                        }}
-                      />
+                      <div style={{
+                        fontSize: '48px',
+                        color: '#1db954'
+                      }}>
+                        ♪
+                      </div>
+                      <div style={{
+                        textAlign: 'center',
+                        color: '#94a3b8',
+                        fontSize: '14px'
+                      }}>
+                        Música reproduciéndose en segundo plano
+                      </div>
+                      <div style={{
+                        textAlign: 'center',
+                        color: '#1db954',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}>
+                        {isPlaying ? '▶️ Reproduciendo' : '⏸️ Pausado'}
+                      </div>
                     </div>
                   )}
                 </div>
