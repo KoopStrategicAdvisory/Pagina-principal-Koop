@@ -25,32 +25,35 @@ export default function SpotifyWidget() {
   // Verificar autenticación al cargar y cuando el usuario regresa de Spotify
   useEffect(() => {
     if (isAdmin) {
-      // Verificar si estamos en la página del dashboard después de una redirección
-      const checkAfterRedirect = () => {
-        if (window.location.pathname === '/dashboard') {
-          // Verificar si hay un parámetro de código en la URL (viene de Spotify)
-          const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get('code')) {
-            console.log('🔄 Detectado código de Spotify, esperando intercambio...');
-            // Esperar un poco para que se complete el intercambio
-            setTimeout(() => {
-              console.log('🔄 Verificando autenticación después del intercambio...');
-              checkAuthentication();
-            }, 2000);
-          } else {
-            // Verificar inmediatamente si no hay código
-            console.log('🔄 Verificando autenticación al cargar...');
+      // Verificar si estamos en la página del dashboard
+      if (window.location.pathname === '/dashboard') {
+        // Verificar si hay un parámetro de código en la URL (viene de Spotify)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('code')) {
+          console.log('🔄 Detectado código de Spotify, esperando intercambio...');
+          // Esperar un poco para que se complete el intercambio
+          setTimeout(() => {
+            console.log('🔄 Verificando autenticación después del intercambio...');
             checkAuthentication();
-          }
+          }, 3000);
+        } else {
+          // Si no hay código, esperar un poco por si acaso viene de una redirección
+          console.log('🔄 Verificando autenticación con delay...');
+          setTimeout(() => {
+            checkAuthentication();
+          }, 1000);
         }
-      };
-
-      // Verificar inmediatamente al cargar
-      checkAfterRedirect();
+      } else {
+        // Si no estamos en dashboard, verificar inmediatamente
+        checkAuthentication();
+      }
 
       // Verificar cuando el foco regresa a la ventana
       const handleFocus = () => {
-        checkAfterRedirect();
+        if (window.location.pathname === '/dashboard') {
+          console.log('🔄 Verificando autenticación al regresar el foco...');
+          checkAuthentication();
+        }
       };
 
       window.addEventListener('focus', handleFocus);
