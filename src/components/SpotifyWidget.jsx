@@ -600,7 +600,7 @@ export default function SpotifyWidget() {
                       ))}
                     </div>
                   ) : (
-                    /* Contenedor para el iframe de música */}
+                    /* Contenedor para el iframe de música */
                     <div style={{
                       width: '100%',
                       height: '220px',
