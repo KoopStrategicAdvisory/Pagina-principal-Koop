@@ -48,11 +48,13 @@ export default function SpotifyCallback() {
         'Authorization': `Bearer ${token?.substring(0, 20)}...`
       });
       
+      console.log('📡 Enviando petición POST a /spotify/auth/token...');
       const response = await api.post('/spotify/auth/token', { code }, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
+      console.log('✅ Respuesta recibida:', response.status, response.data);
 
       if (response.status === 200) {
         // Redirigir al dashboard
