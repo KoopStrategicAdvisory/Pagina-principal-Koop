@@ -304,26 +304,23 @@ export default function SpotifyWidget() {
 
   return (
     <>
-      {/* Iframe de música que SIEMPRE está activo - solo cambia su posición */}
-      {isAuthenticated && (
+      {/* Iframe de música que SIEMPRE está activo - solo visible cuando está minimizado */}
+      {isAuthenticated && !isExpanded && (
         <iframe
           ref={musicIframeRef}
           src={`https://open.spotify.com/embed/playlist/${currentPlaylistId}?utm_source=generator&theme=0`}
-          width={isExpanded ? "100%" : "1"}
-          height={isExpanded ? "220" : "1"}
+          width="1"
+          height="1"
           frameBorder="0"
           allowtransparency="true"
           allow="encrypted-media"
           style={{
             position: 'fixed',
-            top: isExpanded ? 'auto' : '-1000px',
-            left: isExpanded ? 'auto' : '-1000px',
-            opacity: isExpanded ? 1 : 0,
-            pointerEvents: isExpanded ? 'auto' : 'none',
-            zIndex: isExpanded ? 1001 : -1,
-            borderRadius: isExpanded ? '6px' : '0',
-            border: isExpanded ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
-            backgroundColor: isExpanded ? 'rgba(40, 40, 40, 0.8)' : 'transparent'
+            top: '-1000px',
+            left: '-1000px',
+            opacity: 0,
+            pointerEvents: 'none',
+            zIndex: -1
           }}
         />
       )}
@@ -600,17 +597,27 @@ export default function SpotifyWidget() {
                       ))}
                     </div>
                   ) : (
-                    /* Contenedor para el iframe de música */
+                    /* Reproductor de Spotify embebido - DENTRO del widget */
                     <div style={{
                       width: '100%',
                       height: '220px',
                       borderRadius: '6px',
                       overflow: 'hidden',
                       backgroundColor: 'rgba(40, 40, 40, 0.8)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      position: 'relative'
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
                     }}>
-                      {/* El iframe se posiciona aquí cuando está expandido */}
+                      <iframe
+                        src={`https://open.spotify.com/embed/playlist/${currentPlaylistId}?utm_source=generator&theme=0`}
+                        width="100%"
+                        height="220"
+                        frameBorder="0"
+                        allowtransparency="true"
+                        allow="encrypted-media"
+                        style={{
+                          borderRadius: '6px',
+                          border: 'none'
+                        }}
+                      />
                     </div>
                   )}
                 </div>
