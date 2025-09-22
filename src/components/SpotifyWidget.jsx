@@ -18,8 +18,7 @@ export default function SpotifyWidget() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPlaylistId, setCurrentPlaylistId] = useState('1Zf1rz0XX6fyNxKOq4XvgN');
   const widgetRef = useRef(null);
-  const hiddenIframeRef = useRef(null);
-  const visibleIframeRef = useRef(null);
+  const musicIframeRef = useRef(null);
 
   const isAdmin = user?.roles?.includes('admin');
 
@@ -251,12 +250,9 @@ export default function SpotifyWidget() {
   // Función para cambiar playlist
   const changePlaylist = (playlistId) => {
     setCurrentPlaylistId(playlistId);
-    // Cambiar tanto el iframe oculto como el visible
-    if (hiddenIframeRef.current) {
-      hiddenIframeRef.current.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
-    }
-    if (visibleIframeRef.current) {
-      visibleIframeRef.current.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
+    // Cambiar el iframe de música
+    if (musicIframeRef.current) {
+      musicIframeRef.current.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
     }
     setShowPlaylists(false);
   };
@@ -308,23 +304,26 @@ export default function SpotifyWidget() {
 
   return (
     <>
-      {/* Iframe oculto que SIEMPRE mantiene la música - SOLO cuando está minimizado */}
-      {isAuthenticated && !isExpanded && (
+      {/* Iframe de música que SIEMPRE está activo - solo cambia su posición */}
+      {isAuthenticated && (
         <iframe
-          ref={hiddenIframeRef}
+          ref={musicIframeRef}
           src={`https://open.spotify.com/embed/playlist/${currentPlaylistId}?utm_source=generator&theme=0`}
-          width="1"
-          height="1"
+          width={isExpanded ? "100%" : "1"}
+          height={isExpanded ? "220" : "1"}
           frameBorder="0"
           allowtransparency="true"
           allow="encrypted-media"
           style={{
             position: 'fixed',
-            top: '-1000px',
-            left: '-1000px',
-            opacity: 0,
-            pointerEvents: 'none',
-            zIndex: -1
+            top: isExpanded ? 'auto' : '-1000px',
+            left: isExpanded ? 'auto' : '-1000px',
+            opacity: isExpanded ? 1 : 0,
+            pointerEvents: isExpanded ? 'auto' : 'none',
+            zIndex: isExpanded ? 1001 : -1,
+            borderRadius: isExpanded ? '6px' : '0',
+            border: isExpanded ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+            backgroundColor: isExpanded ? 'rgba(40, 40, 40, 0.8)' : 'transparent'
           }}
         />
       )}
@@ -601,28 +600,17 @@ export default function SpotifyWidget() {
                       ))}
                     </div>
                   ) : (
-                    /* Reproductor de Spotify embebido - VISIBLE */
+                    /* Contenedor para el iframe de música */}
                     <div style={{
                       width: '100%',
                       height: '220px',
                       borderRadius: '6px',
                       overflow: 'hidden',
                       backgroundColor: 'rgba(40, 40, 40, 0.8)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      position: 'relative'
                     }}>
-                      <iframe
-                        ref={visibleIframeRef}
-                        src={`https://open.spotify.com/embed/playlist/${currentPlaylistId}?utm_source=generator&theme=0`}
-                        width="100%"
-                        height="220"
-                        frameBorder="0"
-                        allowtransparency="true"
-                        allow="encrypted-media"
-                        style={{
-                          borderRadius: '6px',
-                          border: 'none'
-                        }}
-                      />
+                      {/* El iframe se posiciona aquí cuando está expandido */}
                     </div>
                   )}
                 </div>
