@@ -57,6 +57,13 @@ export default function SpotifyCallback() {
       console.log('✅ Respuesta recibida:', response.status, response.data);
 
       if (response.status === 200) {
+        // Guardar los tokens de Spotify en localStorage
+        const { access_token, refresh_token, expires_in } = response.data;
+        localStorage.setItem('spotifyAccessToken', access_token);
+        localStorage.setItem('spotifyRefreshToken', refresh_token);
+        localStorage.setItem('spotifyTokenExpiry', Date.now() + (expires_in * 1000));
+        console.log('💾 Tokens de Spotify guardados en localStorage');
+        
         // Redirigir al dashboard
         navigate('/dashboard');
       } else {

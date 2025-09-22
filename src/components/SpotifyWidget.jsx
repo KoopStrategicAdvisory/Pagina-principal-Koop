@@ -228,9 +228,33 @@ export default function SpotifyWidget() {
 
   const checkAuthentication = async () => {
     try {
-      const response = await api.get('/spotify/me');
-      setUserProfile(response.data);
-      setIsAuthenticated(true);
+      // Verificar si hay tokens de Spotify en localStorage
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+      const tokenExpiry = localStorage.getItem('spotifyTokenExpiry');
+      
+      if (spotifyToken && tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
+        console.log('🎵 Usando tokens de Spotify del localStorage');
+        // Usar el token directamente para hacer la petición a Spotify
+        const response = await fetch('https://api.spotify.com/v1/me', {
+          headers: {
+            'Authorization': `Bearer ${spotifyToken}`
+          }
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          setUserProfile(userData);
+          setIsAuthenticated(true);
+          console.log('✅ Usuario de Spotify autenticado:', userData.display_name);
+        } else {
+          throw new Error('Token de Spotify inválido');
+        }
+      } else {
+        // Si no hay tokens válidos, intentar con el backend
+        const response = await api.get('/spotify/me');
+        setUserProfile(response.data);
+        setIsAuthenticated(true);
+      }
     } catch (error) {
       console.log('No hay sesión de Spotify activa');
       setIsAuthenticated(false);
