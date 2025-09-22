@@ -7,6 +7,8 @@ export default function SpotifyWidget() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [playlists, setPlaylists] = useState([]);
+  const [showPlaylists, setShowPlaylists] = useState(false);
   const [position, setPosition] = useState({ x: window.innerWidth - 80, y: window.innerHeight - 80 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -52,13 +54,13 @@ export default function SpotifyWidget() {
           setTimeout(() => {
             console.log('🔄 Verificando autenticación después del intercambio...');
             checkAuthentication();
-          }, 3000);
+          }, 2000);
         } else {
           // Si no hay código, esperar un poco por si acaso viene de una redirección
           console.log('🔄 Verificando autenticación con delay...');
           setTimeout(() => {
             checkAuthentication();
-          }, 5000);
+          }, 1000);
         }
       } else {
         // Si no estamos en dashboard, verificar inmediatamente
@@ -101,6 +103,9 @@ export default function SpotifyWidget() {
           setUserProfile(userData);
           setIsAuthenticated(true);
           console.log('✅ Usuario de Spotify autenticado:', userData.display_name);
+          
+          // Cargar playlists
+          await loadPlaylists(spotifyToken);
         } else {
           throw new Error('Token de Spotify inválido');
         }
@@ -114,6 +119,24 @@ export default function SpotifyWidget() {
       console.log('No hay sesión de Spotify activa');
       setIsAuthenticated(false);
       setUserProfile(null);
+    }
+  };
+
+  const loadPlaylists = async (token) => {
+    try {
+      const response = await fetch('https://api.spotify.com/v1/me/playlists?limit=20', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPlaylists(data.items);
+        console.log('📋 Playlists cargadas:', data.items.length);
+      }
+    } catch (error) {
+      console.error('Error cargando playlists:', error);
     }
   };
 
@@ -369,6 +392,24 @@ export default function SpotifyWidget() {
             </div>
             
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {isAuthenticated && (
+                <button
+                  onClick={() => setShowPlaylists(!showPlaylists)}
+                  style={{
+                    background: showPlaylists ? '#1db954' : 'rgba(255, 255, 255, 0.1)',
+                    border: 'none',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    padding: '6px 12px',
+                    borderRadius: '15px',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  📋
+                </button>
+              )}
               {!isAuthenticated && (
                 <button
                   onClick={authenticateWithSpotify}
@@ -445,30 +486,93 @@ export default function SpotifyWidget() {
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px'
+                gap: '12px',
+                height: '100%'
               }}>
-                {/* Reproductor de Spotify embebido */}
-                <div style={{
-                  width: '100%',
-                  height: '250px',
-                  borderRadius: '8px',
-                  overflow: 'hidden',
-                  backgroundColor: 'rgba(40, 40, 40, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
-                }}>
-                  <iframe
-                    src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M?utm_source=generator&theme=0"
-                    width="100%"
-                    height="250"
-                    frameBorder="0"
-                    allowtransparency="true"
-                    allow="encrypted-media"
-                    style={{
-                      borderRadius: '8px',
-                      border: 'none'
-                    }}
-                  />
-                </div>
+                {showPlaylists ? (
+                  /* Lista de playlists */
+                  <div style={{
+                    height: '100%',
+                    overflowY: 'auto',
+                    padding: '8px',
+                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}>
+                    <h4 style={{ color: '#1db954', margin: '0 0 12px 0', fontSize: '14px' }}>
+                      Tus Playlists
+                    </h4>
+                    {playlists.map((playlist) => (
+                      <div
+                        key={playlist.id}
+                        onClick={() => {
+                          // Cambiar el iframe a la playlist seleccionada
+                          const iframe = document.querySelector('iframe[src*="open.spotify.com"]');
+                          if (iframe) {
+                            iframe.src = `https://open.spotify.com/embed/playlist/${playlist.id}?utm_source=generator&theme=0`;
+                          }
+                          setShowPlaylists(false);
+                        }}
+                        style={{
+                          padding: '8px',
+                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          marginBottom: '6px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = 'rgba(29, 185, 84, 0.2)';
+                          e.target.style.transform = 'scale(1.02)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                      >
+                        <img
+                          src={playlist.images[0]?.url || '/img/default-playlist.png'}
+                          alt="Playlist"
+                          style={{ width: '40px', height: '40px', borderRadius: '4px' }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ color: 'white', margin: '0', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {playlist.name}
+                          </p>
+                          <p style={{ color: '#b3b3b3', margin: '0', fontSize: '10px' }}>
+                            {playlist.tracks.total} canciones
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Reproductor de Spotify embebido */
+                  <div style={{
+                    width: '100%',
+                    height: '250px',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}>
+                    <iframe
+                      src="https://open.spotify.com/embed/playlist/1Zf1rz0XX6fyNxKOq4XvgN?utm_source=generator&theme=0"
+                      width="100%"
+                      height="250"
+                      frameBorder="0"
+                      allowtransparency="true"
+                      allow="encrypted-media"
+                      style={{
+                        borderRadius: '8px',
+                        border: 'none'
+                      }}
+                    />
+                  </div>
+                )}
                 
                 {/* Botones de acción */}
                 <div style={{
@@ -505,6 +609,7 @@ export default function SpotifyWidget() {
                       localStorage.removeItem('spotifyTokenExpiry');
                       setIsAuthenticated(false);
                       setUserProfile(null);
+                      setPlaylists([]);
                     }}
                     style={{
                       flex: 1,
