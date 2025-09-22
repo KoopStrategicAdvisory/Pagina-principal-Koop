@@ -41,7 +41,7 @@ export default function SpotifyWidget() {
           console.log('🔄 Verificando autenticación con delay...');
           setTimeout(() => {
             checkAuthentication();
-          }, 1000);
+          }, 5000);
         }
       } else {
         // Si no estamos en dashboard, verificar inmediatamente
