@@ -44,6 +44,10 @@ export default function SpotifyCallback() {
       console.log('🔑 Token disponible:', !!token, token?.substring(0, 20) + '...');
       
       // Forzar el envío del token manualmente
+      console.log('📋 Headers que se enviarán:', {
+        'Authorization': `Bearer ${token?.substring(0, 20)}...`
+      });
+      
       const response = await api.post('/spotify/auth/token', { code }, {
         headers: {
           'Authorization': `Bearer ${token}`
