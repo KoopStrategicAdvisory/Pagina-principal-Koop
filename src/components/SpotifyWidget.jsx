@@ -308,8 +308,8 @@ export default function SpotifyWidget() {
 
   return (
     <>
-      {/* Iframe oculto que SIEMPRE mantiene la música */}
-      {isAuthenticated && (
+      {/* Iframe oculto que SIEMPRE mantiene la música - SOLO cuando está minimizado */}
+      {isAuthenticated && !isExpanded && (
         <iframe
           ref={hiddenIframeRef}
           src={`https://open.spotify.com/embed/playlist/${currentPlaylistId}?utm_source=generator&theme=0`}
