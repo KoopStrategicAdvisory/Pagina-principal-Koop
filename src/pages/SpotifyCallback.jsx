@@ -28,13 +28,16 @@ export default function SpotifyCallback() {
 
   const exchangeCodeForToken = async (code) => {
     try {
+      console.log('🔄 Iniciando intercambio de código por token:', { code: code?.substring(0, 10) + '...', user: !!user });
+      
       // Verificar que el usuario esté autenticado
       if (!user) {
-        console.error('Usuario no autenticado');
+        console.error('❌ Usuario no autenticado');
         navigate('/login');
         return;
       }
 
+      console.log('📤 Enviando petición al backend...');
       const response = await api.post('/spotify/auth/token', { code });
 
       if (response.status === 200) {
