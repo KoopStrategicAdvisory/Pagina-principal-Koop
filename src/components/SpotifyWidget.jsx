@@ -564,90 +564,189 @@ export default function SpotifyWidget() {
                 flexDirection: 'column',
                 gap: '12px'
               }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px',
-                backgroundColor: 'rgba(252, 119, 28, 0.1)',
-                borderRadius: '8px',
-                border: '1px solid rgba(252, 119, 28, 0.3)'
-              }}>
-                <div style={{ color: '#fc771c', fontSize: '20px' }}>✅</div>
-                <span style={{ color: '#fc771c', fontSize: '14px', fontWeight: 'bold' }}>
-                  Conectado
-                </span>
-              </div>
-              
-              <div style={{
-                display: 'flex',
-                gap: '6px'
-              }}>
-                <a
-                  href="https://open.spotify.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    flex: 1,
-                    background: '#fc771c',
-                    border: 'none',
-                    color: '#fff',
-                    fontSize: '13px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    padding: '8px 12px',
+                {/* Estado de conexión */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px',
+                  backgroundColor: 'rgba(29, 185, 84, 0.1)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(29, 185, 84, 0.3)'
+                }}>
+                  <div style={{ color: '#1db954', fontSize: '20px' }}>✅</div>
+                  <span style={{ color: '#1db954', fontSize: '14px', fontWeight: 'bold' }}>
+                    Conectado como {userProfile?.display_name}
+                  </span>
+                </div>
+
+                {/* Reproductor de música */}
+                {currentPlayback && (
+                  <div style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
                     borderRadius: '8px',
-                    textDecoration: 'none',
-                    textAlign: 'center',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = '#f97316';
-                    e.target.style.transform = 'scale(1.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = '#fc771c';
-                    e.target.style.transform = 'scale(1)';
-                  }}
-                >
-                  Abrir
-                </a>
-                <button
-                  onClick={async () => {
-                    try {
-                      await api.post('/spotify/logout');
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}>
+                    <div style={{ marginBottom: '10px', textAlign: 'center' }}>
+                      <img 
+                        src={currentPlayback.item?.album?.images?.[0]?.url || '/img/default-album.png'} 
+                        alt="Album" 
+                        style={{ 
+                          width: '50px', 
+                          height: '50px', 
+                          borderRadius: '5px',
+                          marginBottom: '6px'
+                        }} 
+                      />
+                      <h4 style={{ color: 'white', margin: '0 0 4px 0', fontSize: '12px' }}>
+                        {currentPlayback.item?.name || 'Sin canción'}
+                      </h4>
+                      <p style={{ color: '#b3b3b3', margin: '0', fontSize: '10px' }}>
+                        {currentPlayback.item?.artists?.[0]?.name || 'Artista desconocido'}
+                      </p>
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                      <button
+                        onClick={() => controlPlayback('previous')}
+                        style={{
+                          padding: '6px',
+                          backgroundColor: '#1db954',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        ⏮️
+                      </button>
+                      <button
+                        onClick={() => controlPlayback(currentPlayback.is_playing ? 'pause' : 'play')}
+                        style={{
+                          padding: '6px',
+                          backgroundColor: '#1db954',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        {currentPlayback.is_playing ? '⏸️' : '▶️'}
+                      </button>
+                      <button
+                        onClick={() => controlPlayback('next')}
+                        style={{
+                          padding: '6px',
+                          backgroundColor: '#1db954',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        ⏭️
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Playlists */}
+                {playlists.length > 0 && (
+                  <div style={{ maxHeight: '120px', overflowY: 'auto' }}>
+                    <h4 style={{ color: '#1db954', margin: '0 0 8px 0', fontSize: '12px' }}>
+                      Tus Playlists
+                    </h4>
+                    {playlists.slice(0, 3).map((playlist) => (
+                      <div key={playlist.id} style={{ 
+                        padding: '6px', 
+                        backgroundColor: 'rgba(40, 40, 40, 0.6)', 
+                        marginBottom: '4px', 
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}>
+                        <p style={{ color: 'white', margin: '0', fontSize: '10px' }}>
+                          {playlist.name}
+                        </p>
+                        <p style={{ color: '#b3b3b3', margin: '0', fontSize: '8px' }}>
+                          {playlist.tracks.total} canciones
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Botones de acción */}
+                <div style={{
+                  display: 'flex',
+                  gap: '6px'
+                }}>
+                  <a
+                    href={userProfile?.external_urls?.spotify || "https://open.spotify.com"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      flex: 1,
+                      background: '#1db954',
+                      border: 'none',
+                      color: '#fff',
+                      fontSize: '13px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      textDecoration: 'none',
+                      textAlign: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#1ed760';
+                      e.target.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = '#1db954';
+                      e.target.style.transform = 'scale(1)';
+                    }}
+                  >
+                    Abrir
+                  </a>
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('spotifyAccessToken');
+                      localStorage.removeItem('spotifyRefreshToken');
+                      localStorage.removeItem('spotifyTokenExpiry');
                       setIsAuthenticated(false);
                       setUserProfile(null);
-                    } catch (error) {
-                      console.error('Error logging out:', error);
-                    }
-                  }}
-                  style={{
-                    flex: 1,
-                    background: 'transparent',
-                    border: '1px solid #fc771c',
-                    color: '#fc771c',
-                    fontSize: '13px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = '#fc771c';
-                    e.target.style.color = '#fff';
-                    e.target.style.transform = 'scale(1.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = 'transparent';
-                    e.target.style.color = '#fc771c';
-                    e.target.style.transform = 'scale(1)';
-                  }}
-                >
-                  Salir
-                </button>
-              </div>
+                      setPlaylists([]);
+                      setCurrentPlayback(null);
+                    }}
+                    style={{
+                      flex: 1,
+                      background: '#ff4444',
+                      border: 'none',
+                      color: '#fff',
+                      fontSize: '13px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#ff3333';
+                      e.target.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = '#ff4444';
+                      e.target.style.transform = 'scale(1)';
+                    }}
+                  >
+                    Salir
+                  </button>
+                </div>
               </div>
             ) : (
               <div style={{
