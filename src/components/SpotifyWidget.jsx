@@ -16,7 +16,9 @@ export default function SpotifyWidget() {
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
   const [isMinimized, setIsMinimized] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentPlaylistId, setCurrentPlaylistId] = useState('1Zf1rz0XX6fyNxKOq4XvgN');
   const widgetRef = useRef(null);
+  const iframeRef = useRef(null);
 
   const isAdmin = user?.roles?.includes('admin');
 
@@ -36,6 +38,11 @@ export default function SpotifyWidget() {
     if (savedMinimized) {
       setIsMinimized(JSON.parse(savedMinimized));
     }
+
+    const savedPlaylistId = localStorage.getItem('spotifyCurrentPlaylistId');
+    if (savedPlaylistId) {
+      setCurrentPlaylistId(savedPlaylistId);
+    }
   }, []);
 
   // Guardar posición y estado
@@ -50,6 +57,10 @@ export default function SpotifyWidget() {
   useEffect(() => {
     localStorage.setItem('spotifyWidgetMinimized', JSON.stringify(isMinimized));
   }, [isMinimized]);
+
+  useEffect(() => {
+    localStorage.setItem('spotifyCurrentPlaylistId', currentPlaylistId);
+  }, [currentPlaylistId]);
 
   // Verificar autenticación - ahora en todas las páginas
   useEffect(() => {
@@ -214,6 +225,15 @@ export default function SpotifyWidget() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
+  // Función para cambiar playlist
+  const changePlaylist = (playlistId) => {
+    setCurrentPlaylistId(playlistId);
+    if (iframeRef.current) {
+      iframeRef.current.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
+    }
+    setShowPlaylists(false);
+  };
+
   if (!isAdmin) {
     return null;
   }
@@ -260,369 +280,386 @@ export default function SpotifyWidget() {
   const adjustedPosition = isExpanded ? getAdjustedPosition() : position;
 
   return (
-    <div
-      ref={widgetRef}
-      style={{
-        position: 'fixed',
-        left: adjustedPosition.x,
-        top: adjustedPosition.y,
-        zIndex: 1000,
-        width: isExpanded ? '300px' : '60px',
-        height: isExpanded ? '350px' : '60px',
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(148, 163, 184, 0.2)',
-        borderRadius: '12px',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
-        transition: isDragging ? 'none' : 'all 0.3s ease',
-        cursor: isDragging ? 'grabbing' : 'grab',
-        touchAction: 'none',
-        userSelect: 'none',
-        pointerEvents: isDragging ? 'none' : 'auto'
-      }}
-      onMouseDown={handleStart}
-      onTouchStart={handleStart}
-    >
-      {/* Botón minimizado */}
-      {!isExpanded && (
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!hasMoved) {
-              setIsExpanded(true);
-              setIsMinimized(false);
-            }
-          }}
+    <>
+      {/* Iframe oculto que siempre mantiene la música */}
+      {isAuthenticated && (
+        <iframe
+          ref={iframeRef}
+          src={`https://open.spotify.com/embed/playlist/${currentPlaylistId}?utm_source=generator&theme=0`}
+          width="1"
+          height="1"
+          frameBorder="0"
+          allowtransparency="true"
+          allow="encrypted-media"
           style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'transform 0.2s ease',
-            pointerEvents: 'auto'
+            position: 'fixed',
+            top: '-1000px',
+            left: '-1000px',
+            opacity: 0,
+            pointerEvents: 'none',
+            zIndex: -1
           }}
-          onMouseEnter={(e) => {
-            if (!isDragging) {
-              e.target.style.transform = 'scale(1.1)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isDragging) {
-              e.target.style.transform = 'scale(1)';
-            }
-          }}
-        >
-          <span style={{ 
-            fontSize: '24px', 
-            color: isMinimized && isAuthenticated ? '#1db954' : '#fc771c',
-            fontWeight: 'bold'
-          }}>
-            ♪
-          </span>
-          {/* Indicador de música en reproducción */}
-          {isMinimized && isAuthenticated && (
-            <div style={{
-              position: 'absolute',
-              top: '5px',
-              right: '5px',
-              width: '8px',
-              height: '8px',
-              backgroundColor: isPlaying ? '#1db954' : '#ff6b6b',
-              borderRadius: '50%',
-              animation: isPlaying ? 'pulse 2s infinite' : 'none'
-            }} />
-          )}
-        </div>
+        />
       )}
 
-      {/* Contenido expandido */}
-      {isExpanded && (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          justifyContent: 'space-between',
-          pointerEvents: 'auto'
-        }}>
-          {/* Header compacto */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '12px',
-            padding: '8px 0'
-          }}>
-            <div style={{
+      {/* Widget visible */}
+      <div
+        ref={widgetRef}
+        style={{
+          position: 'fixed',
+          left: adjustedPosition.x,
+          top: adjustedPosition.y,
+          zIndex: 1000,
+          width: isExpanded ? '300px' : '60px',
+          height: isExpanded ? '350px' : '60px',
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(148, 163, 184, 0.2)',
+          borderRadius: '12px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+          transition: isDragging ? 'none' : 'all 0.3s ease',
+          cursor: isDragging ? 'grabbing' : 'grab',
+          touchAction: 'none',
+          userSelect: 'none',
+          pointerEvents: isDragging ? 'none' : 'auto'
+        }}
+        onMouseDown={handleStart}
+        onTouchStart={handleStart}
+      >
+        {/* Botón minimizado */}
+        {!isExpanded && (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!hasMoved) {
+                setIsExpanded(true);
+                setIsMinimized(false);
+              }
+            }}
+            style={{
+              width: '100%',
+              height: '100%',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'transform 0.2s ease',
+              pointerEvents: 'auto'
+            }}
+            onMouseEnter={(e) => {
+              if (!isDragging) {
+                e.target.style.transform = 'scale(1.1)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isDragging) {
+                e.target.style.transform = 'scale(1)';
+              }
+            }}
+          >
+            <span style={{ 
+              fontSize: '24px', 
+              color: isMinimized && isAuthenticated ? '#1db954' : '#fc771c',
+              fontWeight: 'bold'
             }}>
-              <h4 style={{
-                color: '#1db954',
-                margin: 0,
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}>
-                Spotify
-              </h4>
-              {isAuthenticated && (
-                <p style={{
-                  color: '#94a3b8',
-                  margin: 0,
-                  fontSize: '11px'
-                }}>
-                  {userProfile?.display_name}
-                </p>
-              )}
-            </div>
-            
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-              {isAuthenticated && (
-                <button
-                  onClick={() => setShowPlaylists(!showPlaylists)}
-                  style={{
-                    background: showPlaylists ? '#1db954' : 'rgba(255, 255, 255, 0.1)',
-                    border: 'none',
-                    color: 'white',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  📋
-                </button>
-              )}
-              {!isAuthenticated && (
-                <button
-                  onClick={authenticateWithSpotify}
-                  style={{
-                    background: '#fc771c',
-                    border: 'none',
-                    color: '#fff',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    padding: '6px 12px',
-                    borderRadius: '15px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = '#f97316';
-                    e.target.style.transform = 'scale(1.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = '#fc771c';
-                    e.target.style.transform = 'scale(1)';
-                  }}
-                >
-                  Conectar
-                </button>
-              )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsExpanded(false);
-                  setIsMinimized(true);
-                  // NO parar la música - solo minimizar
-                  const margin = 10;
-                  const buttonSize = 60;
-                  const maxX = window.innerWidth - buttonSize - margin;
-                  const maxY = window.innerHeight - buttonSize - margin;
-                  setPosition(prev => ({
-                    x: Math.max(margin, Math.min(prev.x, maxX)),
-                    y: Math.max(margin, Math.min(prev.y, maxY))
-                  }));
-                }}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#94a3b8',
-                  fontSize: '16px',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  borderRadius: '4px',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = '#e2e8f0';
-                  e.target.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = '#94a3b8';
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              >
-                ×
-              </button>
-            </div>
+              ♪
+            </span>
+            {/* Indicador de música en reproducción */}
+            {isMinimized && isAuthenticated && (
+              <div style={{
+                position: 'absolute',
+                top: '5px',
+                right: '5px',
+                width: '8px',
+                height: '8px',
+                backgroundColor: isPlaying ? '#1db954' : '#ff6b6b',
+                borderRadius: '50%',
+                animation: isPlaying ? 'pulse 2s infinite' : 'none'
+              }} />
+            )}
           </div>
-          
-          {/* Contenido principal */}
+        )}
+
+        {/* Contenido expandido */}
+        {isExpanded && (
           <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px',
-            flex: 1,
-            justifyContent: 'center'
+            height: '100%',
+            justifyContent: 'space-between',
+            pointerEvents: 'auto'
           }}>
-            {isAuthenticated ? (
+            {/* Header compacto */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '12px',
+              padding: '8px 0'
+            }}>
               <div style={{
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                height: '100%'
-              }}>
-                {showPlaylists ? (
-                  /* Lista de playlists */
-                  <div style={{
-                    height: '100%',
-                    overflowY: 'auto',
-                    padding: '6px',
-                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)'
-                  }}>
-                    <h4 style={{ color: '#1db954', margin: '0 0 8px 0', fontSize: '12px' }}>
-                      Tus Playlists
-                    </h4>
-                    {playlists.map((playlist) => (
-                      <div
-                        key={playlist.id}
-                        onClick={() => {
-                          // Cambiar el iframe a la playlist seleccionada
-                          const iframe = document.querySelector('iframe[src*="open.spotify.com"]');
-                          if (iframe) {
-                            iframe.src = `https://open.spotify.com/embed/playlist/${playlist.id}?utm_source=generator&theme=0`;
-                          }
-                          setShowPlaylists(false);
-                        }}
-                        style={{
-                          padding: '6px',
-                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                          marginBottom: '4px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = 'rgba(29, 185, 84, 0.2)';
-                          e.target.style.transform = 'scale(1.02)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-                          e.target.style.transform = 'scale(1)';
-                        }}
-                      >
-                        <img
-                          src={playlist.images[0]?.url || '/img/default-playlist.png'}
-                          alt="Playlist"
-                          style={{ width: '32px', height: '32px', borderRadius: '3px' }}
-                        />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ color: 'white', margin: '0', fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {playlist.name}
-                          </p>
-                          <p style={{ color: '#b3b3b3', margin: '0', fontSize: '9px' }}>
-                            {playlist.tracks.total} canciones
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  /* Reproductor de Spotify embebido */
-                  <div style={{
-                    width: '100%',
-                    height: '220px',
-                    borderRadius: '6px',
-                    overflow: 'hidden',
-                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)'
-                  }}>
-                    <iframe
-                      src="https://open.spotify.com/embed/playlist/1Zf1rz0XX6fyNxKOq4XvgN?utm_source=generator&theme=0"
-                      width="100%"
-                      height="220"
-                      frameBorder="0"
-                      allowtransparency="true"
-                      allow="encrypted-media"
-                      style={{
-                        borderRadius: '6px',
-                        border: 'none'
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '15px 0'
+                gap: '8px'
               }}>
-                <div style={{
-                  fontSize: '36px',
-                  color: '#1db954'
-                }}>
-                  ♪
-                </div>
-                <h3 style={{
+                <h4 style={{
                   color: '#1db954',
                   margin: 0,
-                  fontSize: '16px',
-                  textAlign: 'center'
+                  fontSize: '14px',
+                  fontWeight: 'bold'
                 }}>
-                  Reproductor de Spotify
-                </h3>
-                <p style={{
-                  color: '#94a3b8',
-                  margin: 0,
-                  fontSize: '12px',
-                  textAlign: 'center',
-                  lineHeight: '1.4'
-                }}>
-                  Conecta tu cuenta de Spotify para disfrutar de tu música favorita
-                </p>
+                  Spotify
+                </h4>
+                {isAuthenticated && (
+                  <p style={{
+                    color: '#94a3b8',
+                    margin: 0,
+                    fontSize: '11px'
+                  }}>
+                    {userProfile?.display_name}
+                  </p>
+                )}
+              </div>
+              
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                {isAuthenticated && (
+                  <button
+                    onClick={() => setShowPlaylists(!showPlaylists)}
+                    style={{
+                      background: showPlaylists ? '#1db954' : 'rgba(255, 255, 255, 0.1)',
+                      border: 'none',
+                      color: 'white',
+                      fontSize: '11px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      padding: '4px 8px',
+                      borderRadius: '12px',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    📋
+                  </button>
+                )}
+                {!isAuthenticated && (
+                  <button
+                    onClick={authenticateWithSpotify}
+                    style={{
+                      background: '#fc771c',
+                      border: 'none',
+                      color: '#fff',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      padding: '6px 12px',
+                      borderRadius: '15px',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#f97316';
+                      e.target.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = '#fc771c';
+                      e.target.style.transform = 'scale(1)';
+                    }}
+                  >
+                    Conectar
+                  </button>
+                )}
                 <button
-                  onClick={authenticateWithSpotify}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(false);
+                    setIsMinimized(true);
+                    // NO parar la música - solo minimizar
+                    const margin = 10;
+                    const buttonSize = 60;
+                    const maxX = window.innerWidth - buttonSize - margin;
+                    const maxY = window.innerHeight - buttonSize - margin;
+                    setPosition(prev => ({
+                      x: Math.max(margin, Math.min(prev.x, maxX)),
+                      y: Math.max(margin, Math.min(prev.y, maxY))
+                    }));
+                  }}
                   style={{
-                    background: '#1db954',
+                    background: 'transparent',
                     border: 'none',
-                    color: '#fff',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
+                    color: '#94a3b8',
+                    fontSize: '16px',
                     cursor: 'pointer',
-                    padding: '10px 20px',
-                    borderRadius: '20px',
-                    transition: 'all 0.2s ease',
-                    marginTop: '6px'
+                    padding: '4px',
+                    borderRadius: '4px',
+                    transition: 'all 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.background = '#1ed760';
-                    e.target.style.transform = 'scale(1.05)';
+                    e.target.style.color = '#e2e8f0';
+                    e.target.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = '#1db954';
-                    e.target.style.transform = 'scale(1)';
+                    e.target.style.color = '#94a3b8';
+                    e.target.style.backgroundColor = 'transparent';
                   }}
                 >
-                  Conectar con Spotify
+                  ×
                 </button>
               </div>
-            )}
+            </div>
+            
+            {/* Contenido principal */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              flex: 1,
+              justifyContent: 'center'
+            }}>
+              {isAuthenticated ? (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  height: '100%'
+                }}>
+                  {showPlaylists ? (
+                    /* Lista de playlists */
+                    <div style={{
+                      height: '100%',
+                      overflowY: 'auto',
+                      padding: '6px',
+                      backgroundColor: 'rgba(40, 40, 40, 0.8)',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}>
+                      <h4 style={{ color: '#1db954', margin: '0 0 8px 0', fontSize: '12px' }}>
+                        Tus Playlists
+                      </h4>
+                      {playlists.map((playlist) => (
+                        <div
+                          key={playlist.id}
+                          onClick={() => changePlaylist(playlist.id)}
+                          style={{
+                            padding: '6px',
+                            backgroundColor: playlist.id === currentPlaylistId ? 'rgba(29, 185, 84, 0.2)' : 'rgba(0, 0, 0, 0.3)',
+                            marginBottom: '4px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(29, 185, 84, 0.2)';
+                            e.target.style.transform = 'scale(1.02)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = playlist.id === currentPlaylistId ? 'rgba(29, 185, 84, 0.2)' : 'rgba(0, 0, 0, 0.3)';
+                            e.target.style.transform = 'scale(1)';
+                          }}
+                        >
+                          <img
+                            src={playlist.images[0]?.url || '/img/default-playlist.png'}
+                            alt="Playlist"
+                            style={{ width: '32px', height: '32px', borderRadius: '3px' }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ color: 'white', margin: '0', fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {playlist.name}
+                            </p>
+                            <p style={{ color: '#b3b3b3', margin: '0', fontSize: '9px' }}>
+                              {playlist.tracks.total} canciones
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    /* Reproductor de Spotify embebido */
+                    <div style={{
+                      width: '100%',
+                      height: '220px',
+                      borderRadius: '6px',
+                      overflow: 'hidden',
+                      backgroundColor: 'rgba(40, 40, 40, 0.8)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}>
+                      <iframe
+                        src={`https://open.spotify.com/embed/playlist/${currentPlaylistId}?utm_source=generator&theme=0`}
+                        width="100%"
+                        height="220"
+                        frameBorder="0"
+                        allowtransparency="true"
+                        allow="encrypted-media"
+                        style={{
+                          borderRadius: '6px',
+                          border: 'none'
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '15px 0'
+                }}>
+                  <div style={{
+                    fontSize: '36px',
+                    color: '#1db954'
+                  }}>
+                    ♪
+                  </div>
+                  <h3 style={{
+                    color: '#1db954',
+                    margin: 0,
+                    fontSize: '16px',
+                    textAlign: 'center'
+                  }}>
+                    Reproductor de Spotify
+                  </h3>
+                  <p style={{
+                    color: '#94a3b8',
+                    margin: 0,
+                    fontSize: '12px',
+                    textAlign: 'center',
+                    lineHeight: '1.4'
+                  }}>
+                    Conecta tu cuenta de Spotify para disfrutar de tu música favorita
+                  </p>
+                  <button
+                    onClick={authenticateWithSpotify}
+                    style={{
+                      background: '#1db954',
+                      border: 'none',
+                      color: '#fff',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      padding: '10px 20px',
+                      borderRadius: '20px',
+                      transition: 'all 0.2s ease',
+                      marginTop: '6px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#1ed760';
+                      e.target.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = '#1db954';
+                      e.target.style.transform = 'scale(1)';
+                    }}
+                  >
+                    Conectar con Spotify
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Animación de pulso para el indicador */}
       <style jsx>{`
@@ -641,6 +678,6 @@ export default function SpotifyWidget() {
           }
         }
       `}</style>
-    </div>
+    </>
   );
 }

@@ -38,6 +38,7 @@ import { useAuth } from './context/AuthContext';
 import api from './api/axios';
 import Navbar from './components/Navbar.jsx';
 import FontProvider from './theme/FontProvider.jsx';
+import SpotifyWidget from './components/SpotifyWidget.jsx';
 
 function App() {
   // Test /api/ping using Axios instance
@@ -64,6 +65,10 @@ function App() {
       <>
         {/* Navbar global (se oculta en login y registro) */}
         {!hideNavbar && <Navbar />}
+        
+        {/* Spotify Widget global (solo para admins autenticados) */}
+        <SpotifyWidget />
+        
         <Routes>
           {/* Rutas públicas (siempre accesibles) */}
           <Route path="/" element={<Index />} />
@@ -186,11 +191,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
-
-
-
