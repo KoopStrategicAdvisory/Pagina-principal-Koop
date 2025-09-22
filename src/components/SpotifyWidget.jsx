@@ -16,6 +16,9 @@ export default function SpotifyWidget() {
   const [playlistTracks, setPlaylistTracks] = useState([]);
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [volume, setVolume] = useState(50);
+  const [devices, setDevices] = useState([]);
+  const [activeDevice, setActiveDevice] = useState(null);
+  const [playbackError, setPlaybackError] = useState(null);
   const [position, setPosition] = useState({ x: window.innerWidth - 80, y: window.innerHeight - 80 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -256,9 +259,10 @@ export default function SpotifyWidget() {
           setIsAuthenticated(true);
           console.log('✅ Usuario de Spotify autenticado:', userData.display_name);
           
-          // Cargar playlists y estado de reproducción
+          // Cargar playlists, estado de reproducción y dispositivos
           await loadPlaylists(spotifyToken);
           await loadCurrentPlayback(spotifyToken);
+          await loadDevices();
         } else {
           throw new Error('Token de Spotify inválido');
         }
@@ -313,6 +317,7 @@ export default function SpotifyWidget() {
 
   const controlPlayback = async (action) => {
     try {
+      setPlaybackError(null);
       const spotifyToken = localStorage.getItem('spotifyAccessToken');
       const response = await fetch(`https://api.spotify.com/v1/me/player/${action}`, {
         method: action === 'play' || action === 'pause' ? 'PUT' : 'POST',
@@ -325,8 +330,16 @@ export default function SpotifyWidget() {
         console.log(`🎵 ${action} ejecutado`);
         // Recargar estado de reproducción
         await loadCurrentPlayback(spotifyToken);
+      } else if (response.status === 404) {
+        setPlaybackError('No hay dispositivos activos. Abre Spotify en algún dispositivo.');
+        console.log('❌ No hay dispositivos activos');
+      } else {
+        const errorData = await response.json();
+        setPlaybackError(`Error: ${errorData.error?.message || 'Error desconocido'}`);
+        console.error(`Error ejecutando ${action}:`, errorData);
       }
     } catch (error) {
+      setPlaybackError('Error de conexión. Verifica tu conexión a internet.');
       console.error(`Error ejecutando ${action}:`, error);
     }
   };
@@ -454,6 +467,50 @@ export default function SpotifyWidget() {
       }
     } catch (error) {
       console.error('Error ajustando volumen:', error);
+    }
+  };
+
+  const loadDevices = async () => {
+    try {
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+      const response = await fetch('https://api.spotify.com/v1/me/player/devices', {
+        headers: {
+          'Authorization': `Bearer ${spotifyToken}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setDevices(data.devices);
+        const active = data.devices.find(device => device.is_active);
+        setActiveDevice(active);
+        console.log('📱 Dispositivos cargados:', data.devices.length, 'Activo:', active?.name);
+      }
+    } catch (error) {
+      console.error('Error cargando dispositivos:', error);
+    }
+  };
+
+  const transferPlayback = async (deviceId) => {
+    try {
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+      const response = await fetch('https://api.spotify.com/v1/me/player', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${spotifyToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          device_ids: [deviceId]
+        })
+      });
+      
+      if (response.ok) {
+        console.log('🔄 Reproducción transferida a dispositivo:', deviceId);
+        await loadDevices();
+      }
+    } catch (error) {
+      console.error('Error transfiriendo reproducción:', error);
     }
   };
 
@@ -745,8 +802,78 @@ export default function SpotifyWidget() {
                     >
                       📋
                     </button>
+                    <button
+                      onClick={loadDevices}
+                      style={{
+                        padding: '4px 8px',
+                        backgroundColor: devices.length > 0 ? '#1db954' : 'rgba(255, 255, 255, 0.1)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '10px'
+                      }}
+                    >
+                      📱
+                    </button>
                   </div>
                 </div>
+
+                {/* Mensaje de error */}
+                {playbackError && (
+                  <div style={{
+                    padding: '8px',
+                    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(255, 68, 68, 0.3)',
+                    marginBottom: '8px'
+                  }}>
+                    <p style={{ color: '#ff4444', margin: '0', fontSize: '11px' }}>
+                      {playbackError}
+                    </p>
+                  </div>
+                )}
+
+                {/* Dispositivos disponibles */}
+                {devices.length > 0 && (
+                  <div style={{
+                    padding: '8px',
+                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    marginBottom: '8px'
+                  }}>
+                    <h4 style={{ color: '#1db954', margin: '0 0 6px 0', fontSize: '11px' }}>
+                      Dispositivos ({devices.length})
+                    </h4>
+                    {devices.map((device) => (
+                      <div
+                        key={device.id}
+                        onClick={() => transferPlayback(device.id)}
+                        style={{
+                          padding: '4px 6px',
+                          backgroundColor: device.is_active ? 'rgba(29, 185, 84, 0.2)' : 'rgba(0, 0, 0, 0.3)',
+                          marginBottom: '2px',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <span style={{ color: device.is_active ? '#1db954' : '#b3b3b3', fontSize: '10px' }}>
+                          {device.is_active ? '🔊' : '🔇'}
+                        </span>
+                        <span style={{ color: 'white', fontSize: '10px', flex: 1 }}>
+                          {device.name}
+                        </span>
+                        <span style={{ color: '#b3b3b3', fontSize: '8px' }}>
+                          {device.type}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Búsqueda */}
                 {showSearch && (
