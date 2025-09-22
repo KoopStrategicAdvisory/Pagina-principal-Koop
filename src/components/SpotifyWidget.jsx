@@ -168,8 +168,8 @@ export default function SpotifyWidget() {
     
     // Asegurar que el widget no se salga de la pantalla
     const margin = 10;
-    const maxX = window.innerWidth - (isExpanded ? 350 : 60) - margin;
-    const maxY = window.innerHeight - (isExpanded ? 400 : 60) - margin;
+    const maxX = window.innerWidth - (isExpanded ? 300 : 60) - margin;
+    const maxY = window.innerHeight - (isExpanded ? 350 : 60) - margin;
     
     setPosition({
       x: Math.max(margin, Math.min(newX, maxX)),
@@ -198,27 +198,6 @@ export default function SpotifyWidget() {
     };
   }, [isDragging, dragOffset, startPosition]);
 
-  // Función para manejar clics fuera del widget - solo minimizar, no cerrar
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (widgetRef.current && !widgetRef.current.contains(event.target)) {
-        if (isExpanded) {
-          setIsExpanded(false);
-          setIsMinimized(true);
-          // NO parar la música - solo minimizar
-        }
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, [isExpanded]);
-
   // Detectar cuando se inicia la reproducción
   useEffect(() => {
     const handleMessage = (event) => {
@@ -243,11 +222,11 @@ export default function SpotifyWidget() {
     const rightSpace = window.innerWidth - position.x;
     const bottomSpace = window.innerHeight - position.y;
     
-    if (rightSpace < 350 && bottomSpace < 400) {
+    if (rightSpace < 300 && bottomSpace < 350) {
       return 'top-left';
-    } else if (rightSpace < 350) {
+    } else if (rightSpace < 300) {
       return 'left';
-    } else if (bottomSpace < 400) {
+    } else if (bottomSpace < 350) {
       return 'top';
     }
     return 'default';
@@ -260,18 +239,18 @@ export default function SpotifyWidget() {
     switch (direction) {
       case 'top-left':
         return {
-          x: Math.max(margin, position.x - 290),
-          y: Math.max(margin, position.y - 340)
+          x: Math.max(margin, position.x - 240),
+          y: Math.max(margin, position.y - 290)
         };
       case 'left':
         return {
-          x: Math.max(margin, position.x - 290),
+          x: Math.max(margin, position.x - 240),
           y: position.y
         };
       case 'top':
         return {
           x: position.x,
-          y: Math.max(margin, position.y - 340)
+          y: Math.max(margin, position.y - 290)
         };
       default:
         return position;
@@ -288,8 +267,8 @@ export default function SpotifyWidget() {
         left: adjustedPosition.x,
         top: adjustedPosition.y,
         zIndex: 1000,
-        width: isExpanded ? '350px' : '60px',
-        height: isExpanded ? '400px' : '60px',
+        width: isExpanded ? '300px' : '60px',
+        height: isExpanded ? '350px' : '60px',
         backgroundColor: 'rgba(15, 23, 42, 0.95)',
         backdropFilter: 'blur(10px)',
         border: '1px solid rgba(148, 163, 184, 0.2)',
@@ -298,7 +277,8 @@ export default function SpotifyWidget() {
         transition: isDragging ? 'none' : 'all 0.3s ease',
         cursor: isDragging ? 'grabbing' : 'grab',
         touchAction: 'none',
-        userSelect: 'none'
+        userSelect: 'none',
+        pointerEvents: isDragging ? 'none' : 'auto'
       }}
       onMouseDown={handleStart}
       onTouchStart={handleStart}
@@ -320,7 +300,8 @@ export default function SpotifyWidget() {
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            transition: 'transform 0.2s ease'
+            transition: 'transform 0.2s ease',
+            pointerEvents: 'auto'
           }}
           onMouseEnter={(e) => {
             if (!isDragging) {
@@ -362,14 +343,16 @@ export default function SpotifyWidget() {
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          pointerEvents: 'auto'
         }}>
           {/* Header compacto */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '16px'
+            marginBottom: '12px',
+            padding: '8px 0'
           }}>
             <div style={{
               display: 'flex',
@@ -379,7 +362,7 @@ export default function SpotifyWidget() {
               <h4 style={{
                 color: '#1db954',
                 margin: 0,
-                fontSize: '16px',
+                fontSize: '14px',
                 fontWeight: 'bold'
               }}>
                 Spotify
@@ -388,14 +371,14 @@ export default function SpotifyWidget() {
                 <p style={{
                   color: '#94a3b8',
                   margin: 0,
-                  fontSize: '12px'
+                  fontSize: '11px'
                 }}>
                   {userProfile?.display_name}
                 </p>
               )}
             </div>
             
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               {isAuthenticated && (
                 <button
                   onClick={() => setShowPlaylists(!showPlaylists)}
@@ -403,11 +386,11 @@ export default function SpotifyWidget() {
                     background: showPlaylists ? '#1db954' : 'rgba(255, 255, 255, 0.1)',
                     border: 'none',
                     color: 'white',
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    padding: '6px 12px',
-                    borderRadius: '15px',
+                    padding: '4px 8px',
+                    borderRadius: '12px',
                     transition: 'all 0.2s ease'
                   }}
                 >
@@ -421,11 +404,11 @@ export default function SpotifyWidget() {
                     background: '#fc771c',
                     border: 'none',
                     color: '#fff',
-                    fontSize: '14px',
+                    fontSize: '12px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    padding: '8px 16px',
-                    borderRadius: '20px',
+                    padding: '6px 12px',
+                    borderRadius: '15px',
                     transition: 'all 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
@@ -459,10 +442,10 @@ export default function SpotifyWidget() {
                   background: 'transparent',
                   border: 'none',
                   color: '#94a3b8',
-                  fontSize: '18px',
+                  fontSize: '16px',
                   cursor: 'pointer',
-                  padding: '6px',
-                  borderRadius: '6px',
+                  padding: '4px',
+                  borderRadius: '4px',
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
@@ -483,7 +466,7 @@ export default function SpotifyWidget() {
           <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
+            gap: '8px',
             flex: 1,
             justifyContent: 'center'
           }}>
@@ -491,7 +474,7 @@ export default function SpotifyWidget() {
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px',
+                gap: '8px',
                 height: '100%'
               }}>
                 {showPlaylists ? (
@@ -499,12 +482,12 @@ export default function SpotifyWidget() {
                   <div style={{
                     height: '100%',
                     overflowY: 'auto',
-                    padding: '8px',
+                    padding: '6px',
                     backgroundColor: 'rgba(40, 40, 40, 0.8)',
-                    borderRadius: '8px',
+                    borderRadius: '6px',
                     border: '1px solid rgba(255, 255, 255, 0.1)'
                   }}>
-                    <h4 style={{ color: '#1db954', margin: '0 0 12px 0', fontSize: '14px' }}>
+                    <h4 style={{ color: '#1db954', margin: '0 0 8px 0', fontSize: '12px' }}>
                       Tus Playlists
                     </h4>
                     {playlists.map((playlist) => (
@@ -519,14 +502,14 @@ export default function SpotifyWidget() {
                           setShowPlaylists(false);
                         }}
                         style={{
-                          padding: '8px',
+                          padding: '6px',
                           backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                          marginBottom: '6px',
-                          borderRadius: '6px',
+                          marginBottom: '4px',
+                          borderRadius: '4px',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px',
+                          gap: '6px',
                           transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
@@ -541,13 +524,13 @@ export default function SpotifyWidget() {
                         <img
                           src={playlist.images[0]?.url || '/img/default-playlist.png'}
                           alt="Playlist"
-                          style={{ width: '40px', height: '40px', borderRadius: '4px' }}
+                          style={{ width: '32px', height: '32px', borderRadius: '3px' }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ color: 'white', margin: '0', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <p style={{ color: 'white', margin: '0', fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {playlist.name}
                           </p>
-                          <p style={{ color: '#b3b3b3', margin: '0', fontSize: '10px' }}>
+                          <p style={{ color: '#b3b3b3', margin: '0', fontSize: '9px' }}>
                             {playlist.tracks.total} canciones
                           </p>
                         </div>
@@ -558,8 +541,8 @@ export default function SpotifyWidget() {
                   /* Reproductor de Spotify embebido */
                   <div style={{
                     width: '100%',
-                    height: '250px',
-                    borderRadius: '8px',
+                    height: '220px',
+                    borderRadius: '6px',
                     overflow: 'hidden',
                     backgroundColor: 'rgba(40, 40, 40, 0.8)',
                     border: '1px solid rgba(255, 255, 255, 0.1)'
@@ -567,82 +550,28 @@ export default function SpotifyWidget() {
                     <iframe
                       src="https://open.spotify.com/embed/playlist/1Zf1rz0XX6fyNxKOq4XvgN?utm_source=generator&theme=0"
                       width="100%"
-                      height="250"
+                      height="220"
                       frameBorder="0"
                       allowtransparency="true"
                       allow="encrypted-media"
                       style={{
-                        borderRadius: '8px',
+                        borderRadius: '6px',
                         border: 'none'
                       }}
                     />
                   </div>
                 )}
-                
-                {/* Botones de acción */}
-                <div style={{
-                  display: 'flex',
-                  gap: '6px',
-                  paddingTop: '8px',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.1)'
-                }}>
-                  <a
-                    href={userProfile?.external_urls?.spotify || "https://open.spotify.com"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      flex: 1,
-                      background: '#1db954',
-                      border: 'none',
-                      color: '#fff',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      textDecoration: 'none',
-                      textAlign: 'center',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    Abrir
-                  </a>
-                  <button
-                    onClick={() => {
-                      localStorage.removeItem('spotifyAccessToken');
-                      localStorage.removeItem('spotifyRefreshToken');
-                      localStorage.removeItem('spotifyTokenExpiry');
-                      setIsAuthenticated(false);
-                      setUserProfile(null);
-                      setPlaylists([]);
-                    }}
-                    style={{
-                      flex: 1,
-                      background: '#ff4444',
-                      border: 'none',
-                      color: '#fff',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    Salir
-                  </button>
-                </div>
               </div>
             ) : (
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '12px',
-                padding: '20px 0'
+                gap: '8px',
+                padding: '15px 0'
               }}>
                 <div style={{
-                  fontSize: '48px',
+                  fontSize: '36px',
                   color: '#1db954'
                 }}>
                   ♪
@@ -650,7 +579,7 @@ export default function SpotifyWidget() {
                 <h3 style={{
                   color: '#1db954',
                   margin: 0,
-                  fontSize: '18px',
+                  fontSize: '16px',
                   textAlign: 'center'
                 }}>
                   Reproductor de Spotify
@@ -658,9 +587,9 @@ export default function SpotifyWidget() {
                 <p style={{
                   color: '#94a3b8',
                   margin: 0,
-                  fontSize: '14px',
+                  fontSize: '12px',
                   textAlign: 'center',
-                  lineHeight: '1.5'
+                  lineHeight: '1.4'
                 }}>
                   Conecta tu cuenta de Spotify para disfrutar de tu música favorita
                 </p>
@@ -670,13 +599,13 @@ export default function SpotifyWidget() {
                     background: '#1db954',
                     border: 'none',
                     color: '#fff',
-                    fontSize: '16px',
+                    fontSize: '14px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    padding: '12px 24px',
-                    borderRadius: '25px',
+                    padding: '10px 20px',
+                    borderRadius: '20px',
                     transition: 'all 0.2s ease',
-                    marginTop: '8px'
+                    marginTop: '6px'
                   }}
                   onMouseEnter={(e) => {
                     e.target.style.background = '#1ed760';
