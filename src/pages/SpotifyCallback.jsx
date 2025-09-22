@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function SpotifyCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
 
   useEffect(() => {
     const code = searchParams.get('code');
@@ -26,6 +28,13 @@ export default function SpotifyCallback() {
 
   const exchangeCodeForToken = async (code) => {
     try {
+      // Verificar que el usuario esté autenticado
+      if (!user) {
+        console.error('Usuario no autenticado');
+        navigate('/login');
+        return;
+      }
+
       const response = await api.post('/spotify/auth/token', { code });
 
       if (response.status === 200) {
