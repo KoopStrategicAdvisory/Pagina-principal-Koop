@@ -15,6 +15,7 @@ export default function SpotifyWidget() {
   const [hasMoved, setHasMoved] = useState(false);
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const widgetRef = useRef(null);
 
   const isAdmin = user?.roles?.includes('admin');
@@ -30,6 +31,11 @@ export default function SpotifyWidget() {
     if (savedExpanded) {
       setIsExpanded(JSON.parse(savedExpanded));
     }
+
+    const savedMinimized = localStorage.getItem('spotifyWidgetMinimized');
+    if (savedMinimized) {
+      setIsMinimized(JSON.parse(savedMinimized));
+    }
   }, []);
 
   // Guardar posición y estado
@@ -41,38 +47,19 @@ export default function SpotifyWidget() {
     localStorage.setItem('spotifyWidgetExpanded', JSON.stringify(isExpanded));
   }, [isExpanded]);
 
-  // Verificar autenticación
+  useEffect(() => {
+    localStorage.setItem('spotifyWidgetMinimized', JSON.stringify(isMinimized));
+  }, [isMinimized]);
+
+  // Verificar autenticación - ahora en todas las páginas
   useEffect(() => {
     if (isAdmin) {
-      // Verificar si estamos en la página del dashboard
-      if (window.location.pathname === '/dashboard') {
-        // Verificar si hay un parámetro de código en la URL (viene de Spotify)
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('code')) {
-          console.log('🔄 Detectado código de Spotify, esperando intercambio...');
-          // Esperar un poco para que se complete el intercambio
-          setTimeout(() => {
-            console.log('🔄 Verificando autenticación después del intercambio...');
-            checkAuthentication();
-          }, 2000);
-        } else {
-          // Si no hay código, esperar un poco por si acaso viene de una redirección
-          console.log('🔄 Verificando autenticación con delay...');
-          setTimeout(() => {
-            checkAuthentication();
-          }, 1000);
-        }
-      } else {
-        // Si no estamos en dashboard, verificar inmediatamente
-        checkAuthentication();
-      }
-
+      // Verificar autenticación inmediatamente en cualquier página
+      checkAuthentication();
+      
       // Verificar cuando el foco regresa a la ventana
       const handleFocus = () => {
-        if (window.location.pathname === '/dashboard') {
-          console.log('🔄 Verificando autenticación al regresar el foco...');
-          checkAuthentication();
-        }
+        checkAuthentication();
       };
 
       window.addEventListener('focus', handleFocus);
@@ -211,13 +198,14 @@ export default function SpotifyWidget() {
     };
   }, [isDragging, dragOffset, startPosition]);
 
-  // Función para manejar clics fuera del widget
+  // Función para manejar clics fuera del widget - solo minimizar, no cerrar
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (widgetRef.current && !widgetRef.current.contains(event.target)) {
         if (isExpanded) {
           setIsExpanded(false);
           setIsMinimized(true);
+          // NO parar la música - solo minimizar
         }
       }
     };
@@ -230,6 +218,22 @@ export default function SpotifyWidget() {
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isExpanded]);
+
+  // Detectar cuando se inicia la reproducción
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.origin === 'https://open.spotify.com') {
+        if (event.data && event.data.type === 'playback_started') {
+          setIsPlaying(true);
+        } else if (event.data && event.data.type === 'playback_paused') {
+          setIsPlaying(false);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   if (!isAdmin) {
     return null;
@@ -344,9 +348,9 @@ export default function SpotifyWidget() {
               right: '5px',
               width: '8px',
               height: '8px',
-              backgroundColor: '#1db954',
+              backgroundColor: isPlaying ? '#1db954' : '#ff6b6b',
               borderRadius: '50%',
-              animation: 'pulse 2s infinite'
+              animation: isPlaying ? 'pulse 2s infinite' : 'none'
             }} />
           )}
         </div>
@@ -441,6 +445,7 @@ export default function SpotifyWidget() {
                   e.stopPropagation();
                   setIsExpanded(false);
                   setIsMinimized(true);
+                  // NO parar la música - solo minimizar
                   const margin = 10;
                   const buttonSize = 60;
                   const maxX = window.innerWidth - buttonSize - margin;
