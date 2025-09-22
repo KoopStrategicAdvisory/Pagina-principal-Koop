@@ -29,6 +29,32 @@ export default function SpotifyWidget() {
     }
   }, [isAdmin]);
 
+  // Verificar autenticación cuando el usuario regresa de Spotify
+  useEffect(() => {
+    if (isAdmin) {
+      // Verificar si estamos en la página del dashboard después de una redirección
+      const checkAfterRedirect = () => {
+        if (window.location.pathname === '/dashboard') {
+          checkAuthentication();
+        }
+      };
+
+      // Verificar inmediatamente
+      checkAfterRedirect();
+
+      // También verificar cuando el foco regresa a la ventana
+      const handleFocus = () => {
+        checkAfterRedirect();
+      };
+
+      window.addEventListener('focus', handleFocus);
+      
+      return () => {
+        window.removeEventListener('focus', handleFocus);
+      };
+    }
+  }, [isAdmin]);
+
   // Función para determinar la dirección de apertura y ajustar posición
   const getOpenDirection = () => {
     const centerX = window.innerWidth / 2;
