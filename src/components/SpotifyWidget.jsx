@@ -9,6 +9,13 @@ export default function SpotifyWidget() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [playlists, setPlaylists] = useState([]);
   const [currentPlayback, setCurrentPlayback] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [currentPlaylist, setCurrentPlaylist] = useState(null);
+  const [playlistTracks, setPlaylistTracks] = useState([]);
+  const [showPlaylist, setShowPlaylist] = useState(false);
+  const [volume, setVolume] = useState(50);
   const [position, setPosition] = useState({ x: window.innerWidth - 80, y: window.innerHeight - 80 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -368,6 +375,88 @@ export default function SpotifyWidget() {
     }
   };
 
+  const searchTracks = async (query) => {
+    if (!query.trim()) return;
+    
+    try {
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+      const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`, {
+        headers: {
+          'Authorization': `Bearer ${spotifyToken}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.tracks.items);
+        console.log('🔍 Resultados de búsqueda:', data.tracks.items.length);
+      }
+    } catch (error) {
+      console.error('Error buscando canciones:', error);
+    }
+  };
+
+  const playTrack = async (trackUri) => {
+    try {
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+      const response = await fetch('https://api.spotify.com/v1/me/player/play', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${spotifyToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          uris: [trackUri]
+        })
+      });
+      
+      if (response.ok) {
+        console.log('🎵 Reproduciendo canción:', trackUri);
+        await loadCurrentPlayback(spotifyToken);
+      }
+    } catch (error) {
+      console.error('Error reproduciendo canción:', error);
+    }
+  };
+
+  const loadPlaylistTracks = async (playlistId) => {
+    try {
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+      const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+        headers: {
+          'Authorization': `Bearer ${spotifyToken}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPlaylistTracks(data.items);
+        console.log('📋 Canciones de playlist cargadas:', data.items.length);
+      }
+    } catch (error) {
+      console.error('Error cargando canciones de playlist:', error);
+    }
+  };
+
+  const setVolumeLevel = async (newVolume) => {
+    try {
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+      const response = await fetch(`https://api.spotify.com/v1/me/player/volume?volume_percent=${newVolume}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${spotifyToken}`
+        }
+      });
+      
+      if (response.ok) {
+        setVolume(newVolume);
+        console.log('🔊 Volumen ajustado a:', newVolume);
+      }
+    } catch (error) {
+      console.error('Error ajustando volumen:', error);
+    }
+  };
+
   const authenticateWithSpotify = async () => {
     try {
       const response = await api.get('/spotify/auth/url');
@@ -606,135 +695,283 @@ export default function SpotifyWidget() {
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px'
+                gap: '12px',
+                height: '100%'
               }}>
-                {/* Estado de conexión */}
+                {/* Header con navegación */}
                 <div style={{
                   display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px',
-                  backgroundColor: 'rgba(29, 185, 84, 0.1)',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(29, 185, 84, 0.3)'
+                  padding: '8px 0',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
                 }}>
-                  <div style={{ color: '#1db954', fontSize: '20px' }}>✅</div>
-                  <span style={{ color: '#1db954', fontSize: '14px', fontWeight: 'bold' }}>
-                    Conectado como {userProfile?.display_name}
-                  </span>
-                </div>
-
-                {/* Reproductor de música */}
-                {currentPlayback ? (
                   <div style={{
-                    padding: '12px',
-                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
                   }}>
-                    <div style={{ marginBottom: '10px', textAlign: 'center' }}>
-                      <img 
-                        src={currentPlayback.item?.album?.images?.[0]?.url || '/img/default-album.png'} 
-                        alt="Album" 
-                        style={{ 
-                          width: '50px', 
-                          height: '50px', 
-                          borderRadius: '5px',
-                          marginBottom: '6px'
-                        }} 
-                      />
-                      <h4 style={{ color: 'white', margin: '0 0 4px 0', fontSize: '12px' }}>
-                        {currentPlayback.item?.name || 'Sin canción'}
-                      </h4>
-                      <p style={{ color: '#b3b3b3', margin: '0', fontSize: '10px' }}>
-                        {currentPlayback.item?.artists?.[0]?.name || 'Artista desconocido'}
-                      </p>
-                    </div>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                      <button
-                        onClick={() => controlPlayback('previous')}
-                        style={{
-                          padding: '6px',
-                          backgroundColor: '#1db954',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '50%',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
-                      >
-                        ⏮️
-                      </button>
-                      <button
-                        onClick={() => controlPlayback(currentPlayback.is_playing ? 'pause' : 'play')}
-                        style={{
-                          padding: '6px',
-                          backgroundColor: '#1db954',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '50%',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
-                      >
-                        {currentPlayback.is_playing ? '⏸️' : '▶️'}
-                      </button>
-                      <button
-                        onClick={() => controlPlayback('next')}
-                        style={{
-                          padding: '6px',
-                          backgroundColor: '#1db954',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '50%',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
-                      >
-                        ⏭️
-                      </button>
-                    </div>
+                    <div style={{ color: '#1db954', fontSize: '16px' }}>✅</div>
+                    <span style={{ color: '#1db954', fontSize: '12px', fontWeight: 'bold' }}>
+                      {userProfile?.display_name}
+                    </span>
                   </div>
-                ) : (
-                  <div style={{
-                    padding: '12px',
-                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    textAlign: 'center'
-                  }}>
-                    <p style={{ color: '#b3b3b3', margin: '0 0 10px 0', fontSize: '12px' }}>
-                      No hay música reproduciéndose
-                    </p>
+                  <div style={{ display: 'flex', gap: '4px' }}>
                     <button
-                      onClick={startPlayback}
+                      onClick={() => setShowSearch(!showSearch)}
                       style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#1db954',
+                        padding: '4px 8px',
+                        backgroundColor: showSearch ? '#1db954' : 'rgba(255, 255, 255, 0.1)',
                         color: 'white',
                         border: 'none',
-                        borderRadius: '20px',
+                        borderRadius: '4px',
                         cursor: 'pointer',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
+                        fontSize: '10px'
                       }}
                     >
-                      ▶️ Iniciar Reproducción
+                      🔍
                     </button>
+                    <button
+                      onClick={() => setShowPlaylist(!showPlaylist)}
+                      style={{
+                        padding: '4px 8px',
+                        backgroundColor: showPlaylist ? '#1db954' : 'rgba(255, 255, 255, 0.1)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '10px'
+                      }}
+                    >
+                      📋
+                    </button>
+                  </div>
+                </div>
+
+                {/* Búsqueda */}
+                {showSearch && (
+                  <div style={{
+                    padding: '8px',
+                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}>
+                    <input
+                      type="text"
+                      placeholder="Buscar canciones..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && searchTracks(searchQuery)}
+                      style={{
+                        width: '100%',
+                        padding: '6px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: '4px',
+                        color: 'white',
+                        fontSize: '11px',
+                        marginBottom: '8px'
+                      }}
+                    />
+                    {searchResults.length > 0 && (
+                      <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
+                        {searchResults.map((track) => (
+                          <div
+                            key={track.id}
+                            onClick={() => playTrack(track.uri)}
+                            style={{
+                              padding: '4px',
+                              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                              marginBottom: '2px',
+                              borderRadius: '3px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <img
+                              src={track.album.images[2]?.url || '/img/default-album.png'}
+                              alt="Album"
+                              style={{ width: '20px', height: '20px', borderRadius: '2px' }}
+                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ color: 'white', margin: '0', fontSize: '9px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {track.name}
+                              </p>
+                              <p style={{ color: '#b3b3b3', margin: '0', fontSize: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {track.artists[0]?.name}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
+                {/* Reproductor principal */}
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(40, 40, 40, 0.8)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  flex: 1
+                }}>
+                  {currentPlayback ? (
+                    <div>
+                      {/* Información de la canción */}
+                      <div style={{ marginBottom: '12px', textAlign: 'center' }}>
+                        <img 
+                          src={currentPlayback.item?.album?.images?.[0]?.url || '/img/default-album.png'} 
+                          alt="Album" 
+                          style={{ 
+                            width: '60px', 
+                            height: '60px', 
+                            borderRadius: '6px',
+                            marginBottom: '8px'
+                          }} 
+                        />
+                        <h4 style={{ color: 'white', margin: '0 0 4px 0', fontSize: '13px' }}>
+                          {currentPlayback.item?.name || 'Sin canción'}
+                        </h4>
+                        <p style={{ color: '#b3b3b3', margin: '0', fontSize: '11px' }}>
+                          {currentPlayback.item?.artists?.[0]?.name || 'Artista desconocido'}
+                        </p>
+                      </div>
+                      
+                      {/* Barra de progreso */}
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{
+                          width: '100%',
+                          height: '4px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                          borderRadius: '2px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${(currentPlayback.progress_ms / currentPlayback.item?.duration_ms) * 100}%`,
+                            height: '100%',
+                            backgroundColor: '#1db954',
+                            transition: 'width 0.1s ease'
+                          }} />
+                        </div>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginTop: '4px',
+                          fontSize: '9px',
+                          color: '#b3b3b3'
+                        }}>
+                          <span>{Math.floor(currentPlayback.progress_ms / 1000 / 60)}:{(Math.floor(currentPlayback.progress_ms / 1000) % 60).toString().padStart(2, '0')}</span>
+                          <span>{Math.floor(currentPlayback.item?.duration_ms / 1000 / 60)}:{(Math.floor(currentPlayback.item?.duration_ms / 1000) % 60).toString().padStart(2, '0')}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Controles principales */}
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                        <button
+                          onClick={() => controlPlayback('previous')}
+                          style={{
+                            padding: '8px',
+                            backgroundColor: 'rgba(29, 185, 84, 0.2)',
+                            color: '#1db954',
+                            border: '1px solid #1db954',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            fontSize: '14px'
+                          }}
+                        >
+                          ⏮️
+                        </button>
+                        <button
+                          onClick={() => controlPlayback(currentPlayback.is_playing ? 'pause' : 'play')}
+                          style={{
+                            padding: '12px',
+                            backgroundColor: '#1db954',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            fontSize: '16px'
+                          }}
+                        >
+                          {currentPlayback.is_playing ? '⏸️' : '▶️'}
+                        </button>
+                        <button
+                          onClick={() => controlPlayback('next')}
+                          style={{
+                            padding: '8px',
+                            backgroundColor: 'rgba(29, 185, 84, 0.2)',
+                            color: '#1db954',
+                            border: '1px solid #1db954',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            fontSize: '14px'
+                          }}
+                        >
+                          ⏭️
+                        </button>
+                      </div>
+                      
+                      {/* Control de volumen */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: '#b3b3b3', fontSize: '10px' }}>🔊</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={volume}
+                          onChange={(e) => setVolumeLevel(parseInt(e.target.value))}
+                          style={{
+                            flex: 1,
+                            height: '4px',
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            outline: 'none',
+                            borderRadius: '2px'
+                          }}
+                        />
+                        <span style={{ color: '#b3b3b3', fontSize: '10px' }}>{volume}%</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                      <p style={{ color: '#b3b3b3', margin: '0 0 12px 0', fontSize: '12px' }}>
+                        No hay música reproduciéndose
+                      </p>
+                      <button
+                        onClick={startPlayback}
+                        style={{
+                          padding: '10px 20px',
+                          backgroundColor: '#1db954',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '20px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        ▶️ Iniciar Reproducción
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {/* Playlists */}
-                {playlists.length > 0 && (
-                  <div style={{ maxHeight: '120px', overflowY: 'auto' }}>
+                {!showPlaylist && playlists.length > 0 && (
+                  <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
                     <h4 style={{ color: '#1db954', margin: '0 0 8px 0', fontSize: '12px' }}>
                       Tus Playlists
                     </h4>
                     {playlists.slice(0, 3).map((playlist) => (
                       <div 
                         key={playlist.id} 
-                        onClick={() => playPlaylist(playlist.id)}
+                        onClick={() => {
+                          playPlaylist(playlist.id);
+                          setCurrentPlaylist(playlist);
+                          loadPlaylistTracks(playlist.id);
+                        }}
                         style={{ 
                           padding: '6px', 
                           backgroundColor: 'rgba(40, 40, 40, 0.6)', 
@@ -762,11 +999,76 @@ export default function SpotifyWidget() {
                     ))}
                   </div>
                 )}
+
+                {/* Lista de canciones de playlist */}
+                {showPlaylist && currentPlaylist && (
+                  <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <h4 style={{ color: '#1db954', margin: '0', fontSize: '12px' }}>
+                        {currentPlaylist.name}
+                      </h4>
+                      <button
+                        onClick={() => setShowPlaylist(false)}
+                        style={{
+                          padding: '2px 6px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                          fontSize: '10px'
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    {playlistTracks.map((item, index) => (
+                      <div
+                        key={item.track.id}
+                        onClick={() => playTrack(item.track.uri)}
+                        style={{
+                          padding: '6px',
+                          backgroundColor: 'rgba(40, 40, 40, 0.6)',
+                          marginBottom: '2px',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <span style={{ color: '#b3b3b3', fontSize: '10px', minWidth: '20px' }}>
+                          {index + 1}
+                        </span>
+                        <img
+                          src={item.track.album.images[2]?.url || '/img/default-album.png'}
+                          alt="Album"
+                          style={{ width: '24px', height: '24px', borderRadius: '2px' }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ color: 'white', margin: '0', fontSize: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.track.name}
+                          </p>
+                          <p style={{ color: '#b3b3b3', margin: '0', fontSize: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.track.artists[0]?.name}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 
                 {/* Botones de acción */}
                 <div style={{
                   display: 'flex',
-                  gap: '6px'
+                  gap: '6px',
+                  paddingTop: '8px',
+                  borderTop: '1px solid rgba(255, 255, 255, 0.1)'
                 }}>
                   <a
                     href={userProfile?.external_urls?.spotify || "https://open.spotify.com"}
@@ -777,22 +1079,14 @@ export default function SpotifyWidget() {
                       background: '#1db954',
                       border: 'none',
                       color: '#fff',
-                      fontSize: '13px',
+                      fontSize: '12px',
                       fontWeight: 'bold',
                       cursor: 'pointer',
                       padding: '8px 12px',
-                      borderRadius: '8px',
+                      borderRadius: '6px',
                       textDecoration: 'none',
                       textAlign: 'center',
                       transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#1ed760';
-                      e.target.style.transform = 'scale(1.05)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = '#1db954';
-                      e.target.style.transform = 'scale(1)';
                     }}
                   >
                     Abrir
@@ -806,26 +1100,21 @@ export default function SpotifyWidget() {
                       setUserProfile(null);
                       setPlaylists([]);
                       setCurrentPlayback(null);
+                      setSearchResults([]);
+                      setCurrentPlaylist(null);
+                      setPlaylistTracks([]);
                     }}
                     style={{
                       flex: 1,
                       background: '#ff4444',
                       border: 'none',
                       color: '#fff',
-                      fontSize: '13px',
+                      fontSize: '12px',
                       fontWeight: 'bold',
                       cursor: 'pointer',
                       padding: '8px 12px',
-                      borderRadius: '8px',
+                      borderRadius: '6px',
                       transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#ff3333';
-                      e.target.style.transform = 'scale(1.05)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = '#ff4444';
-                      e.target.style.transform = 'scale(1)';
                     }}
                   >
                     Salir
