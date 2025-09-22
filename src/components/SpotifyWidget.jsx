@@ -324,6 +324,50 @@ export default function SpotifyWidget() {
     }
   };
 
+  const playPlaylist = async (playlistId) => {
+    try {
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+      const response = await fetch('https://api.spotify.com/v1/me/player/play', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${spotifyToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          context_uri: `spotify:playlist:${playlistId}`
+        })
+      });
+      
+      if (response.ok) {
+        console.log(`🎵 Reproduciendo playlist: ${playlistId}`);
+        // Recargar estado de reproducción
+        await loadCurrentPlayback(spotifyToken);
+      }
+    } catch (error) {
+      console.error('Error reproduciendo playlist:', error);
+    }
+  };
+
+  const startPlayback = async () => {
+    try {
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+      const response = await fetch('https://api.spotify.com/v1/me/player/play', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${spotifyToken}`
+        }
+      });
+      
+      if (response.ok) {
+        console.log('🎵 Iniciando reproducción');
+        // Recargar estado de reproducción
+        await loadCurrentPlayback(spotifyToken);
+      }
+    } catch (error) {
+      console.error('Error iniciando reproducción:', error);
+    }
+  };
+
   const authenticateWithSpotify = async () => {
     try {
       const response = await api.get('/spotify/auth/url');
@@ -581,7 +625,7 @@ export default function SpotifyWidget() {
                 </div>
 
                 {/* Reproductor de música */}
-                {currentPlayback && (
+                {currentPlayback ? (
                   <div style={{
                     padding: '12px',
                     backgroundColor: 'rgba(40, 40, 40, 0.8)',
@@ -652,6 +696,33 @@ export default function SpotifyWidget() {
                       </button>
                     </div>
                   </div>
+                ) : (
+                  <div style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    textAlign: 'center'
+                  }}>
+                    <p style={{ color: '#b3b3b3', margin: '0 0 10px 0', fontSize: '12px' }}>
+                      No hay música reproduciéndose
+                    </p>
+                    <button
+                      onClick={startPlayback}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#1db954',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '20px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      ▶️ Iniciar Reproducción
+                    </button>
+                  </div>
                 )}
 
                 {/* Playlists */}
@@ -661,13 +732,26 @@ export default function SpotifyWidget() {
                       Tus Playlists
                     </h4>
                     {playlists.slice(0, 3).map((playlist) => (
-                      <div key={playlist.id} style={{ 
-                        padding: '6px', 
-                        backgroundColor: 'rgba(40, 40, 40, 0.6)', 
-                        marginBottom: '4px', 
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                      }}>
+                      <div 
+                        key={playlist.id} 
+                        onClick={() => playPlaylist(playlist.id)}
+                        style={{ 
+                          padding: '6px', 
+                          backgroundColor: 'rgba(40, 40, 40, 0.6)', 
+                          marginBottom: '4px', 
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = 'rgba(29, 185, 84, 0.2)';
+                          e.target.style.transform = 'scale(1.02)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'rgba(40, 40, 40, 0.6)';
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                      >
                         <p style={{ color: 'white', margin: '0', fontSize: '10px' }}>
                           {playlist.name}
                         </p>
