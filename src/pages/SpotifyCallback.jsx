@@ -43,7 +43,12 @@ export default function SpotifyCallback() {
       const token = localStorage.getItem('accessToken');
       console.log('🔑 Token disponible:', !!token, token?.substring(0, 20) + '...');
       
-      const response = await api.post('/spotify/auth/token', { code });
+      // Forzar el envío del token manualmente
+      const response = await api.post('/spotify/auth/token', { code }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
       if (response.status === 200) {
         // Redirigir al dashboard
