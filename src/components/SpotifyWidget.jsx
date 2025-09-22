@@ -22,20 +22,18 @@ export default function SpotifyWidget() {
 
   if (!isAdmin) return null;
 
-  // Verificar autenticación al cargar
-  useEffect(() => {
-    if (isAdmin) {
-      checkAuthentication();
-    }
-  }, [isAdmin]);
-
-  // Verificar autenticación cuando el usuario regresa de Spotify
+  // Verificar autenticación solo cuando el usuario regresa de Spotify
   useEffect(() => {
     if (isAdmin) {
       // Verificar si estamos en la página del dashboard después de una redirección
       const checkAfterRedirect = () => {
         if (window.location.pathname === '/dashboard') {
-          checkAuthentication();
+          // Solo verificar si hay un parámetro de código en la URL (viene de Spotify)
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('code')) {
+            console.log('🔄 Detectado código de Spotify, verificando autenticación...');
+            checkAuthentication();
+          }
         }
       };
 
