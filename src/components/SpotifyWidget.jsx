@@ -25,24 +25,28 @@ export default function SpotifyWidget() {
   // Verificar autenticación al cargar y cuando el usuario regresa de Spotify
   useEffect(() => {
     if (isAdmin) {
-      // Verificar inmediatamente al cargar
-      checkAuthentication();
-
       // Verificar si estamos en la página del dashboard después de una redirección
       const checkAfterRedirect = () => {
         if (window.location.pathname === '/dashboard') {
           // Verificar si hay un parámetro de código en la URL (viene de Spotify)
           const urlParams = new URLSearchParams(window.location.search);
           if (urlParams.get('code')) {
-            console.log('🔄 Detectado código de Spotify, verificando autenticación...');
-            checkAuthentication();
+            console.log('🔄 Detectado código de Spotify, esperando intercambio...');
+            // Esperar un poco para que se complete el intercambio
+            setTimeout(() => {
+              console.log('🔄 Verificando autenticación después del intercambio...');
+              checkAuthentication();
+            }, 2000);
           } else {
-            // También verificar si no hay código (puede ser después del intercambio)
-            console.log('🔄 Verificando autenticación después de redirección...');
+            // Verificar inmediatamente si no hay código
+            console.log('🔄 Verificando autenticación al cargar...');
             checkAuthentication();
           }
         }
       };
+
+      // Verificar inmediatamente al cargar
+      checkAfterRedirect();
 
       // Verificar cuando el foco regresa a la ventana
       const handleFocus = () => {
