@@ -638,7 +638,7 @@ export default function ClientesActivos() {
                     <th>Fecha</th>
                     <th>Nombre</th>
                     <th>Tipo</th>
-                    <th>Tama?o</th>
+                    <th>Tamaño</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>

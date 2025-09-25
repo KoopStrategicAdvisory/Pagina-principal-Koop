@@ -3,7 +3,7 @@ import '../styles/dashboard.css';
 import '../styles/mi-expediente.css';
 import { useAuth } from '../context/AuthContext';
 import { normalizeUpperAscii } from '../utils/strings.js';
-import { listRecentDocs, uploadDoc, getDownloadUrl, getClientDocumentHistory, getDiagnostics, createFolder, deleteDocument } from '../api/docs';
+import { listRecentDocs, uploadDoc, getDownloadUrl, getClientDocumentHistory, getDiagnostics, createFolder, deleteDocument, deleteFolder } from '../api/docs';
 import { listActiveClients } from '../api/clients';
 import { SuccessNotice, DangerNotice } from '../components/common/Notice';
 
@@ -202,6 +202,22 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
   const [showProcessInfo, setShowProcessInfo] = useState(false);
   const [selectedFileForAction, setSelectedFileForAction] = useState(null);
   const [newFileName, setNewFileName] = useState('');
+  // Estados para modal de audiencias
+  const [showAudienceModal, setShowAudienceModal] = useState(false);
+  const [audienceData, setAudienceData] = useState({
+    fecha: '',
+    actuacion: '',
+    tipo: '',
+    juzgado: '',
+    estado: ''
+  });
+  const [audiences, setAudiences] = useState([]);
+
+  // Estados para eliminar carpetas
+  const [showDeleteFolderModal, setShowDeleteFolderModal] = useState(false);
+  const [folderToDelete, setFolderToDelete] = useState(null);
+  const [deletingFolder, setDeletingFolder] = useState(false);
+
   const [processData, setProcessData] = useState({
     radicado: '',
     clase: '',
@@ -379,7 +395,22 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
     return () => { ignore = true; };
   }, [isAdmin, user]);
 
-  const onClickUpload = () => fileInputRef.current?.click();
+  const onClickUpload = () => {
+    // Verificar si hay una carpeta seleccionada
+    if (isAdmin && !selectedFolder?.path) {
+      setNoticeMessage('Debes seleccionar una carpeta antes de subir un documento');
+      setShowErrorNotice(true);
+      return;
+    }
+    
+    if (!isAdmin && !selectedUserFolder?.path) {
+      setNoticeMessage('Debes seleccionar una carpeta antes de subir un documento');
+      setShowErrorNotice(true);
+      return;
+    }
+    
+    fileInputRef.current?.click();
+  };
 
   const onFileChange = (e) => {
     const f = e.target?.files?.[0];
@@ -465,7 +496,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       await loadDocs();
       
       // Mostrar notificación de éxito
-      setNoticeMessage(`Documento "${f.name}" subido exitosamente`);
+      setNoticeMessage(`Documento subido exitosamente`);
       setShowSuccessNotice(true);
     } catch (e2) {
       const errorMsg = e2?.message || 'Error subiendo documento';
@@ -538,7 +569,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       await reloadCurrentFolder();
       
       // Mostrar notificación de éxito
-      setNoticeMessage(`Documento "${correctedFileName}" subido exitosamente`);
+      setNoticeMessage(`Documento subido exitosamente`);
       setShowErrorNotice(true); // Notificación roja
       
       // Limpiar estados
@@ -722,6 +753,86 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       } finally {
         setLoading(false);
       }
+    }
+  };
+
+  // Función para verificar si una carpeta está vacía
+  const isFolderEmpty = async (folder) => {
+    try {
+      const data = await listRecentDocs({ 
+        limit: 100, // Aumentar el límite para verificar todos los elementos
+        subfolder: folder.path
+      });
+      
+      if (!data?.items || data.items.length === 0) {
+        return true; // No hay elementos, la carpeta está vacía
+      }
+      
+      // Verificar que no haya archivos (solo carpetas)
+      const hasFiles = data.items.some(item => {
+        const isFolder = item.isFolder || item.key?.endsWith('/') || item.name?.endsWith('/');
+        return !isFolder; // Si no es carpeta, es un archivo
+      });
+      
+      return !hasFiles; // Si no hay archivos, la carpeta está vacía
+    } catch (error) {
+      console.error('Error verificando si la carpeta está vacía:', error);
+      return false; // En caso de error, asumir que no está vacía por seguridad
+    }
+  };
+
+  // Función para eliminar una carpeta
+  const handleDeleteFolder = async () => {
+    if (!folderToDelete) return;
+    
+    try {
+      setDeletingFolder(true);
+      
+      // Verificar que la carpeta esté vacía
+      const isEmpty = await isFolderEmpty(folderToDelete);
+      if (!isEmpty) {
+        setNoticeMessage('No se puede eliminar la carpeta porque contiene archivos. Solo se pueden eliminar carpetas completamente vacías.');
+        setShowErrorNotice(true);
+        return;
+      }
+      
+      // Eliminar la carpeta del backend
+      console.log('Eliminando carpeta:', folderToDelete.path);
+      await deleteFolder(folderToDelete.path);
+      
+      // Actualizar el estado local
+      if (selectedClient) {
+        setClientFolders(prev => {
+          const updated = { ...prev };
+          if (updated[selectedClient.id]) {
+            const filtered = Object.fromEntries(
+              Object.entries(updated[selectedClient.id]).filter(
+                ([key, folder]) => folder.path !== folderToDelete.path
+              )
+            );
+            updated[selectedClient.id] = filtered;
+          }
+          return updated;
+        });
+      }
+      
+      // Si la carpeta eliminada era la seleccionada, limpiar la selección
+      if (selectedFolder?.path === folderToDelete.path) {
+        setSelectedFolder(null);
+        setDocs([]); // Limpiar también los documentos mostrados
+      }
+      
+      setShowDeleteFolderModal(false);
+      setFolderToDelete(null);
+      setNoticeMessage('Carpeta eliminada correctamente');
+      setShowSuccessNotice(true);
+      
+    } catch (error) {
+      console.error('Error eliminando carpeta:', error);
+      setNoticeMessage('Error al eliminar la carpeta');
+      setShowErrorNotice(true);
+    } finally {
+      setDeletingFolder(false);
     }
   };
 
@@ -972,7 +1083,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       setShowCreateProcess(false);
 
       // Mostrar notificación de éxito
-      setNoticeMessage(`Proceso "${folderName}" creado exitosamente`);
+      setNoticeMessage(`Proceso creado exitosamente`);
       setShowSuccessNotice(true);
 
       // Recargar las carpetas del cliente
@@ -1159,13 +1270,13 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       
       // Mostrar notificación de eliminación (siempre en rojo)
       if (errors.length === 0) {
-        setNoticeMessage(`Se eliminaron ${deletedCount} elemento${deletedCount > 1 ? 's' : ''} correctamente`);
+        setNoticeMessage(`Elementos eliminados correctamente`);
         setShowErrorNotice(true); // Cambiado a rojo
       } else if (deletedCount > 0) {
-        setNoticeMessage(`Se eliminaron ${deletedCount} elemento${deletedCount > 1 ? 's' : ''} correctamente. Errores: ${errors.join(', ')}`);
+        setNoticeMessage(`Algunos elementos eliminados correctamente`);
         setShowErrorNotice(true);
       } else {
-        setNoticeMessage(`Error al eliminar elementos: ${errors.join(', ')}`);
+        setNoticeMessage(`Error al eliminar elementos`);
         setShowErrorNotice(true);
       }
       
@@ -1218,7 +1329,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
         
         <div className="dash-header">
           <div className="dash-title">
-            {isModal ? `Expediente - ${selectedClient?.name || 'Cliente'}` : (isAdmin ? 'Mis expedientes' : 'Mi expediente')}
+            {isModal ? 'Expediente' : (isAdmin ? 'Mis expedientes' : 'Mi expediente')}
           </div>
           {isModal && onClose && (
             <button className="btn btn-secondary" onClick={onClose} style={{ marginLeft: 'auto' }}>
@@ -1253,7 +1364,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 🗑️ Eliminar ({selectedItems.size})
               </button>
             )}
-            <button className="btn btn-secondary">Ver informaci?n</button>
+            <button className="btn btn-secondary">Ver información</button>
           </div>
         </div>
 
@@ -1339,7 +1450,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                             borderRadius: '8px',
                             margin: '4px 0',
                             padding: '12px 16px',
-                            border: selectedFolder?.path === folder.path ? '1px solid #4fd1c5' : '1px solid #394b61',
+                            border: selectedFolder?.path === folder.path ? '1px solid #fc771c' : '1px solid #4fd1c5',
                             transition: 'all 0.2s ease',
                             display: 'flex',
                             alignItems: 'center',
@@ -1349,13 +1460,13 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                           onMouseEnter={(e) => {
                             if (selectedFolder?.path !== folder.path) {
                               e.target.style.backgroundColor = '#2a3a51';
-                              e.target.style.borderColor = '#4fd1c5';
+                              e.target.style.borderColor = '#fc771c';
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (selectedFolder?.path !== folder.path) {
                               e.target.style.backgroundColor = '#1e2a3a';
-                              e.target.style.borderColor = '#394b61';
+                              e.target.style.borderColor = '#4fd1c5';
                             }
                           }}
                         >
@@ -1366,7 +1477,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: selectedFolder?.path === folder.path ? '#4fd1c5' : '#fc771c'
+                            color: selectedFolder?.path === folder.path ? '#fc771c' : '#4fd1c5'
                           }}>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
@@ -1376,12 +1487,36 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                           {/* Contenido de la carpeta */}
                           <div style={{ flex: 1 }}>
                             <div style={{ 
-                              color: selectedFolder?.path === folder.path ? '#4fd1c5' : '#e5edf7',
-                              fontSize: '14px',
-                              fontWeight: '500',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
                               marginBottom: '2px'
                             }}>
-                              {folder.name}
+                              <div style={{ 
+                                color: selectedFolder?.path === folder.path ? '#fc771c' : '#4fd1c5',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                              }}>
+                                {folder.name}
+                              </div>
+                              {multiSelectMode && (
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setFolderToDelete(folder);
+                                    setShowDeleteFolderModal(true);
+                                  }}
+                                  style={{ 
+                                    padding: '2px 6px',
+                                    fontSize: '10px',
+                                    minWidth: 'auto'
+                                  }}
+                                  title="Eliminar carpeta (solo si está vacía)"
+                                >
+                                  🗑️
+                                </button>
+                              )}
                             </div>
                             <div style={{ 
                               color: '#9fb3cc',
@@ -1473,7 +1608,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                                     borderRadius: '8px',
                                     margin: '4px 0',
                                     padding: '12px 16px',
-                                    border: selectedFolder?.path === folder.path ? '1px solid #4fd1c5' : '1px solid #394b61',
+                                    border: selectedFolder?.path === folder.path ? '1px solid #fc771c' : '1px solid #4fd1c5',
                                     transition: 'all 0.2s ease',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -1483,13 +1618,13 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                                   onMouseEnter={(e) => {
                                     if (selectedFolder?.path !== folder.path) {
                                       e.target.style.backgroundColor = '#2a3a51';
-                                      e.target.style.borderColor = '#4fd1c5';
+                                      e.target.style.borderColor = '#fc771c';
                                     }
                                   }}
                                   onMouseLeave={(e) => {
                                     if (selectedFolder?.path !== folder.path) {
                                       e.target.style.backgroundColor = '#1e2a3a';
-                                      e.target.style.borderColor = '#394b61';
+                                      e.target.style.borderColor = '#4fd1c5';
                                     }
                                   }}
                                 >
@@ -1500,7 +1635,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    color: selectedFolder?.path === folder.path ? '#4fd1c5' : '#fc771c'
+                                    color: selectedFolder?.path === folder.path ? '#fc771c' : '#4fd1c5'
                                   }}>
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                       <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
@@ -1510,12 +1645,36 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                                   {/* Contenido de la carpeta */}
                                   <div style={{ flex: 1 }}>
                                     <div style={{ 
-                                      color: selectedFolder?.path === folder.path ? '#4fd1c5' : '#e5edf7',
-                                      fontSize: '14px',
-                                      fontWeight: '500',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
                                       marginBottom: '2px'
                                     }}>
-                                      {folder.name}
+                                      <div style={{ 
+                                        color: selectedFolder?.path === folder.path ? '#fc771c' : '#4fd1c5',
+                                        fontSize: '14px',
+                                        fontWeight: '500'
+                                      }}>
+                                        {folder.name}
+                                      </div>
+                                      {multiSelectMode && (
+                                        <button
+                                          className="btn btn-secondary btn-sm"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setFolderToDelete(folder);
+                                            setShowDeleteFolderModal(true);
+                                          }}
+                                          style={{ 
+                                            padding: '2px 6px',
+                                            fontSize: '10px',
+                                            minWidth: 'auto'
+                                          }}
+                                          title="Eliminar carpeta (solo si está vacía)"
+                                        >
+                                          🗑️
+                                        </button>
+                                      )}
                                     </div>
                                     <div style={{ 
                                       color: '#9fb3cc',
@@ -1575,86 +1734,36 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
 
         {activeTab === 'docs' && (
               <div className="me-table-wrap">
-                {/* Informaci�n de contexto */}
-                {selectedClient && !selectedFolder && (
-                  <div style={{ 
-                    background: '#1e2a3a', 
-                    padding: '12px 16px', 
-                    borderBottom: '1px solid #34465a',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}>
-                    <span style={{ color: '#9fb3cc' }}> Selecciona una carpeta para ver sus documentos</span>
-                  </div>
-                )}
-                {isAdmin && !selectedClient && (
-                  <div style={{ 
-                    background: '#1e2a3a', 
-                    padding: '12px 16px', 
-                    borderBottom: '1px solid #34465a',
-                    color: '#9fb3cc',
-                    fontSize: '14px'
-                  }}>
-                    Selecciona un cliente para ver sus carpetas y documentos
-                  </div>
-                )}
-                {!isAdmin && !selectedUserFolder && (
-                  <div style={{ 
-                    background: '#1e2a3a', 
-                    padding: '12px 16px', 
-                    borderBottom: '1px solid #34465a',
-                    color: '#9fb3cc',
-                    fontSize: '14px'
-                  }}>
-                    Selecciona una carpeta para ver sus documentos
-                  </div>
-                )}
-
-                {error && (
-                  <div style={{ color: '#ef4444', padding: '8px 12px' }}>{String(error)}</div>
-                )}
-                {warning && (
-                  <div style={{ color: '#f59e0b', padding: '8px 12px' }}>
-                    Aviso: {String(warning) === 'S3_LIST_FORBIDDEN' ? 'No hay permisos para listar el bucket. Tus documentos siguen disponibles si conservas el enlace.' : String(warning)}
-                  </div>
-                )}
                 <table className="me-table">
                   <thead>
                     <tr>
                       <th>Fecha de registro</th>
                       <th>Documento</th>
                       <th>Tipo</th>
-                      <th>Tama?o</th>
-                      <th>Acciones</th>
+                      <th>Tamaño</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {docs.length === 0 && (
+                    {docs.filter((d) => {
+                      const isFolder = d.isFolder || d.key?.endsWith('/') || d.name?.endsWith('/');
+                      return !isFolder;
+                    }).length === 0 && (
                       <tr>
-                        <td colSpan={5} style={{ color: '#9fb3cc', textAlign: 'center', padding: '20px' }}>
-                          {loading ? 'Cargando...' : 
-                           isAdmin ? (
-                             selectedClient && selectedFolder ? 
-                             'No hay documentos en esta carpeta' :
-                             selectedClient ? 
-                             'Selecciona una carpeta para ver sus documentos' :
-                             'Selecciona un cliente para ver sus documentos'
-                           ) : (
-                             selectedUserFolder ? 
-                             'No hay documentos en esta carpeta' :
-                             'Selecciona una carpeta para ver sus documentos'
-                           )
-                          }
+                        <td colSpan={4} style={{ color: '#9fb3cc', textAlign: 'center', padding: '20px' }}>
+                          {loading ? 'Cargando...' : 'No hay archivos'}
                         </td>
                       </tr>
                     )}
-                    {docs.map((d) => {
+                    {docs.filter((d) => {
+                      // Solo mostrar archivos, NO carpetas
+                      const isFolder = d.isFolder || d.key?.endsWith('/') || d.name?.endsWith('/');
+                      return !isFolder;
+                    }).map((d) => {
                       const dt = d.lastModified ? new Date(d.lastModified) : (d.createdTime ? new Date(d.createdTime) : null);
                       const name = d.name || (d.key || '').split('/').pop();
                       const sizeKb = typeof d.size === 'number' ? Math.max(1, Math.round(d.size / 1024)) : null;
                       const mime = d.mimeType || (name && name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined);
                       const isSelected = selectedItems.has(d.key);
-                      const isFolder = d.isFolder || d.key?.endsWith('/') || d.name?.endsWith('/');
                       
                       return (
                         <tr 
@@ -1671,7 +1780,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                           <td>{dt ? dt.toLocaleString() : '-'}</td>
                           <td title={name}>
                             <span style={{ 
-                              color: isFolder ? '#fc771c' : (isSelected ? '#fc771c' : '#e2e8f0'),
+                              color: isSelected ? '#fc771c' : '#e2e8f0',
                               fontWeight: isSelected ? '600' : '400'
                             }}>
                               {name}
@@ -1679,52 +1788,13 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                           </td>
                           <td>
                             <span style={{ 
-                              color: isFolder ? '#fc771c' : (isSelected ? '#fc771c' : '#4fd1c5'),
+                              color: isSelected ? '#fc771c' : '#4fd1c5',
                               fontWeight: isSelected ? '600' : '500'
                             }}>
-                              {isFolder ? 'Carpeta' : (mime ? (mime.split('/')[1] || mime) : '-')}
+                              {mime ? (mime.split('/')[1] || mime) : '-'}
                             </span>
                           </td>
                           <td>{sizeKb ? `${sizeKb} KB` : '-'}</td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                              <button
-                                className="btn btn-secondary btn-sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onDownload(d.key, d.downloadURL || d.downloadUrl || d.webContentLink || d.webViewLink);
-                                }}
-                                title="Descargar archivo"
-                                disabled={multiSelectMode}
-                              >
-                                {isModal ? '📥' : 'Descargar'}
-                              </button>
-                              {isModal && !multiSelectMode && (
-                <>
-                  <button 
-                                    className="btn btn-primary btn-sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onRenameFile(d);
-                                    }}
-                                    title="Renombrar archivo"
-                  >
-                                    ✏️
-                  </button>
-                  <button 
-                                    className="btn btn-danger btn-sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onDeleteFile(d);
-                                    }}
-                                    title="Eliminar archivo"
-                  >
-                                    🗑️
-                  </button>
-                </>
-                              )}
-                            </div>
-                          </td>
                         </tr>
                       );
                     })}
@@ -1739,18 +1809,40 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                   <thead>
                     <tr>
                       <th>Fecha</th>
-                      <th>Actuaci?n</th>
+                      <th>Actuación</th>
+                      <th>Tipo</th>
                       <th>Juzgado</th>
                       <th>Estado</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>2025-09-03 08:00</td>
-                      <td>Audiencia inicial</td>
-                      <td>JDO 003 Laboral</td>
-                      <td><span className="me-badge me-badge-success">Agendada</span></td>
-                    </tr>
+                    {audiences.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: 20, color: '#9fb3cc' }}>
+                          No hay audiencias programadas
+                        </td>
+                      </tr>
+                    ) : (
+                      audiences.map((audience, index) => (
+                        <tr key={index}>
+                          <td>{new Date(audience.fecha).toLocaleString('es-CO')}</td>
+                          <td>{audience.actuacion}</td>
+                          <td>{audience.tipo}</td>
+                          <td>{audience.juzgado}</td>
+                          <td>
+                            <span className={`me-badge ${
+                              audience.estado === 'agendada' ? 'me-badge-warning' :
+                              audience.estado === 'confirmada' ? 'me-badge-info' :
+                              audience.estado === 'realizada' ? 'me-badge-success' :
+                              audience.estado === 'cancelada' ? 'me-badge-danger' :
+                              'me-badge-secondary'
+                            }`}>
+                              {audience.estado}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1767,7 +1859,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                   <button 
                     className="btn btn-primary" 
                     onClick={onClickUpload}
-                    disabled={loading || (isAdmin ? !selectedFolder?.path : !selectedUserFolder?.path)}
+                    disabled={loading}
                     title={isAdmin ? 
                       (!selectedClient?.documentNumber ? 'Selecciona un cliente primero' : 
                        !selectedFolder?.path ? 'Selecciona una carpeta específica del proceso judicial para subir documentos' : '') :
@@ -1866,11 +1958,13 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                     ℹ️ Información del Expediente
                   </button>
                   
-                  <hr className="me-hr" />
-                  
-                  <div style={{ fontSize: '12px', color: '#9fb3cc', textAlign: 'center' }}>
-                    Selecciona un archivo en la tabla para renombrar o eliminar
-                  </div>
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => setShowAudienceModal(true)}
+                    style={{ width: '100%', padding: '12px' }}
+                  >
+                    📅 Programar audiencia
+                  </button>
                 </div>
               </>
             ) : (
@@ -2327,7 +2421,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                     const isFolder = doc?.isFolder || itemKey.endsWith('/') || name.endsWith('/');
                     return (
                       <li key={index} style={{ marginBottom: '4px' }}>
-                        <span style={{ color: isFolder ? '#fc771c' : '#e5edf7' }}>
+                        <span style={{ color: isFolder ? '#4fd1c5' : '#e5edf7' }}>
                           {isFolder ? '📁' : '📄'} {name}
                         </span>
                         <span style={{ color: '#9fb3cc', fontSize: '12px', marginLeft: '8px' }}>
@@ -2369,6 +2463,286 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 disabled={deletingItems}
               >
                 {deletingItems ? 'Eliminando...' : `Eliminar ${selectedItems.size} elemento${selectedItems.size > 1 ? 's' : ''}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para programar audiencia (solo en modo modal) */}
+      {isModal && showAudienceModal && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(0,0,0,0.6)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 60, 
+            padding: 16 
+          }}
+          onClick={() => setShowAudienceModal(false)}
+        >
+          <div 
+            style={{ 
+              background: '#0f172a', 
+              color: '#e2e8f0', 
+              width: '100%', 
+              maxWidth: 560, 
+              borderRadius: 14, 
+              padding: 16, 
+              boxShadow: '0 10px 32px rgba(0,0,0,0.45)' 
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>Programar Audiencia</h3>
+              <button 
+                className="btn btn-secondary btn-sm" 
+                onClick={() => setShowAudienceModal(false)}
+                style={{ padding: '4px 8px' }}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: '500' }}>
+                  Fecha de Audiencia
+                </label>
+                <input
+                  type="datetime-local"
+                  value={audienceData.fecha}
+                  onChange={(e) => setAudienceData(prev => ({ ...prev, fecha: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    background: '#1b263b',
+                    color: '#e2e8f0',
+                    border: '1px solid rgba(148,163,184,0.35)',
+                    borderRadius: 8,
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: '500' }}>
+                  Actuación
+                </label>
+                <input
+                  type="text"
+                  value={audienceData.actuacion}
+                  onChange={(e) => setAudienceData(prev => ({ ...prev, actuacion: e.target.value }))}
+                  placeholder="Ej: Audiencia de conciliación"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    background: '#1b263b',
+                    color: '#e2e8f0',
+                    border: '1px solid rgba(148,163,184,0.35)',
+                    borderRadius: 8,
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: '500' }}>
+                  Tipo de Audiencia
+                </label>
+                <select
+                  value={audienceData.tipo}
+                  onChange={(e) => setAudienceData(prev => ({ ...prev, tipo: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    background: '#1b263b',
+                    color: '#e2e8f0',
+                    border: '1px solid rgba(148,163,184,0.35)',
+                    borderRadius: 8,
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="">Seleccionar tipo</option>
+                  <option value="conciliacion">Conciliación</option>
+                  <option value="audiencia_inicial">Audiencia Inicial</option>
+                  <option value="audiencia_pruebas">Audiencia de Pruebas</option>
+                  <option value="audiencia_sentencia">Audiencia de Sentencia</option>
+                  <option value="audiencia_especial">Audiencia Especial</option>
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: '500' }}>
+                  Juzgado
+                </label>
+                <input
+                  type="text"
+                  value={audienceData.juzgado}
+                  onChange={(e) => setAudienceData(prev => ({ ...prev, juzgado: e.target.value }))}
+                  placeholder="Ej: Juzgado Primero Civil del Circuito"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    background: '#1b263b',
+                    color: '#e2e8f0',
+                    border: '1px solid rgba(148,163,184,0.35)',
+                    borderRadius: 8,
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: '500' }}>
+                  Estado
+                </label>
+                <select
+                  value={audienceData.estado}
+                  onChange={(e) => setAudienceData(prev => ({ ...prev, estado: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    background: '#1b263b',
+                    color: '#e2e8f0',
+                    border: '1px solid rgba(148,163,184,0.35)',
+                    borderRadius: 8,
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="">Seleccionar estado</option>
+                  <option value="agendada">Agendada</option>
+                  <option value="confirmada">Confirmada</option>
+                  <option value="realizada">Realizada</option>
+                  <option value="cancelada">Cancelada</option>
+                  <option value="aplazada">Aplazada</option>
+                </select>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowAudienceModal(false)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => {
+                  // Guardar la audiencia en el estado
+                  const newAudience = {
+                    ...audienceData,
+                    id: Date.now(), // ID temporal
+                    fecha: audienceData.fecha
+                  };
+                  setAudiences(prev => [...prev, newAudience]);
+                  setShowAudienceModal(false);
+                  setAudienceData({
+                    fecha: '',
+                    actuacion: '',
+                    tipo: '',
+                    juzgado: '',
+                    estado: ''
+                  });
+                }}
+                disabled={!audienceData.fecha || !audienceData.actuacion || !audienceData.tipo || !audienceData.juzgado || !audienceData.estado}
+              >
+                Programar Audiencia
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para eliminar carpeta (solo en modo modal) */}
+      {isModal && showDeleteFolderModal && folderToDelete && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000
+          }}
+          onClick={() => {
+            if (!deletingFolder) {
+              setShowDeleteFolderModal(false);
+              setFolderToDelete(null);
+            }
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1e2a3a',
+              borderRadius: '12px',
+              padding: '24px',
+              maxWidth: '400px',
+              width: '90%',
+              border: '1px solid #394b61',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ marginBottom: '16px' }}>
+              <h3 style={{ 
+                color: '#e2e8f0', 
+                margin: '0 0 8px 0',
+                fontSize: '18px',
+                fontWeight: '600'
+              }}>
+                🗑️ Eliminar Carpeta
+              </h3>
+              <p style={{ 
+                color: '#9fb3cc', 
+                margin: 0,
+                fontSize: '14px',
+                lineHeight: '1.5'
+              }}>
+                ¿Estás seguro de que quieres eliminar la carpeta <strong style={{ color: '#fc771c' }}>"{folderToDelete.name}"</strong>?
+              </p>
+              <p style={{ 
+                color: '#ef4444', 
+                margin: '8px 0 0 0',
+                fontSize: '12px',
+                fontWeight: '500'
+              }}>
+                ⚠️ Solo se puede eliminar si la carpeta está vacía
+              </p>
+            </div>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              justifyContent: 'flex-end',
+              marginTop: '20px'
+            }}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDeleteFolderModal(false);
+                  setFolderToDelete(null);
+                }}
+                disabled={deletingFolder}
+                style={{ padding: '8px 16px' }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleDeleteFolder}
+                disabled={deletingFolder}
+                style={{ padding: '8px 16px' }}
+              >
+                {deletingFolder ? 'Eliminando...' : 'Eliminar Carpeta'}
               </button>
             </div>
           </div>

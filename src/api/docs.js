@@ -121,3 +121,15 @@ export async function deleteDocument(key) {
   });
   return data;
 }
+
+export async function deleteFolder(folderPath) {
+  if (!folderPath) {
+    throw new Error('Ruta de carpeta requerida');
+  }
+  // Asegurar que la ruta termine con '/' para indicar que es una carpeta
+  const key = folderPath.endsWith('/') ? folderPath : `${folderPath}/`;
+  const { data } = await api.delete('/docs/object', { 
+    data: { key } 
+  });
+  return data;
+}
