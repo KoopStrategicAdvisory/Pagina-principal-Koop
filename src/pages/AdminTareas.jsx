@@ -1,6 +1,9 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/dashboard.css';
+import '../styles/mi-expediente.css';
+import { SuccessNotice, DangerNotice } from '../components/common/Notice';
+import { listAllUsers } from '../api/adminUsers';
 
 const ALLOWED_ROLES = ['admin', 'user'];
 function normalizeRoles(value, { defaultRole = 'user' } = {}) {
@@ -20,19 +23,109 @@ function useIsAdmin(user) {
   return roles.includes('admin');
 }
 
-const USERS = {
-  derly: { name: 'Derly Ramírez', initials: 'DR', color: '#0ea5e9' },
-  juan: { name: 'Juan F. Rey', initials: 'JR', color: '#22d3ee' },
-  valentina: { name: 'Valentina M.', initials: 'VM', color: '#a78bfa' },
+// Función para obtener información del usuario asignado
+const getUserInfo = (userId, admins) => {
+  const admin = admins.find(admin => admin._id === userId);
+  if (admin) {
+    const name = admin.name || admin.email || 'Usuario';
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const colors = ['#0ea5e9', '#22d3ee', '#a78bfa', '#f59e0b', '#10b981', '#ef4444'];
+    const colorIndex = admins.indexOf(admin) % colors.length;
+    return { name, initials, color: colors[colorIndex] };
+  }
+  return { name: 'Usuario', initials: 'U', color: '#6b7280' };
 };
 
-const SAMPLE_TASKS = [
-  { id:'T-901', title:'Radicar tutela por vacaciones compensadas', client:'AGG MRO', status:'en-curso', priority:'alta', due:'2025-09-22', assignee:'derly', tags:['Laboral','Audiencia'], radicado:'11001-31-05-2025-00123' },
-  { id:'T-902', title:'Revisión contrato Promesa de Compraventa (Apto 501)', client:'Ramírez – Mendoza', status:'pendiente', priority:'media', due:'2025-09-20', assignee:'juan', tags:['Civil','Notaría 27'], radicado:null },
-  { id:'T-903', title:'Concepto: Nota crédito RADIAN ya aceptada', client:'Tus-Cuentas', status:'pendiente', priority:'alta', due:'2025-09-19', assignee:'juan', tags:['Tributario','DIAN'], radicado:null },
-  { id:'T-904', title:'Solicitud CHIP y verificación Folio', client:'Inmobiliario', status:'hecho', priority:'baja', due:'2025-09-15', assignee:'valentina', tags:['PH','Certificados'], radicado:'50C-2024-009988' },
-  { id:'T-905', title:'Memorial de sustitución de comprador (Otrosí)', client:'Villa Carolina', status:'en-curso', priority:'media', due:'2025-09-23', assignee:'derly', tags:['Civil','Minuta'], radicado:null },
-];
+// Funciones para manejar tareas en localStorage
+const saveTasks = (tasks) => {
+  localStorage.setItem('koop_tasks', JSON.stringify(tasks));
+};
+
+const loadTasks = (admins = []) => {
+  const saved = localStorage.getItem('koop_tasks');
+  if (saved) {
+    return JSON.parse(saved);
+  }
+  
+  // Si no hay administradores cargados, retornar array vacío
+  if (admins.length === 0) {
+    return [];
+  }
+  
+  // Tareas de ejemplo si no hay datos guardados
+  return [
+    { 
+      id: 'T-901', 
+      title: 'Radicar tutela por vacaciones compensadas', 
+      client: 'AGG MRO', 
+      status: 'en-curso', 
+      priority: 'alta', 
+      due: '2025-01-22', 
+      assignee: admins[0]?._id || '', 
+      tags: ['Laboral', 'Audiencia'], 
+      radicado: '11001-31-05-2025-00123',
+      description: 'Preparar y radicar tutela por violación al derecho al descanso y vacaciones compensadas',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    { 
+      id: 'T-902', 
+      title: 'Revisión contrato Promesa de Compraventa (Apto 501)', 
+      client: 'Ramírez – Mendoza', 
+      status: 'pendiente', 
+      priority: 'media', 
+      due: '2025-01-20', 
+      assignee: admins[1]?._id || admins[0]?._id || '', 
+      tags: ['Civil', 'Notaría 27'], 
+      radicado: null,
+      description: 'Revisar cláusulas del contrato de promesa de compraventa del apartamento 501',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    { 
+      id: 'T-903', 
+      title: 'Concepto: Nota crédito RADIAN ya aceptada', 
+      client: 'Tus-Cuentas', 
+      status: 'pendiente', 
+      priority: 'alta', 
+      due: '2025-01-19', 
+      assignee: admins[1]?._id || admins[0]?._id || '', 
+      tags: ['Tributario', 'DIAN'], 
+      radicado: null,
+      description: 'Elaborar concepto jurídico sobre la nota crédito de RADIAN que ya fue aceptada',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    { 
+      id: 'T-904', 
+      title: 'Solicitud CHIP y verificación Folio', 
+      client: 'Inmobiliario', 
+      status: 'hecho', 
+      priority: 'baja', 
+      due: '2025-01-15', 
+      assignee: admins[2]?._id || admins[0]?._id || '', 
+      tags: ['PH', 'Certificados'], 
+      radicado: '50C-2024-009988',
+      description: 'Solicitar CHIP y verificar folio de matrícula inmobiliaria',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    { 
+      id: 'T-905', 
+      title: 'Memorial de sustitución de comprador (Otrosí)', 
+      client: 'Villa Carolina', 
+      status: 'en-curso', 
+      priority: 'media', 
+      due: '2025-01-23', 
+      assignee: admins[0]?._id || '', 
+      tags: ['Civil', 'Minuta'], 
+      radicado: null,
+      description: 'Elaborar memorial para sustitución de comprador mediante Otrosí',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ];
+};
 
 function fmtDate(iso) {
   try { return new Date(iso + 'T00:00:00').toLocaleDateString('es-CO', { year:'numeric', month:'short', day:'2-digit' }); } catch { return iso; }
@@ -46,16 +139,199 @@ export default function AdminTareas() {
   const { user } = useAuth();
   const isAdmin = useIsAdmin(user);
 
+  // Estados principales
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [admins, setAdmins] = useState([]);
+  
+  // Estados de filtros
   const [q, setQ] = useState('');
   const [me, setMe] = useState('derly');
   const [status, setStatus] = useState('all');
   const [viewMine, setViewMine] = useState(true);
-  const [demoNoTasks, setDemoNoTasks] = useState(false);
+  
+  // Estados de modales
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  
+  // Estados de formulario
+  const [formData, setFormData] = useState({
+    title: '',
+    client: '',
+    description: '',
+    priority: 'media',
+    due: '',
+    assignee: '',
+    tags: '',
+    radicado: ''
+  });
+  
+  // Estados de notificaciones
+  const [showSuccessNotice, setShowSuccessNotice] = useState(false);
+  const [showErrorNotice, setShowErrorNotice] = useState(false);
+  const [noticeMessage, setNoticeMessage] = useState('');
 
-  const dataset = useMemo(() => (demoNoTasks ? [] : SAMPLE_TASKS), [demoNoTasks]);
+  // Cargar administradores al montar el componente
+  useEffect(() => {
+    loadAdmins();
+  }, []);
+
+  // Función para cargar administradores
+  const loadAdmins = async () => {
+    try {
+      setLoading(true);
+      const response = await listAllUsers();
+      if (response && response.users) {
+        // Filtrar solo los administradores
+        const adminUsers = response.users.filter(user => 
+          user.roles && user.roles.includes('admin')
+        );
+        setAdmins(adminUsers);
+        
+        // Si hay administradores, establecer el primero como usuario por defecto
+        if (adminUsers.length > 0) {
+          setMe(adminUsers[0]._id);
+          // Cargar tareas con los administradores
+          setTasks(loadTasks(adminUsers));
+        }
+      }
+    } catch (error) {
+      console.error('Error cargando administradores:', error);
+      setNoticeMessage('Error al cargar la lista de administradores');
+      setShowErrorNotice(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Guardar tareas cuando cambien
+  useEffect(() => {
+    if (tasks.length > 0) {
+      saveTasks(tasks);
+    }
+  }, [tasks]);
+
+  // Funciones CRUD
+  const generateTaskId = () => {
+    const maxId = Math.max(...tasks.map(t => parseInt(t.id.split('-')[1]) || 0));
+    return `T-${String(maxId + 1).padStart(3, '0')}`;
+  };
+
+  const handleCreateTask = () => {
+    if (!formData.title.trim() || !formData.client.trim()) {
+      setNoticeMessage('El título y cliente son obligatorios');
+      setShowErrorNotice(true);
+      return;
+    }
+
+    const newTask = {
+      id: generateTaskId(),
+      title: formData.title.trim(),
+      client: formData.client.trim(),
+      description: formData.description.trim(),
+      priority: formData.priority,
+      due: formData.due,
+      assignee: formData.assignee,
+      tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+      radicado: formData.radicado.trim() || null,
+      status: 'pendiente',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setTasks(prev => [...prev, newTask]);
+    setShowCreateModal(false);
+    resetForm();
+    setNoticeMessage('Tarea creada exitosamente');
+    setShowSuccessNotice(true);
+  };
+
+  const handleEditTask = () => {
+    if (!formData.title.trim() || !formData.client.trim()) {
+      setNoticeMessage('El título y cliente son obligatorios');
+      setShowErrorNotice(true);
+      return;
+    }
+
+    setTasks(prev => prev.map(task => 
+      task.id === selectedTask.id 
+        ? {
+            ...task,
+            title: formData.title.trim(),
+            client: formData.client.trim(),
+            description: formData.description.trim(),
+            priority: formData.priority,
+            due: formData.due,
+            assignee: formData.assignee,
+            tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+            radicado: formData.radicado.trim() || null,
+            updatedAt: new Date().toISOString()
+          }
+        : task
+    ));
+
+    setShowEditModal(false);
+    setSelectedTask(null);
+    resetForm();
+    setNoticeMessage('Tarea actualizada exitosamente');
+    setShowSuccessNotice(true);
+  };
+
+  const handleDeleteTask = () => {
+    setTasks(prev => prev.filter(task => task.id !== selectedTask.id));
+    setShowDeleteModal(false);
+    setSelectedTask(null);
+    setNoticeMessage('Tarea eliminada exitosamente');
+    setShowSuccessNotice(true);
+  };
+
+  const handleStatusChange = (taskId, newStatus) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? { ...task, status: newStatus, updatedAt: new Date().toISOString() }
+        : task
+    ));
+    setNoticeMessage('Estado de tarea actualizado');
+    setShowSuccessNotice(true);
+  };
+
+  const openEditModal = (task) => {
+    setSelectedTask(task);
+    setFormData({
+      title: task.title,
+      client: task.client,
+      description: task.description || '',
+      priority: task.priority,
+      due: task.due,
+      assignee: task.assignee || (admins.length > 0 ? admins[0]._id : ''),
+      tags: task.tags.join(', '),
+      radicado: task.radicado || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const openDeleteModal = (task) => {
+    setSelectedTask(task);
+    setShowDeleteModal(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      client: '',
+      description: '',
+      priority: 'media',
+      due: '',
+      assignee: admins.length > 0 ? admins[0]._id : '',
+      tags: '',
+      radicado: ''
+    });
+  };
 
   const filtered = useMemo(() => {
-    let data = dataset.slice();
+    let data = tasks.slice();
     if (viewMine) data = data.filter((t) => t.assignee === me);
     if (status !== 'all') data = data.filter((t) => t.status === status);
     const needle = q.trim().toLowerCase();
@@ -63,7 +339,7 @@ export default function AdminTareas() {
       data = data.filter((t) => [t.title, t.client, t.radicado, (t.tags || []).join(' ')].filter(Boolean).join(' ').toLowerCase().includes(needle));
     }
     return data;
-  }, [dataset, viewMine, me, status, q]);
+  }, [tasks, viewMine, me, status, q]);
 
   const countLabel = `${filtered.length} resultado${filtered.length === 1 ? '' : 's'}`;
 
@@ -87,157 +363,1032 @@ export default function AdminTareas() {
         backgroundSize: 'cover',
         backgroundAttachment: 'fixed',
         backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '20px'
       }}
     >
-      <div className="dash-card" style={{ width: '100%', maxWidth: 1200 }}>
-        <style>{`
-          :root{ --ring: 0 0 0 3px rgb(34 211 238 / 0.25); --radius:18px; }
-          .tasks-container{max-width:1100px;margin:0 auto}
-          .tasks-header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
-          .brand{display:flex;gap:12px;align-items:center}
-          .brand .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#22d3ee,#3b82f6);display:grid;place-items:center;box-shadow:0 8px 24px rgba(34,211,238,.25)}
-          .brand .logo svg{filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
-          .brand h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
-          .toolbar{display:flex;gap:10px;flex-wrap:wrap}
-          .toolbar .field{position:relative}
-          .tasks-input, .tasks-select{background:#0c1530;border:1px solid #1e2a4a;color:#e5e7eb;padding:10px 12px;border-radius:12px;outline:none;min-width:200px}
-          .tasks-input:focus, .tasks-select:focus{box-shadow:var(--ring);border-color:#22d3ee}
-          .grid{display:grid;grid-template-columns:1fr;gap:16px}
-          @media(min-width:780px){.grid{grid-template-columns:260px 1fr}}
-          .panel{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,.35)}
-          .sidebar{padding:16px}
-          .sidebar h2{margin:8px 4px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#9fb0c8}
-          .chips{display:flex;flex-wrap:wrap;gap:8px}
-          .chip{padding:8px 10px;border-radius:999px;background:#0c1530;border:1px solid #1e2a4a;color:#c7d2fe;font-size:12px;cursor:pointer;user-select:none}
-          .chip[data-active="true"]{background:linear-gradient(135deg,rgba(34,211,238,.15),rgba(59,130,246,.15));border-color:#234072}
-          .board{padding:16px}
-          .board-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-          .board-header h3{margin:0;font-size:16px}
-          .count{font-size:12px;color:#94a3b8}
-          .cards{display:grid;grid-template-columns:1fr;gap:12px}
-          @media(min-width:560px){.cards{grid-template-columns:repeat(2,1fr)}}
-          @media(min-width:980px){.cards{grid-template-columns:repeat(3,1fr)}}
-          .card{background:linear-gradient(180deg,rgba(18,28,55,.9),rgba(12,20,40,.95));border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;transition:transform .15s ease, border-color .15s ease}
-          .card:hover{transform:translateY(-2px);border-color:rgba(34,211,238,.35)}
-          .title{font-weight:600;line-height:1.25;margin:0}
-          .meta{display:flex;gap:8px;flex-wrap:wrap}
-          .badge{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid rgba(255,255,255,.1);background:#0c1530;color:#cbd5e1}
-          .badge[data-variant="high"]{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:#fecaca}
-          .badge[data-variant="medium"]{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.12);color:#fde68a}
-          .badge[data-variant="low"]{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12);color:#bbf7d0}
-          .badge[data-variant="due"]{border-color:rgba(34,211,238,.35);background:rgba(34,211,238,.10);color:#67e8f9}
-          .assignee{display:flex;align-items:center;gap:8px;margin-top:auto}
-          .avatar{width:24px;height:24px;border-radius:999px;background:#0ea5e9;display:grid;place-items:center;font-size:12px;font-weight:700}
-          .assignee small{color:#94a3b8}
-          .empty{display:grid;place-items:center;padding:56px;text-align:center;color:#9fb0c8}
-          .empty svg{margin-bottom:12px;opacity:.9}
-          .footer-actions{margin-top:18px;display:flex;justify-content:flex-end}
-          .link{font-size:12px;color:#7dd3fc;text-decoration:none;border-bottom:1px dashed rgba(125,211,252,.45)}
-        `}</style>
-
-        <div className="tasks-container">
-          <div className="tasks-header">
-            <div className="brand" aria-label="Koop Strategic Advisory">
-              <div className="logo" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L20 6V18L12 22L4 18V6L12 2Z" stroke="white" strokeWidth="2"/>
-                  <path d="M12 7V17" stroke="white" strokeWidth="2"/>
-                  <path d="M7 9L12 12L17 9" stroke="white" strokeWidth="2"/>
+      <div className="dash-card" style={{ width: '100%', maxWidth: 1400, margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          marginBottom: '24px',
+          paddingBottom: '16px',
+          borderBottom: '1px solid #394b61'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #4fd1c5, #fc771c)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(79, 209, 197, 0.3)'
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <h1>Tablero de Tareas</h1>
+            <div>
+              <h1 style={{ 
+                margin: 0, 
+                fontSize: '24px', 
+                fontWeight: '700', 
+                color: '#e2e8f0',
+                letterSpacing: '0.5px'
+              }}>
+                Tablero de Tareas
+              </h1>
+              <p style={{ 
+                margin: '4px 0 0 0', 
+                fontSize: '14px', 
+                color: '#9fb3cc' 
+              }}>
+                Gestión y seguimiento de tareas del equipo
+              </p>
             </div>
-            <div className="toolbar" role="search">
-              <div className="field">
-                <input className="tasks-input" type="search" placeholder="Buscar por asunto, cliente o radicado…" aria-label="Buscar" value={q} onChange={(e)=>setQ(e.target.value)} />
+          </div>
+          
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button 
+              className="btn btn-primary"
+              onClick={() => {
+                resetForm();
+                setShowCreateModal(true);
+              }}
+              style={{ fontSize: '14px', padding: '10px 16px' }}
+            >
+              ➕ Nueva Tarea
+            </button>
+          </div>
+        </div>
+
+        {/* Filtros */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '16px', 
+          marginBottom: '24px',
+          flexWrap: 'wrap',
+          alignItems: 'center'
+        }}>
+          <div style={{ flex: '1', minWidth: '300px' }}>
+            <input
+              type="search"
+              placeholder="Buscar por asunto, cliente o radicado..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: '#1e2a3a',
+                border: '1px solid #394b61',
+                borderRadius: '8px',
+                color: '#e2e8f0',
+                fontSize: '14px'
+              }}
+            />
               </div>
-              <div className="field">
-                <select className="tasks-select" aria-label="Usuario actual" value={me} onChange={(e)=>setMe(e.target.value)}>
-                  <option value="derly">Derly Ramírez (Abogada)</option>
-                  <option value="juan">Juan F. Rey (Socio)</option>
-                  <option value="valentina">Valentina Martínez (Asistente)</option>
+          
+            <select
+              value={me}
+              onChange={(e) => setMe(e.target.value)}
+              style={{
+                padding: '12px 16px',
+                background: '#1e2a3a',
+                border: '1px solid #394b61',
+                borderRadius: '8px',
+                color: '#e2e8f0',
+                fontSize: '14px',
+                minWidth: '200px'
+              }}
+            >
+              {admins.map(admin => (
+                <option key={admin._id} value={admin._id}>
+                  {admin.name || admin.email} (Admin)
+                </option>
+              ))}
                 </select>
-              </div>
-              <div className="field">
-                <select className="tasks-select" aria-label="Estado" value={status} onChange={(e)=>setStatus(e.target.value)}>
+          
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            style={{
+              padding: '12px 16px',
+              background: '#1e2a3a',
+              border: '1px solid #394b61',
+              borderRadius: '8px',
+              color: '#e2e8f0',
+              fontSize: '14px',
+              minWidth: '150px'
+            }}
+          >
                   <option value="all">Todos los estados</option>
                   <option value="pendiente">Pendiente</option>
                   <option value="en-curso">En curso</option>
                   <option value="hecho">Hecho</option>
                 </select>
               </div>
+
+        {/* Vista rápida */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '12px', 
+          marginBottom: '24px',
+          flexWrap: 'wrap'
+        }}>
+          <button 
+            className={`btn ${viewMine ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setViewMine(true)}
+            style={{ fontSize: '12px', padding: '8px 16px' }}
+          >
+            Mis tareas
+          </button>
+          <button 
+            className={`btn ${!viewMine ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setViewMine(false)}
+            style={{ fontSize: '12px', padding: '8px 16px' }}
+          >
+            Todas las tareas
+          </button>
             </div>
+
+        {/* Contenido principal */}
+        <div style={{ 
+          background: '#1e2a3a',
+          borderRadius: '12px',
+          border: '1px solid #394b61',
+          overflow: 'hidden'
+        }}>
+          <div style={{ 
+            padding: '20px',
+            borderBottom: '1px solid #394b61',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <h3 style={{ 
+              margin: 0, 
+              fontSize: '18px', 
+              fontWeight: '600', 
+              color: '#e2e8f0' 
+            }}>
+              {viewMine ? 'Mis tareas' : 'Todas las tareas'}
+            </h3>
+            <span style={{ 
+              fontSize: '14px', 
+              color: '#9fb3cc',
+              background: '#2a3a51',
+              padding: '4px 12px',
+              borderRadius: '20px'
+            }}>
+              {countLabel}
+            </span>
           </div>
 
-          <main className="grid" aria-live="polite">
-            <aside className="sidebar panel">
-              <h2>Filtros rápidos</h2>
-              <div className="chips">
-                <button className="chip" onClick={()=>setStatus('all')}>Hoy</button>
-                <button className="chip" onClick={()=>setStatus('all')}>Vencidos</button>
-                <button className="chip" onClick={()=>setStatus('all')}>Alta prioridad</button>
-                <button className="chip" onClick={()=>setStatus('all')}>Cliente corporativo</button>
-              </div>
-              <h2 style={{ marginTop: 18 }}>Vistas</h2>
-              <div className="chips">
-                <button className="chip" data-active={viewMine ? 'true' : 'false'} onClick={()=>setViewMine(true)}>Mis tareas</button>
-                <button className="chip" data-active={!viewMine ? 'true' : 'false'} onClick={()=>setViewMine(false)}>Todas</button>
-              </div>
-            </aside>
-
-            <section className="board panel">
-              <div className="board-header">
-                <h3>{viewMine ? 'Mis tareas' : 'Todas las tareas'}</h3>
-                <span className="count">{countLabel}</span>
-              </div>
-
+          <div style={{ padding: '20px' }}>
               {filtered.length === 0 ? (
-                <div className="empty">
-                  <svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 7H20V19C20 20.1046 19.1046 21 18 21H6C4.89543 21 4 20.1046 4 19V7Z" stroke="#67e8f9" strokeWidth="1.5"/>
-                    <path d="M9 3H15V7H9V3Z" stroke="#67e8f9" strokeWidth="1.5"/>
-                    <path d="M8 12H16" stroke="#94a3b8" strokeWidth="1.5"/>
-                    <path d="M8 16H13" stroke="#94a3b8" strokeWidth="1.5"/>
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '60px 20px',
+                color: '#9fb3cc'
+              }}>
+                <div style={{ 
+                  width: '80px', 
+                  height: '80px', 
+                  margin: '0 auto 20px',
+                  background: 'linear-gradient(135deg, #4fd1c5, #fc771c)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <div>
-                    <strong>No tienes tareas asignadas</strong>
-                    <p style={{ margin: '.35rem 0 0', fontSize: 14, color: '#a5b4fc' }}>Cuando te asignen una tarea aparecerá aquí.</p>
                   </div>
+                <h4 style={{ 
+                  margin: '0 0 8px 0', 
+                  fontSize: '18px', 
+                  fontWeight: '600',
+                  color: '#e2e8f0'
+                }}>
+                  No hay tareas asignadas
+                </h4>
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '14px',
+                  color: '#9fb3cc'
+                }}>
+                  Cuando te asignen una tarea aparecerá aquí
+                </p>
                 </div>
               ) : (
-                <div className="cards">
+              <div style={{ 
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                gap: '20px'
+              }}>
                   {filtered.map((t) => {
-                    const u = USERS[t.assignee] || { name: t.assignee, initials: (t.assignee || '?').slice(0,2).toUpperCase(), color: '#0ea5e9' };
-                    const priorityVariant = t.priority === 'alta' ? 'high' : t.priority === 'media' ? 'medium' : 'low';
+                    const u = getUserInfo(t.assignee, admins);
                     const statusTxt = t.status === 'en-curso' ? 'En curso' : t.status === 'hecho' ? 'Hecho' : 'Pendiente';
+                  
                     return (
-                      <article key={t.id} className="card" role="article" aria-label={t.title}>
-                        <h4 className="title">{t.title}</h4>
-                        <div className="meta">
-                          <span className="badge" data-variant={priorityVariant}>Prioridad: {t.priority}</span>
-                          <span className="badge" data-variant="due">{isOverdue(t.due) ? 'Vencida' : 'Vence'}: {fmtDate(t.due)}</span>
-                          <span className="badge">Estado: {statusTxt}</span>
-                          {t.radicado ? <span className="badge">Radicado: {t.radicado}</span> : null}
-                          <span className="badge">Cliente: {t.client}</span>
-                          {(t.tags || []).map((tag) => <span key={tag} className="badge">{tag}</span>)}
+                    <div 
+                      key={t.id}
+                      style={{
+                        background: 'linear-gradient(135deg, #2a3a51, #1e2a3a)',
+                        border: '1px solid #394b61',
+                        borderRadius: '12px',
+                        padding: '20px',
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.borderColor = '#4fd1c5';
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 8px 25px rgba(79, 209, 197, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.borderColor = '#394b61';
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    >
+                      <div style={{ marginBottom: '16px' }}>
+                        <h4 style={{ 
+                          margin: '0 0 8px 0', 
+                          fontSize: '16px', 
+                          fontWeight: '600',
+                          color: '#e2e8f0',
+                          lineHeight: '1.4'
+                        }}>
+                          {t.title}
+                        </h4>
+                        <p style={{ 
+                          margin: 0, 
+                          fontSize: '14px', 
+                          color: '#9fb3cc' 
+                        }}>
+                          Cliente: <strong style={{ color: '#4fd1c5' }}>{t.client}</strong>
+                        </p>
+                      </div>
+
+                      <div style={{ 
+                        display: 'flex', 
+                        flexWrap: 'wrap', 
+                        gap: '8px',
+                        marginBottom: '16px'
+                      }}>
+                        <span style={{
+                          fontSize: '11px',
+                          padding: '4px 8px',
+                          borderRadius: '12px',
+                          background: t.priority === 'alta' ? 'rgba(239, 68, 68, 0.15)' : 
+                                     t.priority === 'media' ? 'rgba(245, 158, 11, 0.15)' : 
+                                     'rgba(34, 197, 94, 0.15)',
+                          color: t.priority === 'alta' ? '#fecaca' : 
+                                 t.priority === 'media' ? '#fde68a' : 
+                                 '#bbf7d0',
+                          border: `1px solid ${t.priority === 'alta' ? 'rgba(239, 68, 68, 0.3)' : 
+                                           t.priority === 'media' ? 'rgba(245, 158, 11, 0.3)' : 
+                                           'rgba(34, 197, 94, 0.3)'}`
+                        }}>
+                          {t.priority.toUpperCase()}
+                        </span>
+                        
+                        <span style={{
+                          fontSize: '11px',
+                          padding: '4px 8px',
+                          borderRadius: '12px',
+                          background: t.status === 'hecho' ? 'rgba(34, 197, 94, 0.15)' :
+                                     t.status === 'en-curso' ? 'rgba(59, 130, 246, 0.15)' :
+                                     'rgba(156, 163, 175, 0.15)',
+                          color: t.status === 'hecho' ? '#bbf7d0' :
+                                 t.status === 'en-curso' ? '#93c5fd' :
+                                 '#d1d5db',
+                          border: `1px solid ${t.status === 'hecho' ? 'rgba(34, 197, 94, 0.3)' :
+                                           t.status === 'en-curso' ? 'rgba(59, 130, 246, 0.3)' :
+                                           'rgba(156, 163, 175, 0.3)'}`
+                        }}>
+                          {statusTxt}
+                        </span>
+
+                        <span style={{
+                          fontSize: '11px',
+                          padding: '4px 8px',
+                          borderRadius: '12px',
+                          background: isOverdue(t.due) ? 'rgba(239, 68, 68, 0.15)' : 'rgba(79, 209, 197, 0.15)',
+                          color: isOverdue(t.due) ? '#fecaca' : '#67e8f9',
+                          border: `1px solid ${isOverdue(t.due) ? 'rgba(239, 68, 68, 0.3)' : 'rgba(79, 209, 197, 0.3)'}`
+                        }}>
+                          {isOverdue(t.due) ? 'VENCIDA' : 'VENCE'}: {fmtDate(t.due)}
+                        </span>
+
+                        {t.radicado && (
+                          <span style={{
+                            fontSize: '11px',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            background: 'rgba(79, 209, 197, 0.15)',
+                            color: '#67e8f9',
+                            border: '1px solid rgba(79, 209, 197, 0.3)'
+                          }}>
+                            {t.radicado}
+                          </span>
+                        )}
+                      </div>
+
+                      {(t.tags || []).length > 0 && (
+                        <div style={{ 
+                          display: 'flex', 
+                          flexWrap: 'wrap', 
+                          gap: '6px',
+                          marginBottom: '16px'
+                        }}>
+                          {(t.tags || []).map((tag) => (
+                            <span 
+                              key={tag}
+                              style={{
+                                fontSize: '10px',
+                                padding: '3px 6px',
+                                borderRadius: '8px',
+                                background: 'rgba(156, 163, 175, 0.1)',
+                                color: '#9fb3cc',
+                                border: '1px solid rgba(156, 163, 175, 0.2)'
+                              }}
+                            >
+                              {tag}
+                            </span>
+                          ))}
                         </div>
-                        <div className="assignee" aria-label="Responsable">
-                          <div className="avatar" style={{ background: u.color }} aria-hidden="true">{u.initials}</div>
-                          <small>Asignada a <strong>{u.name}</strong></small>
+                      )}
+
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between',
+                        paddingTop: '12px',
+                        borderTop: '1px solid #394b61'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            background: u.color,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            color: 'white'
+                          }}>
+                            {u.initials}
+                          </div>
+                          <div>
+                            <p style={{ 
+                              margin: 0, 
+                              fontSize: '12px', 
+                              color: '#9fb3cc' 
+                            }}>
+                              Asignada a
+                            </p>
+                            <p style={{ 
+                              margin: 0, 
+                              fontSize: '14px', 
+                              fontWeight: '600',
+                              color: '#e2e8f0' 
+                            }}>
+                              {u.name}
+                            </p>
+                          </div>
                         </div>
-                      </article>
+                        
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <select
+                            value={t.status}
+                            onChange={(e) => handleStatusChange(t.id, e.target.value)}
+                            style={{
+                              fontSize: '11px',
+                              padding: '4px 8px',
+                              background: '#1e2a3a',
+                              border: '1px solid #394b61',
+                              borderRadius: '6px',
+                              color: '#e2e8f0'
+                            }}
+                          >
+                            <option value="pendiente">Pendiente</option>
+                            <option value="en-curso">En curso</option>
+                            <option value="hecho">Hecho</option>
+                          </select>
+                          
+                          <button
+                            onClick={() => openEditModal(t)}
+                            style={{
+                              padding: '4px 8px',
+                              background: '#4fd1c5',
+                              border: 'none',
+                              borderRadius: '6px',
+                              color: 'white',
+                              fontSize: '11px',
+                              cursor: 'pointer'
+                            }}
+                            title="Editar tarea"
+                          >
+                            ✏️
+                          </button>
+                          
+                          <button
+                            onClick={() => openDeleteModal(t)}
+                            style={{
+                              padding: '4px 8px',
+                              background: '#ef4444',
+                              border: 'none',
+                              borderRadius: '6px',
+                              color: 'white',
+                              fontSize: '11px',
+                              cursor: 'pointer'
+                            }}
+                            title="Eliminar tarea"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                     );
                   })}
                 </div>
               )}
-
-              <div className="footer-actions">
-                <button className="link" onClick={() => setDemoNoTasks((v) => !v)}>(Demo) Alternar escenario sin tareas</button>
               </div>
-            </section>
-          </main>
         </div>
       </div>
+
+      {/* Notificaciones */}
+      {showSuccessNotice && (
+        <SuccessNotice 
+          message={noticeMessage} 
+          onClose={() => setShowSuccessNotice(false)} 
+        />
+      )}
+      {showErrorNotice && (
+        <DangerNotice 
+          message={noticeMessage} 
+          onClose={() => setShowErrorNotice(false)} 
+        />
+      )}
+
+      {/* Modal para crear tarea */}
+      {showCreateModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000
+        }}>
+          <div style={{
+            background: '#1e2a3a',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '500px',
+            width: '90%',
+            border: '1px solid #394b61',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{ 
+              margin: '0 0 20px 0', 
+              fontSize: '18px', 
+              fontWeight: '600',
+              color: '#e2e8f0'
+            }}>
+              ➕ Nueva Tarea
+            </h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Título *
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px'
+                  }}
+                  placeholder="Título de la tarea"
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Cliente *
+                </label>
+                <input
+                  type="text"
+                  value={formData.client}
+                  onChange={(e) => setFormData(prev => ({ ...prev, client: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px'
+                  }}
+                  placeholder="Nombre del cliente"
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Descripción
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px',
+                    minHeight: '80px',
+                    resize: 'vertical'
+                  }}
+                  placeholder="Descripción detallada de la tarea"
+                />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                    Prioridad
+                  </label>
+                  <select
+                    value={formData.priority}
+                    onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: '#2a3a51',
+                      border: '1px solid #394b61',
+                      borderRadius: '8px',
+                      color: '#e2e8f0',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="baja">Baja</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                    Fecha límite
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.due}
+                    onChange={(e) => setFormData(prev => ({ ...prev, due: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: '#2a3a51',
+                      border: '1px solid #394b61',
+                      borderRadius: '8px',
+                      color: '#e2e8f0',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Asignar a
+                </label>
+                <select
+                  value={formData.assignee}
+                  onChange={(e) => setFormData(prev => ({ ...prev, assignee: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px'
+                  }}
+                >
+                  {admins.map(admin => (
+                    <option key={admin._id} value={admin._id}>
+                      {admin.name || admin.email} (Admin)
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Tags (separados por comas)
+                </label>
+                <input
+                  type="text"
+                  value={formData.tags}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px'
+                  }}
+                  placeholder="Laboral, Audiencia, Civil"
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Radicado
+                </label>
+                <input
+                  type="text"
+                  value={formData.radicado}
+                  onChange={(e) => setFormData(prev => ({ ...prev, radicado: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px'
+                  }}
+                  placeholder="Número de radicado (opcional)"
+                />
+              </div>
+            </div>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              justifyContent: 'flex-end',
+              marginTop: '24px'
+            }}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowCreateModal(false);
+                  resetForm();
+                }}
+                style={{ padding: '10px 20px' }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleCreateTask}
+                style={{ padding: '10px 20px' }}
+              >
+                Crear Tarea
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para editar tarea */}
+      {showEditModal && selectedTask && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000
+        }}>
+          <div style={{
+            background: '#1e2a3a',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '500px',
+            width: '90%',
+            border: '1px solid #394b61',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{ 
+              margin: '0 0 20px 0', 
+              fontSize: '18px', 
+              fontWeight: '600',
+              color: '#e2e8f0'
+            }}>
+              ✏️ Editar Tarea
+            </h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Título *
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Cliente *
+                </label>
+                <input
+                  type="text"
+                  value={formData.client}
+                  onChange={(e) => setFormData(prev => ({ ...prev, client: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Descripción
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px',
+                    minHeight: '80px',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                    Prioridad
+                  </label>
+                  <select
+                    value={formData.priority}
+                    onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: '#2a3a51',
+                      border: '1px solid #394b61',
+                      borderRadius: '8px',
+                      color: '#e2e8f0',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="baja">Baja</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                    Fecha límite
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.due}
+                    onChange={(e) => setFormData(prev => ({ ...prev, due: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: '#2a3a51',
+                      border: '1px solid #394b61',
+                      borderRadius: '8px',
+                      color: '#e2e8f0',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Asignar a
+                </label>
+                <select
+                  value={formData.assignee}
+                  onChange={(e) => setFormData(prev => ({ ...prev, assignee: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px'
+                  }}
+                >
+                  {admins.map(admin => (
+                    <option key={admin._id} value={admin._id}>
+                      {admin.name || admin.email} (Admin)
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Tags (separados por comas)
+                </label>
+                <input
+                  type="text"
+                  value={formData.tags}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
+                  Radicado
+                </label>
+                <input
+                  type="text"
+                  value={formData.radicado}
+                  onChange={(e) => setFormData(prev => ({ ...prev, radicado: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#2a3a51',
+                    border: '1px solid #394b61',
+                    borderRadius: '8px',
+                    color: '#e2e8f0',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              justifyContent: 'flex-end',
+              marginTop: '24px'
+            }}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedTask(null);
+                  resetForm();
+                }}
+                style={{ padding: '10px 20px' }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleEditTask}
+                style={{ padding: '10px 20px' }}
+              >
+                Actualizar Tarea
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para eliminar tarea */}
+      {showDeleteModal && selectedTask && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000
+        }}>
+          <div style={{
+            background: '#1e2a3a',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '400px',
+            width: '90%',
+            border: '1px solid #394b61',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{ 
+              margin: '0 0 16px 0', 
+              fontSize: '18px', 
+              fontWeight: '600',
+              color: '#e2e8f0'
+            }}>
+              🗑️ Eliminar Tarea
+            </h3>
+            
+            <p style={{ 
+              margin: '0 0 20px 0', 
+              color: '#9fb3cc', 
+              fontSize: '14px',
+              lineHeight: '1.5'
+            }}>
+              ¿Estás seguro de que quieres eliminar la tarea <strong style={{ color: '#fc771c' }}>"{selectedTask.title}"</strong>?
+            </p>
+            
+            <p style={{ 
+              margin: '0 0 20px 0', 
+              color: '#ef4444', 
+              fontSize: '12px',
+              fontWeight: '500'
+            }}>
+              ⚠️ Esta acción no se puede deshacer
+            </p>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setSelectedTask(null);
+                }}
+                style={{ padding: '10px 20px' }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleDeleteTask}
+                style={{ padding: '10px 20px' }}
+              >
+                Eliminar Tarea
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

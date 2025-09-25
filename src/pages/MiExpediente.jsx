@@ -1741,6 +1741,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                       <th>Documento</th>
                       <th>Tipo</th>
                       <th>Tamaño</th>
+                      <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1749,7 +1750,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                       return !isFolder;
                     }).length === 0 && (
                       <tr>
-                        <td colSpan={4} style={{ color: '#9fb3cc', textAlign: 'center', padding: '20px' }}>
+                        <td colSpan={5} style={{ color: '#9fb3cc', textAlign: 'center', padding: '20px' }}>
                           {loading ? 'Cargando...' : 'No hay archivos'}
                         </td>
                       </tr>
@@ -1795,6 +1796,23 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                             </span>
                           </td>
                           <td>{sizeKb ? `${sizeKb} KB` : '-'}</td>
+                          <td>
+                            {!isAdmin && (
+                              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDownload(d.key, d.downloadURL || d.downloadUrl || d.webContentLink || d.webViewLink);
+                                  }}
+                                  title="Descargar archivo"
+                                  disabled={multiSelectMode}
+                                >
+                                  📥
+                                </button>
+                              </div>
+                            )}
+                          </td>
                         </tr>
                       );
                     })}
