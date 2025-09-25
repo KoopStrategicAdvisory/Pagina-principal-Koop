@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import '../styles/dashboard.css';
 import '../styles/mi-expediente.css';
 import { SuccessNotice, DangerNotice } from '../components/common/Notice';
-import { listAllUsers } from '../api/adminUsers';
+import { listUsers } from '../api/adminUsers';
 
 const ALLOWED_ROLES = ['admin', 'user'];
 function normalizeRoles(value, { defaultRole = 'user' } = {}) {
@@ -25,7 +25,7 @@ function useIsAdmin(user) {
 
 // Función para obtener información del usuario asignado
 const getUserInfo = (userId, admins) => {
-  const admin = admins.find(admin => admin._id === userId);
+  const admin = admins.find(admin => admin.id === userId);
   if (admin) {
     const name = admin.name || admin.email || 'Usuario';
     const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -61,7 +61,7 @@ const loadTasks = (admins = []) => {
       status: 'en-curso', 
       priority: 'alta', 
       due: '2025-01-22', 
-      assignee: admins[0]?._id || '', 
+      assignee: admins[0]?.id || '', 
       tags: ['Laboral', 'Audiencia'], 
       radicado: '11001-31-05-2025-00123',
       description: 'Preparar y radicar tutela por violación al derecho al descanso y vacaciones compensadas',
@@ -75,7 +75,7 @@ const loadTasks = (admins = []) => {
       status: 'pendiente', 
       priority: 'media', 
       due: '2025-01-20', 
-      assignee: admins[1]?._id || admins[0]?._id || '', 
+      assignee: admins[1]?.id || admins[0]?.id || '', 
       tags: ['Civil', 'Notaría 27'], 
       radicado: null,
       description: 'Revisar cláusulas del contrato de promesa de compraventa del apartamento 501',
@@ -89,7 +89,7 @@ const loadTasks = (admins = []) => {
       status: 'pendiente', 
       priority: 'alta', 
       due: '2025-01-19', 
-      assignee: admins[1]?._id || admins[0]?._id || '', 
+      assignee: admins[1]?.id || admins[0]?.id || '', 
       tags: ['Tributario', 'DIAN'], 
       radicado: null,
       description: 'Elaborar concepto jurídico sobre la nota crédito de RADIAN que ya fue aceptada',
@@ -103,7 +103,7 @@ const loadTasks = (admins = []) => {
       status: 'hecho', 
       priority: 'baja', 
       due: '2025-01-15', 
-      assignee: admins[2]?._id || admins[0]?._id || '', 
+      assignee: admins[2]?.id || admins[0]?.id || '', 
       tags: ['PH', 'Certificados'], 
       radicado: '50C-2024-009988',
       description: 'Solicitar CHIP y verificar folio de matrícula inmobiliaria',
@@ -117,7 +117,7 @@ const loadTasks = (admins = []) => {
       status: 'en-curso', 
       priority: 'media', 
       due: '2025-01-23', 
-      assignee: admins[0]?._id || '', 
+      assignee: admins[0]?.id || '', 
       tags: ['Civil', 'Minuta'], 
       radicado: null,
       description: 'Elaborar memorial para sustitución de comprador mediante Otrosí',
@@ -178,28 +178,68 @@ export default function AdminTareas() {
     loadAdmins();
   }, []);
 
+  // Auto-hide para notificaciones
+  useEffect(() => {
+    if (showSuccessNotice) {
+      const timer = setTimeout(() => {
+        setShowSuccessNotice(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessNotice]);
+
+  useEffect(() => {
+    if (showErrorNotice) {
+      const timer = setTimeout(() => {
+        setShowErrorNotice(false);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [showErrorNotice]);
+
+  // Resetear formulario cuando se abra el modal de crear
+  useEffect(() => {
+    if (showCreateModal) {
+      resetForm();
+    }
+  }, [showCreateModal, admins]);
+
   // Función para cargar administradores
   const loadAdmins = async () => {
     try {
       setLoading(true);
-      const response = await listAllUsers();
-      if (response && response.users) {
+      console.log('Cargando usuarios...');
+      const response = await listUsers();
+      console.log('Respuesta de listUsers:', response);
+      
+      if (response && response.items) {
+        console.log('Usuarios encontrados:', response.items);
         // Filtrar solo los administradores
-        const adminUsers = response.users.filter(user => 
-          user.roles && user.roles.includes('admin')
-        );
+        const adminUsers = response.items.filter(user => {
+          console.log('Usuario:', user.name || user.email, 'Roles:', user.roles);
+          return user.roles && user.roles.includes('admin');
+        });
+        console.log('Administradores filtrados:', adminUsers);
         setAdmins(adminUsers);
         
         // Si hay administradores, establecer el primero como usuario por defecto
         if (adminUsers.length > 0) {
-          setMe(adminUsers[0]._id);
+          setMe(adminUsers[0].id);
           // Cargar tareas con los administradores
           setTasks(loadTasks(adminUsers));
+        } else {
+          console.log('No se encontraron administradores');
+          setNoticeMessage('No se encontraron administradores en el sistema');
+          setShowErrorNotice(true);
         }
+      } else {
+        console.log('No se recibieron usuarios en la respuesta');
+        setNoticeMessage('No se pudieron cargar los usuarios');
+        setShowErrorNotice(true);
       }
     } catch (error) {
       console.error('Error cargando administradores:', error);
-      setNoticeMessage('Error al cargar la lista de administradores');
+      setNoticeMessage('Error al cargar la lista de administradores: ' + error.message);
       setShowErrorNotice(true);
     } finally {
       setLoading(false);
@@ -220,8 +260,18 @@ export default function AdminTareas() {
   };
 
   const handleCreateTask = () => {
+    console.log('Intentando crear tarea con datos:', formData);
+    
     if (!formData.title.trim() || !formData.client.trim()) {
+      console.log('Validación fallida: título o cliente vacío');
       setNoticeMessage('El título y cliente son obligatorios');
+      setShowErrorNotice(true);
+      return;
+    }
+
+    if (!formData.assignee) {
+      console.log('Validación fallida: no hay asignado');
+      setNoticeMessage('Debe seleccionar un administrador para asignar la tarea');
       setShowErrorNotice(true);
       return;
     }
@@ -241,11 +291,18 @@ export default function AdminTareas() {
       updatedAt: new Date().toISOString()
     };
 
-    setTasks(prev => [...prev, newTask]);
+    console.log('Nueva tarea creada:', newTask);
+    setTasks(prev => {
+      const updated = [...prev, newTask];
+      console.log('Tareas actualizadas:', updated);
+      return updated;
+    });
+    
     setShowCreateModal(false);
     resetForm();
     setNoticeMessage('Tarea creada exitosamente');
     setShowSuccessNotice(true);
+    console.log('Notificación de éxito configurada');
   };
 
   const handleEditTask = () => {
@@ -305,7 +362,7 @@ export default function AdminTareas() {
       description: task.description || '',
       priority: task.priority,
       due: task.due,
-      assignee: task.assignee || (admins.length > 0 ? admins[0]._id : ''),
+      assignee: task.assignee || (admins.length > 0 ? admins[0].id : ''),
       tags: task.tags.join(', '),
       radicado: task.radicado || ''
     });
@@ -324,7 +381,7 @@ export default function AdminTareas() {
       description: '',
       priority: 'media',
       due: '',
-      assignee: admins.length > 0 ? admins[0]._id : '',
+      assignee: admins.length > 0 ? admins[0].id : '',
       tags: '',
       radicado: ''
     });
@@ -410,16 +467,24 @@ export default function AdminTareas() {
                 Gestión y seguimiento de tareas del equipo
               </p>
             </div>
-          </div>
+              </div>
           
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#9fb3cc',
+              padding: '4px 8px',
+              background: '#1e2a3a',
+              borderRadius: '6px',
+              border: '1px solid #394b61'
+            }}>
+              {loading ? 'Cargando...' : `${admins.length} admin${admins.length !== 1 ? 's' : ''}`}
+              </div>
             <button 
               className="btn btn-primary"
-              onClick={() => {
-                resetForm();
-                setShowCreateModal(true);
-              }}
+              onClick={() => setShowCreateModal(true)}
               style={{ fontSize: '14px', padding: '10px 16px' }}
+              disabled={loading || admins.length === 0}
             >
               ➕ Nueva Tarea
             </button>
@@ -466,7 +531,7 @@ export default function AdminTareas() {
               }}
             >
               {admins.map(admin => (
-                <option key={admin._id} value={admin._id}>
+                <option key={admin.id} value={admin.id}>
                   {admin.name || admin.email} (Admin)
                 </option>
               ))}
@@ -490,7 +555,7 @@ export default function AdminTareas() {
                   <option value="en-curso">En curso</option>
                   <option value="hecho">Hecho</option>
                 </select>
-              </div>
+          </div>
 
         {/* Vista rápida */}
         <div style={{ 
@@ -513,7 +578,7 @@ export default function AdminTareas() {
           >
             Todas las tareas
           </button>
-            </div>
+              </div>
 
         {/* Contenido principal */}
         <div style={{ 
@@ -546,7 +611,7 @@ export default function AdminTareas() {
             }}>
               {countLabel}
             </span>
-          </div>
+              </div>
 
           <div style={{ padding: '20px' }}>
               {filtered.length === 0 ? (
@@ -634,7 +699,7 @@ export default function AdminTareas() {
                         }}>
                           Cliente: <strong style={{ color: '#4fd1c5' }}>{t.client}</strong>
                         </p>
-                      </div>
+                        </div>
 
                       <div style={{ 
                         display: 'flex', 
@@ -699,7 +764,7 @@ export default function AdminTareas() {
                             {t.radicado}
                           </span>
                         )}
-                      </div>
+                        </div>
 
                       {(t.tags || []).length > 0 && (
                         <div style={{ 
@@ -829,16 +894,68 @@ export default function AdminTareas() {
 
       {/* Notificaciones */}
       {showSuccessNotice && (
-        <SuccessNotice 
-          message={noticeMessage} 
-          onClose={() => setShowSuccessNotice(false)} 
-        />
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#064e3b',
+          color: '#a7f3d0',
+          padding: '16px',
+          borderRadius: '8px',
+          border: '1px solid rgba(16,185,129,0.35)',
+          boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
+          zIndex: 10001,
+          maxWidth: '400px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>✅ {noticeMessage}</span>
+            <button
+              onClick={() => setShowSuccessNotice(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#a7f3d0',
+                fontSize: '18px',
+                cursor: 'pointer',
+                marginLeft: '10px'
+              }}
+            >
+              ×
+            </button>
+              </div>
+        </div>
       )}
       {showErrorNotice && (
-        <DangerNotice 
-          message={noticeMessage} 
-          onClose={() => setShowErrorNotice(false)} 
-        />
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#7f1d1d',
+          color: '#fecaca',
+          padding: '16px',
+          borderRadius: '8px',
+          border: '1px solid rgba(248,113,113,0.35)',
+          boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
+          zIndex: 10001,
+          maxWidth: '400px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>❌ {noticeMessage}</span>
+            <button
+              onClick={() => setShowErrorNotice(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#fecaca',
+                fontSize: '18px',
+                cursor: 'pointer',
+                marginLeft: '10px'
+              }}
+            >
+              ×
+            </button>
+      </div>
+        </div>
       )}
 
       {/* Modal para crear tarea */}
@@ -872,6 +989,18 @@ export default function AdminTareas() {
             }}>
               ➕ Nueva Tarea
             </h3>
+            
+            {/* Debug info - temporal */}
+            <div style={{ 
+              fontSize: '10px', 
+              color: '#9fb3cc', 
+              marginBottom: '10px',
+              padding: '8px',
+              background: '#2a3a51',
+              borderRadius: '4px'
+            }}>
+              Debug: Admins: {admins.length}, Assignee: {formData.assignee || 'ninguno'}
+            </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
@@ -1001,7 +1130,7 @@ export default function AdminTareas() {
                   }}
                 >
                   {admins.map(admin => (
-                    <option key={admin._id} value={admin._id}>
+                    <option key={admin.id} value={admin.id}>
                       {admin.name || admin.email} (Admin)
                     </option>
                   ))}
@@ -1236,7 +1365,7 @@ export default function AdminTareas() {
                   }}
                 >
                   {admins.map(admin => (
-                    <option key={admin._id} value={admin._id}>
+                    <option key={admin.id} value={admin.id}>
                       {admin.name || admin.email} (Admin)
                     </option>
                   ))}
