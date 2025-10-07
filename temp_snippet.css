@@ -1,0 +1,81 @@
+}
+
+/* Excepci√≥n: los t√≠tulos del dropdown (Derecho / Contabilidad)
+   permanecen en naranja, en negrilla y no cambian en hover */
+.navbar .dropdown-content a.dropdown-title,
+.navbar .dropdown-content a.dropdown-title:hover,
+.navbar .dropdown-content a.dropdown-title:focus,
+.navbar .dropdown-content a.dropdown-title:active,
+.navbar .dropdown-content a.dropdown-title:focus-visible {
+  color: var(--koop-acento) !important;
+  font-weight: 700 !important;
+  background: transparent !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+<<<<<<< ours
+/* (Revert) Sin estilos extra para el men√∫ m√≥vil; vuelve al comportamiento anterior */
+
+/* Restaurar apariencia original del dropdown (fondo blanco, sin blur/sombras) */
+.navbar .dropdown-content {
+  background: #fff !important;
+  color: inherit !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border-radius: 0 !important;
+=======
+/* Mobile menu: todo el panel azul transl˙cido, no solo una secciÛn */
+@media (max-width: 700px) {
+  .navbar .nav-menu,
+  .navbar .nav-menu.open {
+    background: rgba(22, 46, 95, 0.72) !important;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 10px 28px rgba(0,0,0,.28);
+  }
+  /* En mÛvil, los subpaneles heredan el fondo del contenedor */
+  .navbar .dropdown-content {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+  .navbar .nav-menu a,
+  .navbar .nav-menu .drop-btn {
+    color: #ffffff !important;
+    background: transparent !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+>>>>>>> theirs
+}
+
+.navbar .dropdown-content .dropdown-title,
+.navbar .dropdown-content .dropdown-title span {
+  color: inherit !important;
+  font-weight: 400 !important;
+}
+
+.navbar .dropdown-content a {
+  color: inherit !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.navbar .dropdown-content a:hover,
+.navbar .dropdown-content a:focus,
+.navbar .dropdown-content a:active,
+.navbar .dropdown-content a:focus-visible {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  color: inherit !important;
+  outline: none !important;
+}
+

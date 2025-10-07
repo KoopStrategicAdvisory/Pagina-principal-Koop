@@ -1,0 +1,154 @@
+/* Use global Montserrat (loaded in index.html) */
+
+.auth-page {
+  /* Fallback + modern viewport units for móviles */
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Fondo transparente para ver el video */
+  background: transparent;
+  color: #ffffff;
+  padding: 0; /* evitar scroll por padding */
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-card {
+  background-color: rgba(30, 42, 58, 0.5); /* 50% approx */
+  padding: 40px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  font-family: var(--ff-base);
+  position: relative;
+  z-index: 2; /* por encima del overlay y video */
+  border: 1px solid rgba(57, 75, 97, 0.5);
+  backdrop-filter: blur(4px) saturate(120%);
+  -webkit-backdrop-filter: blur(4px) saturate(120%);
+  margin: 16px; /* respiración lateral sin generar scroll */
+}
+
+.auth-card img.logo {
+  width: 300px;
+  height: auto;
+  display: block;
+  margin: 0 auto 20px auto;
+  filter: brightness(100%);
+}
+
+.auth-card h2 {
+  margin-bottom: 24px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #ffffff;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #394b61;
+  border-radius: 8px;
+  background-color: #243447;
+  color: #ffffff;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #4fd1c5;
+  box-shadow: 0 0 0 2px rgba(79, 209, 197, 0.35);
+}
+
+.input-group input::placeholder {
+  color: #cccccc;
+}
+
+.login-button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4fd1c5, #38b2ac);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.login-button:hover {
+  background: linear-gradient(135deg, #319795, #2c7a7b);
+}
+
+.auth-actions {
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.auth-actions a {
+  color: #4fd1c5;
+  text-decoration: none;
+}
+
+.auth-error {
+  margin-bottom: 12px;
+  color: #ffb3b3;
+  font-size: 14px;
+}
+
+.auth-info {
+  margin-bottom: 12px;
+  color: #c3e6cb;
+  font-size: 14px;
+}
+
+/* Fullscreen video background for Auth */
+.auth-bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 0; /* debajo del overlay, encima del fondo */
+}
+
+.auth-bg-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Gradiente azul con bastante transparencia para ver el video */
+  background: linear-gradient(135deg, rgba(13,27,42,0.18), rgba(27,38,59,0.18));
+  backdrop-filter: blur(1px);
+  z-index: 1; /* encima del video, debajo de la card */
+}
+.no-scroll {
+  overflow: hidden !important;
+  height: 100dvh;
+}
+
+/* Responsive: móviles pequeños */
+@media (max-width: 480px) {
+  .auth-card { max-width: 92vw; padding: 20px; border-radius: 14px; }
+  .auth-card img.logo { width: 220px; margin-bottom: 12px; }
+  .auth-card h2 { margin-bottom: 16px; font-size: 20px; }
+  .input-group { margin-bottom: 14px; }
+  .input-group label { font-size: 14px; margin-bottom: 6px; }
+  .input-group input { padding: 12px; font-size: 16px; }
+  .login-button { padding: 12px; font-size: 16px; border-radius: 10px; }
+  .auth-actions { font-size: 13px; margin-top: 12px; }
+  .auth-bg-overlay { background: linear-gradient(135deg, rgba(13,27,42,0.32), rgba(27,38,59,0.32)); }
+}

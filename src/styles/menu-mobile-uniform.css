@@ -1,0 +1,28 @@
+/* Mobile nav: uniform translucent blue background matching desktop */
+@media (max-width: 700px) {
+  /* Full dropdown panel uses the same blue translucency */
+  .navbar .nav-menu,
+  .navbar .nav-menu.open {
+    background: rgba(22, 46, 95, 0.72) !important;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  }
+
+  /* Remove inner panel background (e.g., Áreas de práctica) */
+  .navbar .nav-menu .dropdown-content {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Ensure all menu text is white and clean */
+  .navbar .nav-menu a,
+  .navbar .nav-menu .drop-btn {
+    color: #ffffff !important;
+    background: transparent !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+}
+

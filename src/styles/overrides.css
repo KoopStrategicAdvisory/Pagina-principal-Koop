@@ -1,0 +1,231 @@
+/* Global small overrides to improve dropdown usability without visual changes */
+
+@media (hover: hover) {
+  /* Unify top-level nav items (Inicio, Áreas de práctica, Nuestra visión, Contacto) */
+  .navbar .nav-menu > a,
+  .navbar .nav-menu > .dropdown > .drop-btn,
+  .navbar .nav-menu .main-links > a,
+  .navbar .nav-menu .main-links > .dropdown > .drop-btn {
+    display: inline-flex;
+    align-items: center;
+    height: var(--nav-h, 64px);
+    padding: 0 12px;
+    font-weight: 400 !important; /* sin negrilla */
+  }
+
+  /* Reduce the gap between trigger and menu to avoid hover drop (no visual change) */
+  .navbar .dropdown { position: relative; }
+  .navbar .dropdown-content { top: calc(100% + 2px) !important; }
+
+  /* Invisible bridge so hover doesn't collapse moving to panel */
+  .navbar .dropdown::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 100%;
+    height: 12px;
+    pointer-events: auto;
+  }
+}
+
+/* Evita efectos de scroll suave o anclajes que restauren posición */
+html, body {
+  scroll-behavior: auto !important;
+  overflow-anchor: none; /* evita ajustes de anclaje por inserción de contenido */
+}
+
+/* Tenue fade-in en cada navegación SPA */
+@keyframes routeFadeIn { from { opacity: .15; } to { opacity: 1; } }
+html.route-fade-in #root {
+  animation: routeFadeIn 200ms ease-out both;
+}
+
+/* Hero video background on home */
+.hero--home { position: relative; }
+/* Asegurar que no se muestre ninguna imagen de fondo heredada */
+.hero-section.hero--home,
+.hero--home {
+  background: none !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+}
+.hero--home .hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  filter: brightness(0.9);
+}
+.hero--home .hero-overlay { position: absolute; inset: 0; z-index: 1; }
+.hero--home .hero-content { position: relative; z-index: 2; }
+
+/* Mobile typography improvements for home hero */
+@media (max-width: 700px) {
+  .hero--home .hero-content { max-width: 92vw; margin: 0 auto !important; padding: 0 12px; text-align: center !important; }
+  .hero--home .hero-box { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .hero--home .hero-title {
+    font-size: clamp(22px, 7.2vw, 30px) !important;
+    line-height: 1.16 !important;
+    letter-spacing: 0.01em;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    text-shadow: 0 2px 12px rgba(0,0,0,.45);
+  }
+  .hero--home .hero-subtitle {
+    font-size: clamp(16px, 4.8vw, 22px) !important;
+    line-height: 1.28 !important;
+    margin: 4px 0 6px 0;
+    opacity: .96;
+    text-shadow: 0 2px 10px rgba(0,0,0,.35);
+  }
+  .hero--home .hero-subtitle br { display: none; }
+  .hero--home .hero-desc {
+    font-size: clamp(14px, 4vw, 18px) !important;
+    line-height: 1.45 !important;
+    margin: 6px auto 2px auto;
+    opacity: .92;
+    max-width: 92vw;
+  }
+  .hero--home .cta-btn {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: clamp(14px, 3.8vw, 16px);
+    padding: 10px 16px;
+    border-radius: 10px;
+  }
+}
+
+/* Hide deprecated nav links across pages */
+.navbar .nav-menu a[href="/contratacion-publica"],
+.navbar .nav-menu a[href="/resolucion-disputas"],
+.navbar .nav-menu a[href="/insolvencia"] {
+  display: none !important;
+}
+
+/* Mobile: solo quitar negrilla de los ítems top-level, sin tocar layouts */
+@media (max-width: 700px) {
+  .navbar .nav-menu > a,
+  .navbar .drop-btn { font-weight: 400 !important; }
+}
+
+/* Fallback de acento (por si el HTML legacy no define la variable) */
+:root { --koop-acento: #ee9626; }
+
+/* Global font variables */
+:root {
+  --ff-base: 'Montserrat', Arial, sans-serif;
+  --ff-heading: var(--ff-base);
+  --ff-accent: var(--ff-base);
+}
+
+/* Hide legacy in-page navbars when using global Navbar */
+.navbar.legacy { display: none !important; }
+
+/* Dropdown: azul translúcido con mejor contraste (desktop) */
+.navbar .dropdown-content {
+  background: rgba(22, 46, 95, 0.50) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.50);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.navbar .dropdown-content .dropdown-title,
+.navbar .dropdown-content .dropdown-title span {
+  color: var(--koop-acento) !important;
+  opacity: 1;
+}
+
+.navbar .dropdown-content a {
+  color: #ffffff !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.navbar .dropdown-content a:hover,
+.navbar .dropdown-content a:focus,
+.navbar .dropdown-content a:active,
+.navbar .dropdown-content a:focus-visible {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  color: #10a89d !important; /* turquesa */
+  outline: none !important;
+}
+
+/* Excepción: los títulos del dropdown (Derecho / Contabilidad) en naranja + negrilla */
+.navbar .dropdown-content a.dropdown-title,
+.navbar .dropdown-content a.dropdown-title:hover,
+.navbar .dropdown-content a.dropdown-title:focus,
+.navbar .dropdown-content a.dropdown-title:active,
+.navbar .dropdown-content a.dropdown-title:focus-visible {
+  color: var(--koop-acento) !important;
+  font-weight: 700 !important;
+  background: transparent !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Mobile uniform translucent dropdown (same as desktop) */
+@media (max-width: 700px) {
+  .navbar .nav-menu,
+  .navbar .nav-menu.open {
+    background: rgba(22, 46, 95, 0.72) !important;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 10px 28px rgba(0,0,0,.28);
+  }
+  /* Keep inner panels transparent to avoid double backgrounds */
+  .navbar .nav-menu .dropdown-content,
+  .navbar .nav-menu .dropdown-content * {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+  }
+  .navbar .nav-menu a,
+  .navbar .nav-menu .drop-btn {
+    color: #ffffff !important;
+    background: transparent !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Unificar tipografda global con la usada en la navbar */
+html, body { font-family: var(--ff-base); }
+
+/* Forzar: ocultar tarjetas móviles en escritorio y mostrar solo-desktop */
+@media (min-width: 768px) {
+  .only-mobile { display: none !important; }
+  .only-desktop { display: block !important; }
+}
+
+/* Reset default margins to avoid white edges on app pages */
+html, body { margin: 0; padding: 0; }
+
+/* Accent orange button used for Consultas */
+.btn-orange {
+  background: #fc771c;
+  color: #ffffff;
+  border: 1px solid rgba(252, 119, 28, 0.45);
+}
+.btn-orange:hover { background: #e56b17; }
+
+/* Hover highlight for items inside the Consultas menu */
+.quick-menu .btn-secondary {
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.quick-menu .btn-secondary:hover,
+.quick-menu .btn-secondary:focus {
+  background: #fc771c;
+  color: #ffffff;
+  border-color: rgba(252, 119, 28, 0.45);
+}

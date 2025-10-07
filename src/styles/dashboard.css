@@ -1,0 +1,179 @@
+/* Estilos del Dashboard
+   - Tipografía principal: Montserrat (cargada en index.html)
+   - Paleta oscura para tarjetas y botones
+   - Responsive tweaks al final del archivo */
+
+.dash-page {
+  /* Restar la altura del navbar y los paddings para evitar scroll mínimo innecesario */
+  min-height: calc(100dvh - var(--nav-h, 64px) - 32px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0d1b2a, #1b263b);
+  color: #ffffff;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: 16px;
+  padding-top: calc(16px + var(--nav-h, 64px));
+  font-family: var(--ff-base);
+}
+
+.dash-card {
+  background-color: rgba(30, 42, 58, 0.80); // 35% opaco;
+  padding: 24px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 720px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.dash-title {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.dash-item {
+  background: #243447;
+  border: 1px solid #394b61;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.dash-item h4 {
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.dash-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: var(--ff-base);
+  text-decoration: none;
+  transition: background 0.25s ease, transform 0.06s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4fd1c5, #38b2ac);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #319795, #2c7a7b);
+}
+
+.btn:active { transform: translateY(1px); }
+
+.btn-secondary {
+  background: #32465a;
+  color: #fff;
+  border: 1px solid #3f556e;
+}
+
+/* Botón de acción destructiva */
+.btn-danger {
+  background: #32465a;
+  color: #fc771c;
+  border: 1px solid rgba(254, 202, 202, 0.35);
+}
+.btn-danger:hover {
+  background: #32465a;
+}
+
+/* Talla pequeña para botones (por ej. "Mi expediente") */
+.btn-sm {
+  font-size: 14px;
+  padding: 8px 12px;
+}
+
+.muted { color: #cbd5e1; font-size: 14px; }
+
+/* Mobile tweaks */
+@media (max-width: 600px) {
+  .dash-card { padding: 16px; border-radius: 14px; }
+  .dash-header { margin-bottom: 14px; }
+  .dash-title { font-size: 20px; }
+  .dash-grid { gap: 12px; }
+  .dash-item { padding: 14px; border-radius: 10px; }
+  .btn { padding: 10px 12px; border-radius: 10px; }
+  pre { font-size: 11.5px; line-height: 1.35; }
+}
+
+/* Variables y estilos comunes de formularios/modales */
+:root {
+  --ring: 0 0 0 3px rgb(34 211 238 / 0.25);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-card {
+  background: #0f172a;
+  color: #e2e8f0;
+  width: min(680px, 92vw);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.45);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.form { display: grid; gap: 12px; }
+.form-row { display: grid; gap: 12px; }
+@media (min-width: 640px) {
+  .form-row.two { grid-template-columns: 1fr 1fr; }
+}
+
+.field { display: grid; gap: 6px; }
+.field > span { font-size: 14px; color: #cbd5e1; }
+
+.input, .select, .textarea {
+  background: #0c1530;
+  border: 1px solid #1e2a4a;
+  color: #e5e7eb;
+  padding: 10px 12px;
+  border-radius: 12px;
+  outline: none;
+}
+.input:focus, .select:focus, .textarea:focus {
+  box-shadow: var(--ring);
+  border-color: #22d3ee;
+}
+.textarea { resize: vertical; }
+
+.alert { padding: 10px; border-radius: 10px; }
+.alert-error { background: #7f1d1d; color: #fecaca; border: 1px solid rgba(254,202,202,0.25); }
