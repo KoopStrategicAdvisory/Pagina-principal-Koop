@@ -1,12 +1,12 @@
 ﻿import React from 'react';
-import extractStylesFromHtml from '../utils/extractStylesFromHtml';
-import pageHtml from '../../old/planeacion-patrimonial.html?raw';
-import useNormalizeAssets from '../hooks/useNormalizeAssets';
-import useMenu from '../hooks/useMenu';
-import usePageTransition from '../hooks/usePageTransition';
+import extractStylesFromHtml from '../../utils/extractStylesFromHtml';
+import pageHtml from '../../../old/acciones-de-tutela.html?raw';
+import useNormalizeAssets from '../../hooks/useNormalizeAssets';
+import useMenu from '../../hooks/useMenu';
+import usePageTransition from '../../hooks/usePageTransition';
 import { Link } from 'react-router-dom';
 
-const AsesoriaContable = () => {
+const AccionesDeTutela = () => {
   useMenu();
   usePageTransition();
   const pageCss = extractStylesFromHtml(pageHtml)
@@ -22,12 +22,14 @@ const AsesoriaContable = () => {
       
     
       {/* HERO */}
-      <section className="hero-section" id="inicio">
-        <div className="hero-overlay" aria-hidden="true"></div>
-        <div className="hero-text" aria-label="Asesoría Contable">
-          <div className="hero-headline">Asesoría Contable</div>
-        </div>
-      </section>
+<section 
+  className="hero-section" id="inicio"
+  style={{ backgroundImage: "url('/img/Juezjuez.jpg')", backgroundPosition: "center 70%",  }} >
+  <div className="hero-overlay" aria-hidden="true"></div> 
+  <div className="hero-text" aria-label="Acciones de tutela">
+    <div className="hero-headline">Acciones de tutela</div>
+  </div>
+</section>
     
       {/* SECCIÓN CARDS */}
       <section className="labor-cards-section" id="servicios-planeacion">
@@ -37,59 +39,42 @@ const AsesoriaContable = () => {
           <p className="labor-sub">Estructuración, protección y gestión de patrimonios familiares y empresariales.</p>
     
           <div className="labor-grid">
-            {/* 1. Estrategias sucesorales */}
-            <a href="#sucesion" className="labor-card" style={{ '--bg': 'url(\'img/Acompañamiento.png\')' }}>
+            {/* 1. Tutela al Derecho de Petición */}
+            <a href="#protocolos" className="labor-card" style={{ '--bg': 'url(\'img/tutelapeticion.jpeg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Estrategias sucesorales</div>
-                <div className="labor-card-desc">Testamentos y planificación de herencias.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Tutela al Derecho de Petición</div>
+                <div className="labor-card-desc">Para obtener respuestas de las autoridades.</div>
               </div>
             </a>
-    
-            {/* 2. Fideicomisos y patrimonios autónomos */}
-            <a href="#fideicomisos" className="labor-card" style={{ '--bg': 'url(\'img/Victimas.png\')' }}>
+
+            {/* 2. Tutelas en temas de Salud */}
+            <a href="#fideicomisos" className="labor-card" style={{ '--bg': 'url(\'img/tutelasalud.jpg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Fideicomisos y patrimonios autónomos</div>
-                <div className="labor-card-desc">Estructuras para administrar bienes.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Tutela en  Salud</div>
+                <div className="labor-card-desc">Somos expertos dentro del área de la salud, velamos por sus intereses.</div>
               </div>
             </a>
-    
-            {/* 3. Protocolos familiares */}
-            <a href="#protocolos" className="labor-card" style={{ '--bg': 'url(\'img/donacionescambio.png\')' }}>
+
+            {/* 3. Revocatoria de decisiones judiciales */}
+            <a href="#sucesion" className="labor-card" style={{ '--bg': 'url(\'img/tuteladebido.jpeg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Protocolos familiares</div>
-                <div className="labor-card-desc">Reglas de gobierno y sucesión empresarial.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Revocatoria de decisiones judiciales</div>
+                <div className="labor-card-desc">Por vulneración al debido proceso de acuerdo a la jurisprudencia procesal.</div>
               </div>
             </a>
-    
-            {/* 4. Optimización fiscal del patrimonio */}
-            <a href="#fiscal" className="labor-card" style={{ '--bg': 'url(\'img/sucesionescambio.png\')' }}>
+ 
+             {/* 4. Pensión mediante tutela */}
+             <a href="#protocolos" className="labor-card" style={{ '--bg': 'url(\'img/jueztutela.jpg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Optimización fiscal del patrimonio</div>
-                <div className="labor-card-desc">Reducción de cargas impositivas.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Tutela para obtener pensión</div>
+                <div className="labor-card-desc">Cumplidos los requisitos de la jurisprudencia de la sala de casación laboral</div>
               </div>
             </a>
-    
-            {/* 5. Administración de portafolios */}
-            <a href="#portafolios" className="labor-card" style={{ '--bg': 'url(\'img/Audiencias.png\')' }}>
-              <div className="labor-card-content">
-                <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Administración de portafolios</div>
-                <div className="labor-card-desc">Gestión de inversiones y activos.</div>
-              </div>
-            </a>
-    
-            {/* 6. Protección de activos */}
-            <a href="#activos" className="labor-card" style={{ '--bg': 'url(\'img/capitulaciones.png\')' }}>
-              <div className="labor-card-content">
-                <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Protección de activos</div>
-                <div className="labor-card-desc">Blindaje frente a riesgos y contingencias.</div>
-              </div>
-            </a>
+ 
           </div>
         </div>
       </section>
@@ -142,12 +127,12 @@ const AsesoriaContable = () => {
           <div className="footer-col">
             <h5>Servicios de familia</h5>
             <ul className="footer-list">
-              <li><a href="#divorcio">Estrategias sucesorales</a></li>
-              <li><a href="#custodia">Fideicomisos y patrimonios autónomos</a></li>
-              <li><a href="#alimentos">Protocolos familiares</a></li>
-              <li><a href="#sociedad">Optimización fiscal del patrimonio</a></li>
-              <li><a href="#adopciones">Administración de portafolios</a></li>
-              <li><a href="#capitulaciones">Protección de activos</a></li>
+              <li><a href="#divorcio">Divorcio y separación</a></li>
+              <li><a href="#custodia">Custodia y patria potestad</a></li>
+              <li><a href="#alimentos">Alimentos y pensión alimentaria</a></li>
+              <li><a href="#sociedad">Liquidación de sociedad conyugal</a></li>
+              <li><a href="#adopciones">Adopciones</a></li>
+              <li><a href="#capitulaciones">Capitulaciones matrimoniales</a></li>
             </ul>
           </div>
     
@@ -284,5 +269,5 @@ const AsesoriaContable = () => {
   );
 };
 
-export default AsesoriaContable;
+export default AccionesDeTutela;
 

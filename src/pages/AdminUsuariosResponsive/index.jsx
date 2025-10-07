@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import { listUsers, setUserActive, grantAdminRole, revokeAdminRole, deleteUser } from "../api/adminUsers";
-import { createClientFromUser } from "../api/clients";
-import "../styles/dashboard.css";
-import { SuccessNotice, DangerNotice } from '../components/common/Notice';
-import { EditForm, EditRow, EditField, EditTextArea } from '../components/common/EditFormKit';
+import { useAuth } from "../../context/AuthContext";
+import { listUsers, setUserActive, grantAdminRole, revokeAdminRole, deleteUser } from "../../api/adminUsers";
+import { createClientFromUser } from "../../api/clients";
+import "../../styles/dashboard.css";
+import { SuccessNotice, DangerNotice } from '../../components/common/Notice';
+import { EditForm, EditRow, EditField, EditTextArea } from '../../components/common/EditFormKit';
 
 const ALLOWED_ROLES = ['admin', 'user'];
 
@@ -593,7 +593,7 @@ export default function AdminUsuarios() {
                 placeholder="CC / CE / NIT / PAS"
               />
               <EditField
-                label="Número de documento"
+                label="Nï¿½mero de documento"
                 value={clientModal.documentNumber}
                 onChange={(e) => setClientModal((prev) => ({ ...prev, documentNumber: e.target.value }))}
                 placeholder="Ej: 80761460"
@@ -607,13 +607,13 @@ export default function AdminUsuarios() {
             />
             <EditRow cols={2}>
               <EditField
-                label="Teléfono fijo / celular"
+                label="Telï¿½fono fijo / celular"
                 value={clientModal.phone}
                 onChange={(e) => setClientModal((prev) => ({ ...prev, phone: e.target.value }))}
                 placeholder="Ej: 300 123 4567"
               />
               <EditField
-                label="Correo electrónico"
+                label="Correo electrï¿½nico"
                 type="email"
                 value={clientModal.email}
                 onChange={(e) => setClientModal((prev) => ({ ...prev, email: e.target.value }))}
@@ -621,13 +621,13 @@ export default function AdminUsuarios() {
               />
             </EditRow>
             <EditField
-              label="Dirección física"
+              label="Direcciï¿½n fï¿½sica"
               value={clientModal.address}
               onChange={(e) => setClientModal((prev) => ({ ...prev, address: e.target.value }))}
               placeholder="Calle 123 #45-67, Ciudad"
             />
             <EditTextArea
-              label="Información de contacto (opcional)"
+              label="Informaciï¿½n de contacto (opcional)"
               value={clientModal.contactInfo}
               onChange={(e) => setClientModal((prev) => ({ ...prev, contactInfo: e.target.value }))}
               placeholder="Notas internas, referencias, etc."
