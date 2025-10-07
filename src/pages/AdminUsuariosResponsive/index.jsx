@@ -5,6 +5,9 @@ import { createClientFromUser } from "../../api/clients";
 import "../../styles/dashboard.css";
 import { SuccessNotice, DangerNotice } from '../../components/common/Notice';
 import { EditForm, EditRow, EditField, EditTextArea } from '../../components/common/EditFormKit';
+import UsuariosPendientesActivar from './components/UsuariosPendientesActivar';
+import UsuariosActivos from './components/UsuariosActivos';
+import ConvertirUsuarioModal from './components/ConvertirUsuarioModal';
 
 const ALLOWED_ROLES = ['admin', 'user'];
 
@@ -133,6 +136,8 @@ export default function AdminUsuarios() {
 
   const openClientModal = (u) => {
     setClientError(null);
+    const normRoles = normalizeRoles(u.roles);
+    const role = normRoles.includes('admin') ? 'admin' : 'user';
     setClientModal({
       userId: u.id,
       fullName: u.name || "",
@@ -143,6 +148,7 @@ export default function AdminUsuarios() {
       email: u.email || "",
       address: "",
       contactInfo: "",
+      role,
     });
   };
 
@@ -334,79 +340,35 @@ export default function AdminUsuarios() {
 
           return (
             <>
-              <div className="dash-item only-desktop" style={{ marginBottom: 16 }}>
-                <div className="dash-header" style={{ marginBottom: 8 }}>
-                  <h4 style={{ margin: 0 }}>
-                    Usuarios creados (no activados){pending.length ? ` · ${pending.length}` : ''}
-                  </h4>
-                  <button className="btn btn-secondary btn-sm" onClick={() => setShowPending((v) => !v)}>
-                    {showPending ? 'Ocultar' : 'Mostrar'}
-                  </button>
-                </div>
-                {showPending && (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table className="me-table" style={{ minWidth: 720 }}>
-                      <thead>
-                        <tr>
-                          <th>Nombre</th>
-                          <th>Email</th>
-                          <th>Roles</th>
-                          <th>Activo</th>
-                          <th>Creado</th>
-                          <th>Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {pending.length === 0 && (
-                          <tr>
-                            <td colSpan={6} style={{ textAlign: 'center', padding: 16 }}>
-                              {loading ? 'Cargando...' : 'No hay usuarios no activados'}
-                            </td>
-                          </tr>
-                        )}
-                        {pending.map(renderRow)}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+              <UsuariosPendientesActivar
+                users={filtered}
+                loading={loading}
+                currentUserId={currentUserId}
+                updating={updating}
+                roleUpdating={roleUpdating}
+                deleting={deleting}
+                onToggleActive={toggleActive}
+                onOpenClientModal={openClientModal}
+                onMakeAdmin={makeAdmin}
+                onRevokeAdmin={revokeAdmin}
+                onRemoveUser={removeUser}
+                initialOpen={showPending}
+              />
 
-              <div className="dash-item only-desktop">
-                <div className="dash-header" style={{ marginBottom: 8 }}>
-                  <h4 style={{ margin: 0 }}>
-                    Usuarios activados{actives.length ? ` · ${actives.length}` : ''}
-                  </h4>
-                  <button className="btn btn-secondary btn-sm" onClick={() => setShowActive((v) => !v)}>
-                    {showActive ? 'Ocultar' : 'Mostrar'}
-                  </button>
-                </div>
-                {showActive && (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table className="me-table" style={{ minWidth: 720 }}>
-                      <thead>
-                        <tr>
-                          <th>Nombre</th>
-                          <th>Email</th>
-                          <th>Roles</th>
-                          <th>Activo</th>
-                          <th>Creado</th>
-                          <th>Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {actives.length === 0 && (
-                          <tr>
-                            <td colSpan={6} style={{ textAlign: 'center', padding: 16 }}>
-                              {loading ? 'Cargando...' : 'No hay usuarios activados'}
-                            </td>
-                          </tr>
-                        )}
-                        {actives.map(renderRow)}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+              <UsuariosActivos
+                users={filtered}
+                loading={loading}
+                currentUserId={currentUserId}
+                updating={updating}
+                roleUpdating={roleUpdating}
+                deleting={deleting}
+                onToggleActive={toggleActive}
+                onOpenClientModal={openClientModal}
+                onMakeAdmin={makeAdmin}
+                onRevokeAdmin={revokeAdmin}
+                onRemoveUser={removeUser}
+                initialOpen={showActive}
+              />
             </>
           );
         })()}
@@ -554,95 +516,15 @@ export default function AdminUsuarios() {
         })()}
       </div>
 
-      {clientModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="modal-overlay"
-          onClick={(e) => { if (e.target === e.currentTarget) setClientModal(null); }}
-        >
-          <div className="modal-card" role="document">
-            <div className="modal-header">
-              <div className="dash-title">Convertir usuario en cliente</div>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setClientModal(null)} aria-label="Cerrar">
-                Cerrar
-              </button>
-            </div>
-          {clientError && (<DangerNotice onClose={() => setClientError(null)}>{clientError}</DangerNotice>)}
-          <style>{`
-            .cu-form { display: grid; gap: 12px; }
-            .cu-row { display: grid; gap: 12px; }
-            @media (min-width: 480px) { .cu-row.two { grid-template-columns: 1fr 1fr; } }
-            .cu-field > span { font-size: 12px; letter-spacing: .02em; opacity: .85; margin-bottom: 6px; }
-            .cu-input, .cu-textarea { background: #1b263b; color: #e2e8f0; border: 1px solid rgba(148,163,184,0.35); border-radius: 10px; padding: 10px 12px; }
-            .cu-input::placeholder, .cu-textarea::placeholder { color: #9fb3cc; opacity: .75; }
-            .cu-input:focus, .cu-textarea:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 2px rgba(56,189,248,.25); }
-          `}</style>
-                      <EditForm>
-            <EditField
-              label="Nombre completo"
-              value={clientModal.fullName}
-              onChange={(e) => setClientModal((prev) => ({ ...prev, fullName: e.target.value }))}
-              placeholder="Nombre y apellidos"
-            />
-            <EditRow cols={2}>
-              <EditField
-                label="Tipo de documento"
-                value={clientModal.documentType}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, documentType: e.target.value }))}
-                placeholder="CC / CE / NIT / PAS"
-              />
-              <EditField
-                label="N�mero de documento"
-                value={clientModal.documentNumber}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, documentNumber: e.target.value }))}
-                placeholder="Ej: 80761460"
-              />
-            </EditRow>
-            <EditField
-              label="Fecha de nacimiento"
-              type="date"
-              value={clientModal.birthDate}
-              onChange={(e) => setClientModal((prev) => ({ ...prev, birthDate: e.target.value }))}
-            />
-            <EditRow cols={2}>
-              <EditField
-                label="Tel�fono fijo / celular"
-                value={clientModal.phone}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, phone: e.target.value }))}
-                placeholder="Ej: 300 123 4567"
-              />
-              <EditField
-                label="Correo electr�nico"
-                type="email"
-                value={clientModal.email}
-                onChange={(e) => setClientModal((prev) => ({ ...prev, email: e.target.value }))}
-                placeholder="nombre@dominio.com"
-              />
-            </EditRow>
-            <EditField
-              label="Direcci�n f�sica"
-              value={clientModal.address}
-              onChange={(e) => setClientModal((prev) => ({ ...prev, address: e.target.value }))}
-              placeholder="Calle 123 #45-67, Ciudad"
-            />
-            <EditTextArea
-              label="Informaci�n de contacto (opcional)"
-              value={clientModal.contactInfo}
-              onChange={(e) => setClientModal((prev) => ({ ...prev, contactInfo: e.target.value }))}
-              placeholder="Notas internas, referencias, etc."
-            />
-          </EditForm><div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-              <button className="btn btn-secondary" onClick={() => setClientModal(null)} disabled={clientSaving}>
-                Cancelar
-              </button>
-              <button className="btn btn-primary" onClick={saveClient} disabled={clientSaving}>
-                {clientSaving ? 'Guardando...' : 'Crear cliente'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConvertirUsuarioModal
+        clientModal={clientModal}
+        clientError={clientError}
+        clientSaving={clientSaving}
+        onClose={() => setClientModal(null)}
+        onClearError={() => setClientError(null)}
+        onSave={saveClient}
+        onChange={(patch) => setClientModal((prev) => ({ ...prev, ...patch }))}
+      />
     </div>
   );
 }

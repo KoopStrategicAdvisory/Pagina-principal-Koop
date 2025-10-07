@@ -57,3 +57,28 @@ export function EditTextArea({ label, value, onChange, rows = 3, placeholder, te
   );
 }
 
+export function EditSelect({ label, value, onChange, options = [], placeholder = 'Seleccione una opción', selectProps }) {
+  return (
+    <label style={{ display: 'grid', gap: 6 }}>
+      {label != null && <span>{label}</span>}
+      <select
+        value={value}
+        onChange={onChange}
+        style={baseInputStyle}
+        {...(selectProps || {})}
+      >
+        {placeholder && (
+          <option value="" disabled>
+            {placeholder}
+          </option>
+        )}
+        {options.map((opt) => (
+          <option key={String(opt.value ?? opt.id)} value={String(opt.value ?? opt.id)}>
+            {String(opt.label ?? opt.name ?? opt.id)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
