@@ -1,9 +1,9 @@
 ﻿import React from 'react';
-import extractStylesFromHtml from '../utils/extractStylesFromHtml';
-import pageHtml from '../../old/auditoria.html?raw';
-import useNormalizeAssets from '../hooks/useNormalizeAssets';
-import useMenu from '../hooks/useMenu';
-import usePageTransition from '../hooks/usePageTransition';
+import extractStylesFromHtml from '../../utils/extractStylesFromHtml';
+import pageHtml from '../../../old/auditoria.html?raw';
+import useNormalizeAssets from '../../hooks/useNormalizeAssets';
+import useMenu from '../../hooks/useMenu';
+import usePageTransition from '../../hooks/usePageTransition';
 import { Link } from 'react-router-dom';
 
 const Auditoria = () => {
