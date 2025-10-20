@@ -6,7 +6,7 @@ import { listRecentDocs, uploadDoc, getDownloadUrl, createFolder, getDiagnostics
 import '../../styles/dashboard.css';
 import { SuccessNotice, DangerNotice } from '../../components/common/Notice';
 import { EditForm, EditField, EditRow } from '../../components/common/EditFormKit';
-import MiExpediente from '../MiExpediente';
+import MiExpediente from '../Miexpediente';
 
 const ALLOWED_ROLES = ['admin', 'user'];
 

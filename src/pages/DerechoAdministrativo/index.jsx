@@ -1,23 +1,16 @@
 ﻿import React from 'react';
-import extractStylesFromHtml from '../utils/extractStylesFromHtml';
-import pageHtml from '../../old/derecho-laboral.html?raw';
-import useNormalizeAssets from '../hooks/useNormalizeAssets';
-import useMenu from '../hooks/useMenu';
-import usePageTransition from '../hooks/usePageTransition';
+import extractStylesFromHtml from '../../utils/extractStylesFromHtml';
+import pageHtml from '../../../old/derecho-administrativo.html?raw';
+import useNormalizeAssets from '../../hooks/useNormalizeAssets';
+import useMenu from '../../hooks/useMenu';
+import usePageTransition from '../../hooks/usePageTransition';
 import { Link } from 'react-router-dom';
-// Imágenes específicas de la página (provenientes de old/)
-import imgDespido from '../Images/Despidoinjustificado.jpg';
-import imgLiquidaciones from '../Images/liquidaciones.jpeg';
-import imgAcoso from '../Images/acoso.jpg';
-import imgPensiones from '../Images/pensiones.jpg';
-import imgReintegro from '../Images/reintegro.png';
-import imgContratoRealidad from '../Images/contratorealidad.png';
 
-const DerechoLaboral = () => {
+const DerechoAdministrativo = () => {
   useMenu();
   usePageTransition();
   const pageCss = extractStylesFromHtml(pageHtml)
-    .replace(/url\(\s*(['"]?)img\//gi, 'url($1/img/');
+    .replace(/url\(\s*(['"]?)img\//gi, 'url($1/img/derecho-administrativo/');
   useNormalizeAssets();
   return (
   <>
@@ -29,74 +22,74 @@ const DerechoLaboral = () => {
       
     
       {/* HERO */}
-      <section className="hero-section" id="inicio">
-        <div className="hero-overlay" aria-hidden="true"></div>
-        <div className="hero-text" aria-label="Derecho Laboral y Seguridad Social">
-          <div className="hero-headline">Derecho Laboral y Seguridad Social</div>
-        </div>
-      </section>
+<section 
+  className="hero-section" id="inicio"
+  style={{ backgroundImage: "url('/img/Consejo-deestado.avif')", backgroundPosition: "center 80%",  }} >
+  <div className="hero-overlay" aria-hidden="true"></div> 
+  <div className="hero-text" aria-label="Derecho Administrativo">
+    <div className="hero-headline">Derecho Administrativo</div>
+  </div>
+</section>
     
       {/* SECCIÓN CARDS */}
-      <section className="labor-cards-section" id="servicios-laborales">
+      <section className="labor-cards-section" id="servicios-derecho-administrativo">
         <div className="labor-cards-container">
-          <div className="labor-tag">SERVICIOS LABORALES</div>
+          <div className="labor-tag">SERVICIOS DE DERECHO ADMINISTRATIVO</div>
           <h2 className="labor-title">Cómo te ayudamos</h2>
-          <p className="labor-sub">Estrategia, representación y cumplimiento normativo en derecho laboral para empresas y trabajadores.</p>
+          <p className="labor-sub">Asesoría en trámites y procedimientos ante la administración pública.</p>
     
           <div className="labor-grid">
-            {/* 1. Despido injustificado */}
-            <a href="#contratorealidad" className="labor-card" style={{ '--bg': `url(${imgContratoRealidad})` }}>
-              <div className="labor-card-content">
-                <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Contrato realidad</div>
-                <div className="labor-card-desc">Reconocimiento del vínculo laboral y prestaciones.</div>
-              </div>
-            </a>
-    
-            {/* 2. Liquidaciones y prestaciones */}
-            <a href="#liquidaciones" className="labor-card" style={{ '--bg': `url(${imgLiquidaciones})` }}>
-              <div className="labor-card-content">
-                <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Mora en el pago de la liquidación</div>
-                <div className="labor-card-desc">Cálculo, reclamación y verificación de pagos.</div>
-              </div>
-            </a>
-    
-            {/* 3. Acoso laboral */}
-            <a href="#acoso" className="labor-card" style={{ '--bg': `url(${imgAcoso})` }}>
-              <div className="labor-card-content">
-                <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Acoso laboral</div>
-                <div className="labor-card-desc">Comités, protocolos, evidencias y defensa.</div>
-              </div>
-            </a>
-    
-            {/* 4. Pensiones y seguridad social */}
-            <a href="#pensiones" className="labor-card" style={{ '--bg': `url(${imgPensiones})` }}>
-              <div className="labor-card-content">
-                <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Pensiones y seguridad social</div>
-                <div className="labor-card-desc">Traslados, reliquidaciones y contingencias.</div>
-              </div>
-            </a>
-    
-            {/* 5. Reintegro laboral */}
-            <a href="#reintegro" className="labor-card" style={{ '--bg': `url(${imgDespido})` }}>
-              <div className="labor-card-content">
-                <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Reintegro laboral</div>
-                <div className="labor-card-desc">Acciones de reintegro por despido ilegal o con fuero.</div>
-              </div>
-            </a>
-    
-            {/* 6. Continuar agregando */}
+            {/* 1. Conceptos y asesorías administrativas */}
 
+            <a href="#peticion" className="labor-card" style={{ '--bg': 'url(\'img/Gestionurbana.jpg\')' }}>
+              <div className="labor-card-content">
+                <span className="labor-badge">SERVICIO</span>
+                <div className="labor-card-title"><span className="labor-dot"></span>Gestión Urbanística</div>
+                <div className="labor-card-desc">Asesorías en licencias y planeación urbanística.</div>
+              </div>
+            </a>
+                
+    
+            {/* 3. Procesos disciplinarios */}
+            <a href="#disciplinario" className="labor-card" style={{ '--bg': 'url(\'img/Disci.jpg\')' }}>
+              <div className="labor-card-content">
+                <span className="labor-badge">SERVICIO</span>
+                <div className="labor-card-title"><span className="labor-dot"></span>Procesos disciplinarios</div>
+                <div className="labor-card-desc">Defensa ante investigaciones y sanciones.</div>
+              </div>
+            </a>
+    
+            {/* 4. Contratación estatal */}
+            <a href="#contratacion" className="labor-card" style={{ '--bg': 'url(\'img/contrato estatal.jpg\')' }}>
+              <div className="labor-card-content">
+                <span className="labor-badge">SERVICIO</span>
+                <div className="labor-card-title"><span className="labor-dot"></span>Contratación estatal</div>
+                <div className="labor-card-desc">Acompañamiento en etapas precontractuales y contractuales.</div>
+              </div>
+            </a>
+    
+            {/* 5. Acciones de nulidad y restablecimiento */}
+            <a href="#nulidad" className="labor-card" style={{ '--bg': 'url(\'img/Respfiscal.webp\')' }}>
+              <div className="labor-card-content">
+                <span className="labor-badge">SERVICIO</span>
+                <div className="labor-card-title"><span className="labor-dot"></span>Procesos de responsabilidad fiscal</div>
+                <div className="labor-card-desc">Conflictos derivados de administración de dineros públicos.</div>
+              </div>
+            </a>
+    
+            {/* 6. Derechos de petición */}
 
-            
+            <a href="#conceptos" className="labor-card" style={{ '--bg': 'url(\'img/Asesoria.webp\')' }}>
+              <div className="labor-card-content">
+                <span className="labor-badge">SERVICIO</span>
+                <div className="labor-card-title"><span className="labor-dot"></span>Conceptos y asesorías administrativas</div>
+                <div className="labor-card-desc">Elaboración de conceptos y respuestas a requerimientos.</div>
+              </div>
+            </a>
+
           </div>
         </div>
       </section>
-      
     
       {/* ===== FOOTER ===== */}
       <footer>
@@ -110,19 +103,19 @@ const DerechoLaboral = () => {
               <div className="brand-text">KOOP STRATEGIC ADVISORY</div>
             </div>
             <p className="footer-copy">
-              Estudio jurídico & contable. Litigio estratégico, cumplimiento y soluciones 360° para la gestión del riesgo laboral.
+              Estudio jurídico & contable. Valoramos y resguardamos tus activos intangibles.
             </p>
             <div className="footer-cta">
-              <h4>¿Necesitas una asesoría laboral hoy?</h4>
+              <h4>¿Necesitas una asesoría en derecho administrativo?</h4>
               <div className="btns">
-                <a className="btn btn-whatsapp" href="https://wa.me/573137213878?text=Cordial Saludo%20Koop,%20deseo%20asesor%C3%ADa%20laboral%20sobre%20el%20siguiente%20tema:" target="_blank" rel="noopener">
+                <a className="btn btn-whatsapp" href="https://wa.me/573137213878?text=Cordial%20Saludo%20Koop,%20deseo%20asesor%C3%ADa%20en%20concencioso%20administrativo%20sobre%20el%20siguiente%20tema:" target="_blank" rel="noopener">
                   {/* Ícono WhatsApp (22px) */}
                   <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M20.52 3.48A11.78 11.78 0 0 0 12.04 0C5.5 0 .2 5.3.2 11.84c0 2.08.55 4.1 1.6 5.9L0 24l6.43-1.67a11.75 11.75 0 0 0 5.6 1.43h.01c6.54 0 11.84-5.3 11.84-11.84 0-3.16-1.23-6.12-3.36-8.44ZM12.04 21.3a9.4 9.4 0 0 1-4.8-1.33l-.35-.21-3.81.99 1.02-3.73-.24-.38a9.4 9.4 0 1 1 8.18 4.66Zm5.46-7.06c-.3-.15-1.77-.87-2.04-.97-.27-.1-.46-.15-.65.15-.19.3-.75.97-.92 1.17-.17.2-.33.23-.62.08-.3-.15-1.24-.46-2.36-1.46-.87-.77-1.46-1.72-1.63-2.07-.17-.35-.02-.46.13-.62.13-.13.3-.35.45-.53.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.53-.08-.15-.62-1.49-.87-2.04-.23-.5-.47-.43-.65-.44h-.55c-.2 0-.53.08-.8.38-.27.3-1.05 1.02-1.05 2.48s1.08 2.88 1.24 3.08c.15.2 2.13 3.26 5.16 4.33.72.25 1.26.4 1.69.51.72.18 1.37.16 1.88.1.57-.07 1.77-.73 2.01-1.44.24-.71.24-1.31.17-1.44-.07-.13-.27-.2-.56-.35Z"/>
                   </svg>
                   WhatsApp
                 </a>
-                <a className="btn btn-mail" href="mailto:direccionjuridicakoop@hotmail.com?subject=Asesor%C3%ADa%20Laboral%20Koop">
+                <a className="btn btn-mail" href="mailto:direccionjuridicakoop@hotmail.com?subject=Asesor%C3%ADa%20Derecho%20Administrativo%20Koop">
                   {/* ícono mail (22px) */}
                   <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v.2l10 5.9L22 6.2V6a2 2 0 0 0-2-2Zm0 4.1-8 4.8-8-4.8V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8.1Z"/></svg>
                   Escríbenos
@@ -142,16 +135,15 @@ const DerechoLaboral = () => {
             </ul>
           </div>
     
-          {/* Servicios Laborales */}
+          {/* Servicios de Familia */}
           <div className="footer-col">
-            <h5>Servicios laborales</h5>
+            <h5>Servicios de familia</h5>
             <ul className="footer-list">
-              <li><a href="#despido">Despido injustificado</a></li>
-              <li><a href="#liquidaciones">Liquidaciones y prestaciones</a></li>
-              <li><a href="#acoso">Acoso laboral</a></li>
-              <li><a href="#pensiones">Pensiones y seguridad social</a></li>
-              <li><a href="#reintegro">Reintegro laboral</a></li>
-              <li><a href="#contratorealidad">Contrato realidad</a></li>
+              <li><a href="#divorcio">Gestión Urbanística</a></li>
+              <li><a href="#custodia">Procesos Disciplinarios</a></li>
+              <li><a href="#alimentos">Contratación Estatal</a></li>
+              <li><a href="#sociedad">Procesos de responsabilidad fiscal</a></li>
+              <li><a href="#adopciones">Conceptos y Asesorías Administrativas</a></li>
             </ul>
           </div>
     
@@ -288,5 +280,5 @@ const DerechoLaboral = () => {
   );
 };
 
-export default DerechoLaboral;
+export default DerechoAdministrativo;
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import '../styles/dashboard.css';
-import '../styles/mis-casos.css';
+import '../../styles/dashboard.css';
+import '../../styles/mis-casos.css';
 
 const casosEjemplo = [
   { id: 'CJ-001', titulo: 'Acción de tutela — derecho a la salud', estado: 'En curso', juzgado: 'Juzgado 12 Municipal', fecha: '2025-07-10' },

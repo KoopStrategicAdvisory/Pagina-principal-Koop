@@ -1,12 +1,12 @@
 ﻿import React from 'react';
-import extractStylesFromHtml from '../utils/extractStylesFromHtml';
-import pageHtml from '../../old/impuestos.html?raw';
-import useNormalizeAssets from '../hooks/useNormalizeAssets';
-import useMenu from '../hooks/useMenu';
-import usePageTransition from '../hooks/usePageTransition';
+import extractStylesFromHtml from '../../utils/extractStylesFromHtml';
+import pageHtml from '../../../old/derecho-familia.html?raw';
+import useNormalizeAssets from '../../hooks/useNormalizeAssets';
+import useMenu from '../../hooks/useMenu';
+import usePageTransition from '../../hooks/usePageTransition';
 import { Link } from 'react-router-dom';
 
-const Impuestos = () => {
+const DerechoFamilia = () => {
   useMenu();
   usePageTransition();
   const pageCss = extractStylesFromHtml(pageHtml)
@@ -22,72 +22,74 @@ const Impuestos = () => {
       
     
       {/* HERO */}
-      <section className="hero-section" id="inicio">
-        <div className="hero-overlay" aria-hidden="true"></div>
-        <div className="hero-text" aria-label="Impuestos">
-          <div className="hero-headline">Impuestos</div>
-        </div>
-      </section>
+<section 
+  className="hero-section" id="inicio"
+  style={{ backgroundImage: "url('/img/ninofamilia.webp')", backgroundPosition: "center 30%",  }} >
+  <div className="hero-overlay" aria-hidden="true"></div> 
+  <div className="hero-text" aria-label="Derecho de Familia">
+    <div className="hero-headline">Derecho de Familia</div>
+  </div>
+</section>
     
       {/* SECCIÓN CARDS */}
-      <section className="labor-cards-section" id="servicios-impuestos">
+      <section className="labor-cards-section" id="servicios-familia">
         <div className="labor-cards-container">
-          <div className="labor-tag">SERVICIOS DE IMPUESTOS</div>
+          <div className="labor-tag">SERVICIOS DE FAMILIA</div>
           <h2 className="labor-title">Cómo te ayudamos</h2>
-          <p className="labor-sub">Consultoría tributaria y planeación fiscal para empresas y personas.</p>
+          <p className="labor-sub">Asesoría integral en situaciones familiares: divorcios, custodia, alimentos y más.</p>
     
           <div className="labor-grid">
-            {/* 1. Planeación tributaria */}
-            <a href="#planeacion" className="labor-card" style={{ '--bg': 'url(\'img/Acompañamiento.png\')' }}>
+            {/* 1. Divorcio y separación */}
+            <a href="#divorcio" className="labor-card" style={{ '--bg': 'url(\'img/divorcio.jpeg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Planeación tributaria</div>
-                <div className="labor-card-desc">Estructuras fiscales eficientes y legales.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Divorcio y separación</div>
+                <div className="labor-card-desc">Representación y acuerdos amistosos o judiciales.</div>
               </div>
             </a>
     
-            {/* 2. Declaraciones y cumplimiento */}
-            <a href="#declaraciones" className="labor-card" style={{ '--bg': 'url(\'img/Victimas.png\')' }}>
+            {/* 2. Custodia y patria potestad */}
+            <a href="#custodia" className="labor-card" style={{ '--bg': 'url(\'img/Custodia.jpeg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Declaraciones y cumplimiento</div>
-                <div className="labor-card-desc">Preparación y presentación oportuna de impuestos.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Custodia y patria potestad</div>
+                <div className="labor-card-desc">Defensa de los derechos de tus hijos y del núcleo familiar.</div>
               </div>
             </a>
     
-            {/* 3. Defensa ante la DIAN */}
-            <a href="#dian" className="labor-card" style={{ '--bg': 'url(\'img/donacionescambio.png\')' }}>
+            {/* 3. Alimentos y pensión alimentaria */}
+            <a href="#alimentos" className="labor-card" style={{ '--bg': 'url(\'img/alimentos.jpg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Defensa ante la DIAN</div>
-                <div className="labor-card-desc">Respuestas a requerimientos y litigios tributarios.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Alimentos y pensión alimentaria</div>
+                <div className="labor-card-desc">Fijación, modificación y cobro de cuotas alimentarias.</div>
               </div>
             </a>
     
-            {/* 4. Precios de transferencia */}
-            <a href="#transferencia" className="labor-card" style={{ '--bg': 'url(\'img/sucesionescambio.png\')' }}>
+            {/* 4. Liquidación de sociedad conyugal */}
+            <a href="#sociedad" className="labor-card" style={{ '--bg': 'url(\'img/Violencia.jpg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Precios de transferencia</div>
-                <div className="labor-card-desc">Estudios y documentación obligatoria.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Violencia intrafamiliar</div>
+                <div className="labor-card-desc">Trámite ante comisaría de familia o proceso penal ante fiscalía.</div>
               </div>
             </a>
     
-            {/* 5. Auditoría fiscal */}
-            <a href="#auditoria" className="labor-card" style={{ '--bg': 'url(\'img/Audiencias.png\')' }}>
+            {/* 5. Adopciones */}
+            <a href="#comisariaseicbf" className="labor-card" style={{ '--bg': 'url(\'img/Bienestar.jpeg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Auditoría fiscal</div>
-                <div className="labor-card-desc">Revisión de obligaciones y contingencias.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Trámites frente a ICBF o Comisarías de familia</div>
+                <div className="labor-card-desc">Acompañamiento en procesos administrativos.</div>
               </div>
             </a>
     
-            {/* 6. Obligaciones municipales */}
-            <a href="#municipales" className="labor-card" style={{ '--bg': 'url(\'img/capitulaciones.png\')' }}>
+            {/* 6. Capitulaciones matrimoniales */}
+            <a href="#capitulaciones" className="labor-card" style={{ '--bg': 'url(\'img/capitulaciones.png\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
-                <div className="labor-card-title"><span className="labor-dot"></span>Obligaciones municipales</div>
-                <div className="labor-card-desc">Impuestos locales y de industria y comercio.</div>
+                <div className="labor-card-title"><span className="labor-dot"></span>Capitulaciones matrimoniales</div>
+                <div className="labor-card-desc">Acuerdos patrimoniales previos al matrimonio o unión libre.</div>
               </div>
             </a>
           </div>
@@ -106,19 +108,19 @@ const Impuestos = () => {
               <div className="brand-text">KOOP STRATEGIC ADVISORY</div>
             </div>
             <p className="footer-copy">
-              Estudio jurídico & contable. Optimización de obligaciones fiscales.
+              Estudio jurídico & contable. Litigio estratégico y soluciones 360° para proteger tu núcleo familiar.
             </p>
             <div className="footer-cta">
-              <h4>¿Necesitas una asesoría en impuestos?</h4>
+              <h4>¿Necesitas una asesoría en derecho de familia?</h4>
               <div className="btns">
-                <a className="btn btn-whatsapp" href="https://wa.me/573137213878?text=Cordial%20Saludo%20Koop,%20deseo%20asesor%C3%ADa%20en%20impuestos%20sobre%20el%20siguiente%20tema:" target="_blank" rel="noopener">
+                <a className="btn btn-whatsapp" href="https://wa.me/573137213878?text=Cordial Saludo%20Koop,%20deseo%20asesor%C3%ADa%20en%20derecho%20de%20familia%20sobre%20el%20siguiente%20tema:" target="_blank" rel="noopener">
                   {/* Ícono WhatsApp (22px) */}
                   <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M20.52 3.48A11.78 11.78 0 0 0 12.04 0C5.5 0 .2 5.3.2 11.84c0 2.08.55 4.1 1.6 5.9L0 24l6.43-1.67a11.75 11.75 0 0 0 5.6 1.43h.01c6.54 0 11.84-5.3 11.84-11.84 0-3.16-1.23-6.12-3.36-8.44ZM12.04 21.3a9.4 9.4 0 0 1-4.8-1.33l-.35-.21-3.81.99 1.02-3.73-.24-.38a9.4 9.4 0 1 1 8.18 4.66Zm5.46-7.06c-.3-.15-1.77-.87-2.04-.97-.27-.1-.46-.15-.65.15-.19.3-.75.97-.92 1.17-.17.2-.33.23-.62.08-.3-.15-1.24-.46-2.36-1.46-.87-.77-1.46-1.72-1.63-2.07-.17-.35-.02-.46.13-.62.13-.13.3-.35.45-.53.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.53-.08-.15-.62-1.49-.87-2.04-.23-.5-.47-.43-.65-.44h-.55c-.2 0-.53.08-.8.38-.27.3-1.05 1.02-1.05 2.48s1.08 2.88 1.24 3.08c.15.2 2.13 3.26 5.16 4.33.72.25 1.26.4 1.69.51.72.18 1.37.16 1.88.1.57-.07 1.77-.73 2.01-1.44.24-.71.24-1.31.17-1.44-.07-.13-.27-.2-.56-.35Z"/>
                   </svg>
                   WhatsApp
                 </a>
-                <a className="btn btn-mail" href="mailto:direccionjuridicakoop@hotmail.com?subject=Asesor%C3%ADa%20Impuestos%20Koop">
+                <a className="btn btn-mail" href="mailto:direccionjuridicakoop@hotmail.com?subject=Asesor%C3%ADa%20Derecho%20de%20Familia%20Koop">
                   {/* ícono mail (22px) */}
                   <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v.2l10 5.9L22 6.2V6a2 2 0 0 0-2-2Zm0 4.1-8 4.8-8-4.8V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8.1Z"/></svg>
                   Escríbenos
@@ -142,12 +144,12 @@ const Impuestos = () => {
           <div className="footer-col">
             <h5>Servicios de familia</h5>
             <ul className="footer-list">
-              <li><a href="#divorcio">Planeación tributaria</a></li>
-              <li><a href="#custodia">Declaraciones y cumplimiento</a></li>
-              <li><a href="#alimentos">Defensa ante DIAN</a></li>
-              <li><a href="#sociedad">Precios de transferencia</a></li>
-              <li><a href="#adopciones">Auditoría fiscal</a></li>
-              <li><a href="#capitulaciones">Obligaciones municipales</a></li>
+              <li><a href="#divorcio">Divorcio y separación</a></li>
+              <li><a href="#custodia">Custodia y patria potestad</a></li>
+              <li><a href="#alimentos">Alimentos y pensión alimentaria</a></li>
+              <li><a href="#sociedad">Violencia intrafamiliar</a></li>
+              <li><a href="#adopciones">Trámites frente a ICBF o Comisarías de familia</a></li>
+              <li><a href="#capitulaciones">Capitulaciones matrimoniales</a></li>
             </ul>
           </div>
     
@@ -161,7 +163,7 @@ const Impuestos = () => {
               </div>
               <div className="item">
                 <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8c1.2 2.3 3.2 4.3 5.5 5.5l1.8-1.8c.3-.3.8-.4 1.1-.2 1 .3 2 .5 3 .5.6 0 1 .4 1 .9V20c0 .6-.4 1-1 1C9.9 21 3 14.1 3 5c0-.6.4-1 1-1h3.3c.5 0 .9.4.9 1 0 1 .2 2 .5 3 .1.4 0 .8-.3 1.1l-1.8 1.7Z"/></svg>
-                <span><a className="footer-list" style={{ color: '#cfe0ff', textDecoration: 'none' }} href="tel:+573137213878">+57 (313) 721 38 78</a></span>
+                <span><a className="footer-list" style={{ color: '#cfe0ff', textDecoration: 'none' }} href="tel:+573503965755">+57 (350) 396 57 55</a></span>
               </div>
               <div className="item">
                 <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v.2l10 5.9L22 6.2V6a2 2 0 0 0-2-2Zm0 4.1-8 4.8-8-4.8V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8.1Z"/></svg>
@@ -284,5 +286,5 @@ const Impuestos = () => {
   );
 };
 
-export default Impuestos;
+export default DerechoFamilia;
 

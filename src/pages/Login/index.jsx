@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import '../styles/auth.css';
-import logo from '../Images/Koop Logo.png';
+import { useAuth } from '../../context/AuthContext';
+import '../../styles/auth.css';
+import logo from '../../Images/Koop Logo.png';
 
 export default function Login() {
   const { login, loading } = useAuth();
