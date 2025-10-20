@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { listActiveClients, updateClient, assignClientAdmin, deleteClient } from '../api/clients';
-import { listUsers as listAllUsers } from '../api/adminUsers';
-import { listRecentDocs, uploadDoc, getDownloadUrl, createFolder, getDiagnostics } from '../api/docs';
-import api from '../api/axios';
-import '../styles/dashboard.css';
-import { SuccessNotice, DangerNotice } from '../components/common/Notice';
-import { EditForm, EditField, EditRow } from '../components/common/EditFormKit';
-import MiExpediente from './MiExpediente';
+import { useAuth } from '../../context/AuthContext';
+import { listActiveClients, updateClient, assignClientAdmin, deleteClient } from '../../api/clients';
+import { listUsers as listAllUsers } from '../../api/adminUsers';
+import { listRecentDocs, uploadDoc, getDownloadUrl, createFolder, getDiagnostics } from '../../api/docs';
+import '../../styles/dashboard.css';
+import { SuccessNotice, DangerNotice } from '../../components/common/Notice';
+import { EditForm, EditField, EditRow } from '../../components/common/EditFormKit';
+import MiExpediente from '../MiExpediente';
 
 const ALLOWED_ROLES = ['admin', 'user'];
 

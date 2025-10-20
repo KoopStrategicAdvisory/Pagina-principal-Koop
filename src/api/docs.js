@@ -68,10 +68,14 @@ export async function uploadDoc(file, { subfolder, useExactName } = {}) {
   } else {
     console.log('🔧 useExactName es false, no se agrega al FormData');
   }
-  const { data } = await api.post('/docs/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return data;
+  try {
+    const { data } = await api.post('/docs/upload', formData);
+    return data;
+  } catch (error) {
+    const serverMessage = error?.response?.data?.message;
+    const message = serverMessage || error?.message || 'Error al subir documento';
+    throw new Error(message);
+  }
 }
 
 export async function uploadDocument({ file, subfolder }) {
@@ -116,20 +120,31 @@ export async function deleteDocument(key) {
   if (!key) {
     throw new Error('Key requerida');
   }
-  const { data } = await api.delete('/docs/object', { 
-    data: { key } 
-  });
-  return data;
+  try {
+    const { data } = await api.delete('/docs/object', {
+      data: { key }
+    });
+    return data;
+  } catch (error) {
+    const serverMessage = error?.response?.data?.message;
+    const message = serverMessage || error?.message || 'Error al eliminar documento';
+    throw new Error(message);
+  }
 }
 
 export async function deleteFolder(folderPath) {
   if (!folderPath) {
     throw new Error('Ruta de carpeta requerida');
   }
-  // Asegurar que la ruta termine con '/' para indicar que es una carpeta
   const key = folderPath.endsWith('/') ? folderPath : `${folderPath}/`;
-  const { data } = await api.delete('/docs/object', { 
-    data: { key } 
-  });
-  return data;
+  try {
+    const { data } = await api.delete('/docs/object', {
+      data: { key }
+    });
+    return data;
+  } catch (error) {
+    const serverMessage = error?.response?.data?.message;
+    const message = serverMessage || error?.message || 'Error al eliminar carpeta';
+    throw new Error(message);
+  }
 }

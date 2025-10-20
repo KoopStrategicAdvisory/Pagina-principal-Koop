@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import '../styles/dashboard.css';
 import '../styles/mi-expediente.css';
 import { useAuth } from '../context/AuthContext';
@@ -7,147 +7,164 @@ import { listRecentDocs, uploadDoc, getDownloadUrl, getClientDocumentHistory, ge
 import { listActiveClients } from '../api/clients';
 import { SuccessNotice, DangerNotice } from '../components/common/Notice';
 
-// Función global para corregir codificación UTF-8
+const convertLatin1ToUtf8 = (input) => {
+  if (!input) return input;
+  try {
+    const bytes = Uint8Array.from([...input], (char) => char.charCodeAt(0));
+    return new TextDecoder('utf-8').decode(bytes);
+  } catch (error) {
+    console.log('Error convirtiendo latin1 a utf8:', error);
+    return input;
+  }
+};
+
+const stringToHex = (input = '') => {
+  if (!input) return '';
+  return Array.from(new TextEncoder().encode(input))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+};
+// FunciÃ³n global para corregir codificaciÃ³n UTF-8
 const fixUTF8Encoding = (str) => {
   if (!str) return str;
   
-  console.log('🔧 Fixing encoding for:', str);
-  console.log('🔧 Original bytes:', Array.from(str).map(c => c.charCodeAt(0).toString(16)).join(' '));
+  console.log('ðŸ”§ Fixing encoding for:', str);
+  console.log('ðŸ”§ Original bytes:', Array.from(str).map(c => c.charCodeAt(0).toString(16)).join(' '));
   
   let corrected = str;
   
   // Verificar si el texto ya tiene caracteres correctos (no corromper texto bueno)
-  const hasCorrectChars = /[áéíóúñüçÁÉÍÓÚÑÜÇ]/.test(str);
-  const hasCorruptedChars = /[Ã]/.test(str);
+  const hasCorrectChars = /[Ã¡Ã©Ã­Ã³ÃºÃ±Ã¼Ã§ÃÃ‰ÃÃ“ÃšÃ‘ÃœÃ‡]/.test(str);
+  const hasCorruptedChars = /[Ãƒ]/.test(str);
   
   if (hasCorrectChars && !hasCorruptedChars) {
-    console.log('🔧 Text already has correct characters, preserving:', str);
-    return str; // No corromper texto que ya está bien
+    console.log('ðŸ”§ Text already has correct characters, preserving:', str);
+    return str; // No corromper texto que ya estÃ¡ bien
   }
   
   // Solo aplicar correcciones si hay caracteres corrompidos
   if (hasCorruptedChars) {
-    console.log('🔧 Detected corrupted characters, applying corrections...');
+    console.log('ðŸ”§ Detected corrupted characters, applying corrections...');
     
     corrected = corrected
-      // Correcciones específicas para "ConstituciÃ³n PolÃ­tica"
-      .replace(/ConstituciÃ³n/g, 'Constitución')
-      .replace(/PolÃ­tica/g, 'Política')
-      .replace(/constituciÃ³n/g, 'constitución')
-      .replace(/polÃ­tica/g, 'política')
-      // Correcciones generales para caracteres españoles
-      .replace(/Ã¡/g, 'á')
-      .replace(/Ã©/g, 'é') 
-      .replace(/Ã­/g, 'í')
-      .replace(/Ã³/g, 'ó')
-      .replace(/Ãº/g, 'ú')
-      .replace(/Ã±/g, 'ñ')
-      .replace(/Ã¼/g, 'ü')
-      .replace(/Ã§/g, 'ç')
-      .replace(/Ã/g, 'Á')
-      .replace(/Ã‰/g, 'É')
-      .replace(/Ã/g, 'Í')
-      .replace(/Ã"/g, 'Ó')
-      .replace(/Ãš/g, 'Ú')
-      .replace(/Ã'/g, 'Ñ')
-      .replace(/Ãœ/g, 'Ü')
-      .replace(/Ã‡/g, 'Ç')
-      .replace(/Ã¢/g, 'â')
-      .replace(/Ãª/g, 'ê')
-      .replace(/Ã®/g, 'î')
-      .replace(/Ã´/g, 'ô')
-      .replace(/Ã»/g, 'û')
-      .replace(/Ã‚/g, 'Â')
-      .replace(/ÃŠ/g, 'Ê')
-      .replace(/ÃŽ/g, 'Î')
-      .replace(/Ã"/g, 'Ô')
-      .replace(/Ã›/g, 'Û')
-      .replace(/Ã¨/g, 'è')
-      .replace(/Ã¬/g, 'ì')
-      .replace(/Ã²/g, 'ò')
-      .replace(/Ã¹/g, 'ù')
-      .replace(/Ã€/g, 'À')
-      .replace(/ÃŒ/g, 'Ì')
-      .replace(/Ã'/g, 'Ò')
-      .replace(/Ã™/g, 'Ù')
-      .replace(/Ã¤/g, 'ä')
-      .replace(/Ã«/g, 'ë')
-      .replace(/Ã¯/g, 'ï')
-      .replace(/Ã¶/g, 'ö')
-      .replace(/Ã„/g, 'Ä')
-      .replace(/Ã‹/g, 'Ë')
-      .replace(/Ã/g, 'Ï')
-      .replace(/Ã–/g, 'Ö')
-      .replace(/â€™/g, "'")
-      .replace(/â€œ/g, '"')
-      .replace(/â€/g, '"')
-      .replace(/â€"/g, '–')
-      .replace(/â€"/g, '—');
+      // Correcciones especÃ­ficas para "ConstituciÃƒÂ³n PolÃƒÂ­tica"
+      .replace(/ConstituciÃƒÂ³n/g, 'ConstituciÃ³n')
+      .replace(/PolÃƒÂ­tica/g, 'PolÃ­tica')
+      .replace(/constituciÃƒÂ³n/g, 'constituciÃ³n')
+      .replace(/polÃƒÂ­tica/g, 'polÃ­tica')
+      // Correcciones generales para caracteres espaÃ±oles
+      .replace(/ÃƒÂ¡/g, 'Ã¡')
+      .replace(/ÃƒÂ©/g, 'Ã©') 
+      .replace(/ÃƒÂ­/g, 'Ã­')
+      .replace(/ÃƒÂ³/g, 'Ã³')
+      .replace(/ÃƒÂº/g, 'Ãº')
+      .replace(/ÃƒÂ±/g, 'Ã±')
+      .replace(/ÃƒÂ¼/g, 'Ã¼')
+      .replace(/ÃƒÂ§/g, 'Ã§')
+      .replace(/Ãƒ/g, 'Ã')
+      .replace(/Ãƒâ€°/g, 'Ã‰')
+      .replace(/Ãƒ/g, 'Ã')
+      .replace(/Ãƒ"/g, 'Ã“')
+      .replace(/ÃƒÅ¡/g, 'Ãš')
+      .replace(/Ãƒ'/g, 'Ã‘')
+      .replace(/ÃƒÅ“/g, 'Ãœ')
+      .replace(/Ãƒâ€¡/g, 'Ã‡')
+      .replace(/ÃƒÂ¢/g, 'Ã¢')
+      .replace(/ÃƒÂª/g, 'Ãª')
+      .replace(/ÃƒÂ®/g, 'Ã®')
+      .replace(/ÃƒÂ´/g, 'Ã´')
+      .replace(/ÃƒÂ»/g, 'Ã»')
+      .replace(/Ãƒâ€š/g, 'Ã‚')
+      .replace(/ÃƒÅ /g, 'ÃŠ')
+      .replace(/ÃƒÅ½/g, 'ÃŽ')
+      .replace(/Ãƒ"/g, 'Ã”')
+      .replace(/Ãƒâ€º/g, 'Ã›')
+      .replace(/ÃƒÂ¨/g, 'Ã¨')
+      .replace(/ÃƒÂ¬/g, 'Ã¬')
+      .replace(/ÃƒÂ²/g, 'Ã²')
+      .replace(/ÃƒÂ¹/g, 'Ã¹')
+      .replace(/Ãƒâ‚¬/g, 'Ã€')
+      .replace(/ÃƒÅ’/g, 'ÃŒ')
+      .replace(/Ãƒ'/g, 'Ã’')
+      .replace(/Ãƒâ„¢/g, 'Ã™')
+      .replace(/ÃƒÂ¤/g, 'Ã¤')
+      .replace(/ÃƒÂ«/g, 'Ã«')
+      .replace(/ÃƒÂ¯/g, 'Ã¯')
+      .replace(/ÃƒÂ¶/g, 'Ã¶')
+      .replace(/Ãƒâ€ž/g, 'Ã„')
+      .replace(/Ãƒâ€¹/g, 'Ã‹')
+      .replace(/Ãƒ/g, 'Ã')
+      .replace(/Ãƒâ€“/g, 'Ã–')
+      .replace(/Ã¢â‚¬â„¢/g, "'")
+      .replace(/Ã¢â‚¬Å“/g, '"')
+      .replace(/Ã¢â‚¬/g, '"')
+      .replace(/Ã¢â‚¬"/g, 'â€“')
+      .replace(/Ã¢â‚¬"/g, 'â€”');
     
-    // Intentar corrección desde latin1 si aún hay problemas
-    if (corrected.includes('Ã')) {
+    // Intentar correcciÃ³n desde latin1 si aÃºn hay problemas
+    if (corrected.includes('Ãƒ')) {
       try {
-        const latin1Corrected = Buffer.from(corrected, 'latin1').toString('utf8');
-        if (!latin1Corrected.includes('Ã')) {
+        const latin1Corrected = convertLatin1ToUtf8(corrected);
+        if (!latin1Corrected.includes('Ãƒ')) {
           corrected = latin1Corrected;
-          console.log('🔧 Applied latin1 correction:', corrected);
+          console.log('ðŸ”§ Applied latin1 correction:', corrected);
         }
       } catch (e) {
-        console.log('🔧 Error en corrección latin1:', e);
+        console.log('ðŸ”§ Error en correcciÃ³n latin1:', e);
       }
     }
   }
   
-  console.log('🔧 Final result:', corrected);
-  console.log('🔧 Final bytes:', Array.from(corrected).map(c => c.charCodeAt(0).toString(16)).join(' '));
+  console.log('ðŸ”§ Final result:', corrected);
+  console.log('ðŸ”§ Final bytes:', Array.from(corrected).map(c => c.charCodeAt(0).toString(16)).join(' '));
   return corrected;
 };
 
-// Función de corrección agresiva
+// FunciÃ³n de correcciÃ³n agresiva
 const aggressiveUTF8Fix = (str) => {
   if (!str) return str;
   
   return str
-    // Correcciones específicas para casos reportados
-    .replace(/TrÃ¡mite/g, 'Trámite')
-    .replace(/TÃºtela/g, 'Tútela')
-    .replace(/trÃ¡mite/g, 'trámite')
-    .replace(/tÃºtela/g, 'tútela')
-    .replace(/ConstituciÃ³n/g, 'Constitución')
-    .replace(/PolÃ­tica/g, 'Política')
-    .replace(/constituciÃ³n/g, 'constitución')
-    .replace(/polÃ­tica/g, 'política')
+    // Correcciones especÃ­ficas para casos reportados
+    .replace(/TrÃƒÂ¡mite/g, 'TrÃ¡mite')
+    .replace(/TÃƒÂºtela/g, 'TÃºtela')
+    .replace(/trÃƒÂ¡mite/g, 'trÃ¡mite')
+    .replace(/tÃƒÂºtela/g, 'tÃºtela')
+    .replace(/ConstituciÃƒÂ³n/g, 'ConstituciÃ³n')
+    .replace(/PolÃƒÂ­tica/g, 'PolÃ­tica')
+    .replace(/constituciÃƒÂ³n/g, 'constituciÃ³n')
+    .replace(/polÃƒÂ­tica/g, 'polÃ­tica')
     // Correcciones generales
-    .replace(/Ã¡/g, 'á')
-    .replace(/Ã©/g, 'é')
-    .replace(/Ã­/g, 'í')
-    .replace(/Ã³/g, 'ó')
-    .replace(/Ãº/g, 'ú')
-    .replace(/Ã±/g, 'ñ')
-    .replace(/Ã/g, 'Á')
-    .replace(/Ã‰/g, 'É')
-    .replace(/Ã/g, 'Í')
-    .replace(/Ã"/g, 'Ó')
-    .replace(/Ãš/g, 'Ú')
-    .replace(/Ã'/g, 'Ñ')
-    .replace(/Ã¼/g, 'ü')
-    .replace(/Ãœ/g, 'Ü')
-    .replace(/Ã‡/g, 'Ç')
-    .replace(/Ã§/g, 'ç');
+    .replace(/ÃƒÂ¡/g, 'Ã¡')
+    .replace(/ÃƒÂ©/g, 'Ã©')
+    .replace(/ÃƒÂ­/g, 'Ã­')
+    .replace(/ÃƒÂ³/g, 'Ã³')
+    .replace(/ÃƒÂº/g, 'Ãº')
+    .replace(/ÃƒÂ±/g, 'Ã±')
+    .replace(/Ãƒ/g, 'Ã')
+    .replace(/Ãƒâ€°/g, 'Ã‰')
+    .replace(/Ãƒ/g, 'Ã')
+    .replace(/Ãƒ"/g, 'Ã“')
+    .replace(/ÃƒÅ¡/g, 'Ãš')
+    .replace(/Ãƒ'/g, 'Ã‘')
+    .replace(/ÃƒÂ¼/g, 'Ã¼')
+    .replace(/ÃƒÅ“/g, 'Ãœ')
+    .replace(/Ãƒâ€¡/g, 'Ã‡')
+    .replace(/ÃƒÂ§/g, 'Ã§');
 };
 
-// Hook personalizado para manejar codificación en inputs con corrección agresiva
+// Hook personalizado para manejar codificaciÃ³n en inputs con correcciÃ³n agresiva
 const useUTF8Input = (initialValue = '') => {
   const [value, setValue] = useState(initialValue);
   
   const handleChange = (e) => {
     let inputValue = e.target.value;
     
-    // Aplicar corrección agresiva SIEMPRE
+    // Aplicar correcciÃ³n agresiva SIEMPRE
     const correctedValue = aggressiveUTF8Fix(inputValue);
     
     if (correctedValue !== inputValue) {
-      console.log('🔧 AGGRESSIVE FIX - Original:', inputValue, 'Corrected:', correctedValue);
+      console.log('ðŸ”§ AGGRESSIVE FIX - Original:', inputValue, 'Corrected:', correctedValue);
       e.target.value = correctedValue;
       inputValue = correctedValue;
     }
@@ -182,7 +199,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
   const fileInputRef = useRef(null);
   const noticeTimeoutRef = useRef(null);
 
-  // Estados para gesti�n de carpetas de clientes
+  // Estados para gestiï¿½n de carpetas de clientes
   const [selectedClient, setSelectedClient] = useState(propSelectedClient || null);
   const [clientFolders, setClientFolders] = useState({});
   const [selectedFolder, setSelectedFolder] = useState(null);
@@ -230,19 +247,19 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
   const [newProcessType, setNewProcessType] = useState('');
   const [creatingProcess, setCreatingProcess] = useState(false);
 
-  // Efecto específico para corregir el nombre del proceso
+  // Efecto especÃ­fico para corregir el nombre del proceso
   useEffect(() => {
-    if (newProcessName && newProcessName.includes('Ã')) {
-      console.log('🔧 Process name has corrupted characters, correcting...');
+    if (newProcessName && newProcessName.includes('Ãƒ')) {
+      console.log('ðŸ”§ Process name has corrupted characters, correcting...');
       const corrected = fixUTF8Encoding(newProcessName);
       if (corrected !== newProcessName) {
-        console.log('🔧 Auto-correcting process name:', newProcessName, '->', corrected);
+        console.log('ðŸ”§ Auto-correcting process name:', newProcessName, '->', corrected);
         setNewProcessName(corrected);
       }
     }
   }, [newProcessName]);
 
-  // Estados para selección múltiple
+  // Estados para selecciÃ³n mÃºltiple
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -253,26 +270,26 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
   const [customFileName, setCustomFileName, handleCustomFileNameChange] = useUTF8Input('');
   const [showFileNameInput, setShowFileNameInput] = useState(false);
 
-  // Efecto específico para corregir el nombre del archivo personalizado - AGRESIVO
+  // Efecto especÃ­fico para corregir el nombre del archivo personalizado - AGRESIVO
   useEffect(() => {
     if (customFileName) {
       const corrected = aggressiveUTF8Fix(customFileName);
       if (corrected !== customFileName) {
-        console.log('🔧 AGGRESSIVE FILE NAME FIX - Original:', customFileName, 'Corrected:', corrected);
+        console.log('ðŸ”§ AGGRESSIVE FILE NAME FIX - Original:', customFileName, 'Corrected:', corrected);
         setCustomFileName(corrected);
       }
     }
   }, [customFileName]);
 
-  // Efecto para corregir automáticamente el input de archivo cada 100ms
+  // Efecto para corregir automÃ¡ticamente el input de archivo cada 100ms
   useEffect(() => {
     const handleFileInputCorrection = () => {
-      // Buscar específicamente el input de nombre de archivo
+      // Buscar especÃ­ficamente el input de nombre de archivo
       const fileInput = document.querySelector('input[type="text"][placeholder="Nombre del archivo..."]');
       if (fileInput && fileInput.value) {
         const corrected = aggressiveUTF8Fix(fileInput.value);
         if (corrected !== fileInput.value) {
-          console.log('🔧 INTERVAL FILE INPUT FIX - Original:', fileInput.value, 'Corrected:', corrected);
+          console.log('ðŸ”§ INTERVAL FILE INPUT FIX - Original:', fileInput.value, 'Corrected:', corrected);
           fileInput.value = corrected;
           
           // Disparar evento de cambio
@@ -282,19 +299,19 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       }
     };
 
-    // Ejecutar corrección cada 100ms
+    // Ejecutar correcciÃ³n cada 100ms
     const interval = setInterval(handleFileInputCorrection, 100);
     
     return () => clearInterval(interval);
   }, []);
 
-  // Efecto para corregir automáticamente el texto - DESACTIVADO TEMPORALMENTE
+  // Efecto para corregir automÃ¡ticamente el texto - DESACTIVADO TEMPORALMENTE
   useEffect(() => {
-    console.log('🔧 Global text correction effect loaded - DISABLED');
-    // TEMPORAL: No aplicar correcciones automáticas
+    console.log('ðŸ”§ Global text correction effect loaded - DISABLED');
+    // TEMPORAL: No aplicar correcciones automÃ¡ticas
   }, []);
 
-  // Efecto para monitorear y corregir codificación en tiempo real - AGRESIVO
+  // Efecto para monitorear y corregir codificaciÃ³n en tiempo real - AGRESIVO
   useEffect(() => {
     const handleInputEvent = (e) => {
       if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
@@ -302,7 +319,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
         const corrected = aggressiveUTF8Fix(inputValue);
         
         if (corrected !== inputValue) {
-          console.log('🔧 GLOBAL AGGRESSIVE FIX - Original:', inputValue, 'Corrected:', corrected);
+          console.log('ðŸ”§ GLOBAL AGGRESSIVE FIX - Original:', inputValue, 'Corrected:', corrected);
           e.target.value = corrected;
           
           // Disparar evento de cambio para actualizar el estado
@@ -318,7 +335,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
         const corrected = aggressiveUTF8Fix(inputValue);
         
         if (corrected !== inputValue) {
-          console.log('🔧 KEYUP AGGRESSIVE FIX - Original:', inputValue, 'Corrected:', corrected);
+          console.log('ðŸ”§ KEYUP AGGRESSIVE FIX - Original:', inputValue, 'Corrected:', corrected);
           e.target.value = corrected;
           
           // Disparar evento de cambio para actualizar el estado
@@ -416,7 +433,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
     const f = e.target?.files?.[0];
     if (!f) return;
     
-    // Validar que se haya seleccionado una subcarpeta específica
+    // Validar que se haya seleccionado una subcarpeta especÃ­fica
     let errorMessage = null;
     
     if (isAdmin) {
@@ -424,12 +441,12 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       if (!selectedClient?.documentNumber) {
         errorMessage = 'Debes seleccionar un cliente primero';
       } else if (!selectedFolder?.path) {
-        errorMessage = 'Debes seleccionar una carpeta específica del proceso judicial para subir documentos. No se permiten archivos sueltos en la carpeta del cliente.';
+        errorMessage = 'Debes seleccionar una carpeta especÃ­fica del proceso judicial para subir documentos. No se permiten archivos sueltos en la carpeta del cliente.';
       }
     } else {
       // Para usuarios regulares: debe haber una carpeta de usuario seleccionada
       if (!selectedUserFolder?.path) {
-        errorMessage = 'Debes seleccionar una carpeta específica del proceso judicial para subir documentos. No se permiten archivos sueltos en la carpeta del cliente.';
+        errorMessage = 'Debes seleccionar una carpeta especÃ­fica del proceso judicial para subir documentos. No se permiten archivos sueltos en la carpeta del cliente.';
       }
     }
     
@@ -458,7 +475,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       setError(null);
       setShowErrorNotice(false);
       setShowSuccessNotice(false);
-      // Validar que se haya seleccionado una subcarpeta específica
+      // Validar que se haya seleccionado una subcarpeta especÃ­fica
       let subfolder = null;
       let errorMessage = null;
       
@@ -467,14 +484,14 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
         if (!selectedClient?.documentNumber) {
           errorMessage = 'Debes seleccionar un cliente primero';
         } else if (!selectedFolder?.path) {
-          errorMessage = 'Debes seleccionar una carpeta específica del proceso judicial para subir documentos. No se permiten archivos sueltos en la carpeta del cliente.';
+          errorMessage = 'Debes seleccionar una carpeta especÃ­fica del proceso judicial para subir documentos. No se permiten archivos sueltos en la carpeta del cliente.';
         } else {
           subfolder = selectedFolder.path;
         }
       } else {
         // Para usuarios regulares: debe haber una carpeta de usuario seleccionada
         if (!selectedUserFolder?.path) {
-          errorMessage = 'Debes seleccionar una carpeta específica del proceso judicial para subir documentos. No se permiten archivos sueltos en la carpeta del cliente.';
+          errorMessage = 'Debes seleccionar una carpeta especÃ­fica del proceso judicial para subir documentos. No se permiten archivos sueltos en la carpeta del cliente.';
         } else {
           subfolder = selectedUserFolder.path;
         }
@@ -495,7 +512,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       // Actualizar lista desde el backend (si hay permisos de ListBucket)
       await loadDocs();
       
-      // Mostrar notificación de éxito
+      // Mostrar notificaciÃ³n de Ã©xito
       setNoticeMessage(`Documento subido exitosamente`);
       setShowSuccessNotice(true);
     } catch (e2) {
@@ -533,44 +550,44 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       
       // Crear un nuevo archivo con el nombre personalizado
       const originalFileName = customFileName.trim();
-      console.log('🔧 File name original:', originalFileName);
-      console.log('🔧 File name original bytes:', Array.from(originalFileName).map(c => c.charCodeAt(0).toString(16)).join(' '));
+      console.log('ðŸ”§ File name original:', originalFileName);
+      console.log('ðŸ”§ File name original bytes:', Array.from(originalFileName).map(c => c.charCodeAt(0).toString(16)).join(' '));
       
-      // Aplicar corrección agresiva MÚLTIPLES VECES
+      // Aplicar correcciÃ³n agresiva MÃšLTIPLES VECES
       let correctedFileName = aggressiveUTF8Fix(originalFileName);
-      console.log('🔧 File name después de primera corrección:', correctedFileName);
+      console.log('ðŸ”§ File name despuÃ©s de primera correcciÃ³n:', correctedFileName);
       
-      // Segunda corrección por si acaso
+      // Segunda correcciÃ³n por si acaso
       correctedFileName = aggressiveUTF8Fix(correctedFileName);
-      console.log('🔧 File name después de segunda corrección:', correctedFileName);
+      console.log('ðŸ”§ File name despuÃ©s de segunda correcciÃ³n:', correctedFileName);
       
-      // Tercera corrección manual específica
+      // Tercera correcciÃ³n manual especÃ­fica
       correctedFileName = correctedFileName
-        .replace(/TrÃ¡mite/g, 'Trámite')
-        .replace(/TÃºtela/g, 'Tútela')
-        .replace(/trÃ¡mite/g, 'trámite')
-        .replace(/tÃºtela/g, 'tútela');
-      console.log('🔧 File name después de corrección manual:', correctedFileName);
+        .replace(/TrÃƒÂ¡mite/g, 'TrÃ¡mite')
+        .replace(/TÃƒÂºtela/g, 'TÃºtela')
+        .replace(/trÃƒÂ¡mite/g, 'trÃ¡mite')
+        .replace(/tÃƒÂºtela/g, 'tÃºtela');
+      console.log('ðŸ”§ File name despuÃ©s de correcciÃ³n manual:', correctedFileName);
       
-      console.log('🔧 File name final (con corrección agresiva):', correctedFileName);
+      console.log('ðŸ”§ File name final (con correcciÃ³n agresiva):', correctedFileName);
       const fileWithCustomName = new File([selectedFile], correctedFileName, {
         type: selectedFile.type,
         lastModified: selectedFile.lastModified
       });
       
       console.log('Subiendo archivo con nombre personalizado:', correctedFileName, 'a subfolder:', subfolder);
-      console.log('🔧 Enviando useExactName: true');
+      console.log('ðŸ”§ Enviando useExactName: true');
       const res = await uploadDoc(fileWithCustomName, { subfolder, useExactName: true });
       
-      // Mostrar inmediatamente el recién subido
+      // Mostrar inmediatamente el reciÃ©n subido
       if (res?.file) setDocs((prev) => [res.file, ...prev]);
       
       // Actualizar lista desde el backend
       await reloadCurrentFolder();
       
-      // Mostrar notificación de éxito
+      // Mostrar notificaciÃ³n de Ã©xito
       setNoticeMessage(`Documento subido exitosamente`);
-      setShowErrorNotice(true); // Notificación roja
+      setShowErrorNotice(true); // NotificaciÃ³n roja
       
       // Limpiar estados
       setSelectedFile(null);
@@ -603,7 +620,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
   };
 
 
-  // Funci�n para cargar carpetas de un cliente
+  // Funciï¿½n para cargar carpetas de un cliente
   const loadClientFolders = async (client) => {
     if (!client?.documentNumber) return;
     
@@ -620,25 +637,25 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       const clientBasePath = `clientes/${client.documentNumber}`;
       
       if (Array.isArray(data?.items)) {
-        console.log('📁 Cargando carpetas para cliente:', client.documentNumber);
-        console.log('📁 clientBasePath:', clientBasePath);
-        console.log('📁 Items recibidos:', data.items.length);
+        console.log('ðŸ“ Cargando carpetas para cliente:', client.documentNumber);
+        console.log('ðŸ“ clientBasePath:', clientBasePath);
+        console.log('ðŸ“ Items recibidos:', data.items.length);
         data.items.forEach(item => {
           if (item.isFolder) {
             // Es una carpeta - solo mostrar subcarpetas, no la carpeta padre del cliente
             const folderPath = item.key?.replace(/\/$/, ''); // Remover trailing slash
             
-            console.log('📁 Procesando carpeta:', folderPath);
-            console.log('📁 Es diferente a clientBasePath?', folderPath !== clientBasePath);
-            console.log('📁 Empieza con clientBasePath + /?', folderPath.startsWith(clientBasePath + '/'));
+            console.log('ðŸ“ Procesando carpeta:', folderPath);
+            console.log('ðŸ“ Es diferente a clientBasePath?', folderPath !== clientBasePath);
+            console.log('ðŸ“ Empieza con clientBasePath + /?', folderPath.startsWith(clientBasePath + '/'));
             
             // Solo incluir si es una subcarpeta del cliente (no la carpeta padre)
             if (folderPath && folderPath !== clientBasePath && folderPath.startsWith(clientBasePath + '/')) {
-              // Extraer solo el nombre de la carpeta (la �ltima parte despu�s del cliente)
+              // Extraer solo el nombre de la carpeta (la ï¿½ltima parte despuï¿½s del cliente)
               const relativePath = folderPath.replace(clientBasePath + '/', '');
               const folderName = relativePath.split('/').pop() || 'Carpeta';
               
-              console.log('✅ Agregando carpeta:', folderName, 'path:', folderPath);
+              console.log('âœ… Agregando carpeta:', folderName, 'path:', folderPath);
               
               folders[folderPath] = {
                 name: folderName,
@@ -647,16 +664,16 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 isFolder: true
               };
             } else {
-              console.log('❌ Excluyendo carpeta:', folderPath);
+              console.log('âŒ Excluyendo carpeta:', folderPath);
             }
     } else {
             // Es un archivo
             const folderPath = item.key?.split('/').slice(0, -1).join('/') || 'root';
             
-            // Solo incluir archivos que est�n en subcarpetas del cliente
+            // Solo incluir archivos que estï¿½n en subcarpetas del cliente
             if (folderPath && folderPath !== clientBasePath && folderPath.startsWith(clientBasePath + '/')) {
               if (!folders[folderPath]) {
-                // Extraer solo el nombre de la carpeta (la �ltima parte despu�s del cliente)
+                // Extraer solo el nombre de la carpeta (la ï¿½ltima parte despuï¿½s del cliente)
                 const relativePath = folderPath.replace(clientBasePath + '/', '');
                 const folderName = relativePath.split('/').pop() || 'Carpeta';
                 
@@ -692,12 +709,12 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
     }
   };
 
-  // Funci�n para manejar clic en cliente (acorde�n)
+  // Funciï¿½n para manejar clic en cliente (acordeï¿½n)
   const onClientClick = async (client) => {
     const isExpanded = expandedClients.has(client.id);
     
     if (isExpanded) {
-      // Si est� expandido, lo contraemos
+      // Si estï¿½ expandido, lo contraemos
       setExpandedClients(prev => {
         const newSet = new Set(prev);
         newSet.delete(client.id);
@@ -706,7 +723,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       setSelectedClient(null);
       setSelectedFolder(null);
     } else {
-      // Si est� contra�do, lo expandimos
+      // Si estï¿½ contraï¿½do, lo expandimos
       setExpandedClients(prev => new Set(prev).add(client.id));
       setSelectedClient(client);
       setSelectedFolder(null);
@@ -718,7 +735,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
     }
   };
 
-  // Funci�n para manejar clic en carpeta
+  // Funciï¿½n para manejar clic en carpeta
   const onFolderClick = async (folder) => {
     setSelectedFolder(folder);
     
@@ -756,16 +773,16 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
     }
   };
 
-  // Función para verificar si una carpeta está vacía
+  // FunciÃ³n para verificar si una carpeta estÃ¡ vacÃ­a
   const isFolderEmpty = async (folder) => {
     try {
       const data = await listRecentDocs({ 
-        limit: 100, // Aumentar el límite para verificar todos los elementos
+        limit: 100, // Aumentar el lÃ­mite para verificar todos los elementos
         subfolder: folder.path
       });
       
       if (!data?.items || data.items.length === 0) {
-        return true; // No hay elementos, la carpeta está vacía
+        return true; // No hay elementos, la carpeta estÃ¡ vacÃ­a
       }
       
       // Verificar que no haya archivos (solo carpetas)
@@ -774,24 +791,24 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
         return !isFolder; // Si no es carpeta, es un archivo
       });
       
-      return !hasFiles; // Si no hay archivos, la carpeta está vacía
+      return !hasFiles; // Si no hay archivos, la carpeta estÃ¡ vacÃ­a
     } catch (error) {
-      console.error('Error verificando si la carpeta está vacía:', error);
-      return false; // En caso de error, asumir que no está vacía por seguridad
+      console.error('Error verificando si la carpeta está vacía', error);
+      return false; // En caso de error, asumir que no estÃ¡ vacÃ­a por seguridad
     }
   };
 
-  // Función para eliminar una carpeta
+  // FunciÃ³n para eliminar una carpeta
   const handleDeleteFolder = async () => {
     if (!folderToDelete) return;
     
     try {
       setDeletingFolder(true);
       
-      // Verificar que la carpeta esté vacía
+      // Verificar que la carpeta estÃ© vacÃ­a
       const isEmpty = await isFolderEmpty(folderToDelete);
       if (!isEmpty) {
-        setNoticeMessage('No se puede eliminar la carpeta porque contiene archivos. Solo se pueden eliminar carpetas completamente vacías.');
+        setNoticeMessage('No se puede eliminar la carpeta porque contiene archivos. Solo se pueden eliminar carpetas completamente vacÃ­as.');
         setShowErrorNotice(true);
         return;
       }
@@ -816,10 +833,10 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
         });
       }
       
-      // Si la carpeta eliminada era la seleccionada, limpiar la selección
+      // Si la carpeta eliminada era la seleccionada, limpiar la selecciÃ³n
       if (selectedFolder?.path === folderToDelete.path) {
         setSelectedFolder(null);
-        setDocs([]); // Limpiar también los documentos mostrados
+        setDocs([]); // Limpiar tambiÃ©n los documentos mostrados
       }
       
       setShowDeleteFolderModal(false);
@@ -836,7 +853,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
     }
   };
 
-  // Función para cargar carpetas del usuario regular
+  // FunciÃ³n para cargar carpetas del usuario regular
   const loadUserFolders = async () => {
     setLoadingUserFolders(true);
     try {
@@ -844,20 +861,20 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       console.log('Token de acceso:', accessToken ? 'Presente' : 'Ausente');
       console.log('Roles del usuario:', user?.roles);
       
-      // Primero intentamos una llamada simple para verificar autenticación
+      // Primero intentamos una llamada simple para verificar autenticaciÃ³n
       console.log('Intentando verificar conectividad...');
       try {
         const healthCheck = await getDiagnostics();
         console.log('Health check exitoso:', healthCheck);
       } catch (healthError) {
-        console.error('Health check falló:', healthError);
+        console.error('Health check fallÃ³:', healthError);
         throw new Error('No se puede conectar con el servidor de documentos');
       }
       
       console.log('Intentando cargar documentos del usuario...');
       
       // Para usuarios regulares, cargamos sus documentos desde su carpeta de cliente
-      // El backend automáticamente resuelve la carpeta del cliente basado en el usuario autenticado
+      // El backend automÃ¡ticamente resuelve la carpeta del cliente basado en el usuario autenticado
       // cuando usamos 'clientes' como subfolder
       const data = await listRecentDocs({ limit: 100, subfolder: 'clientes' });
       console.log('Datos de la API para usuario:', data);
@@ -938,7 +955,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       });
       
       if (error.response?.status === 401) {
-        setError('Error de autenticación. Por favor, cierra sesión y vuelve a iniciar sesión.');
+        setError('Error de autenticaciÃ³n. Por favor, cierra sesiÃ³n y vuelve a iniciar sesiÃ³n.');
       } else {
         setError('Error cargando carpetas: ' + (error.message || 'Error desconocido'));
       }
@@ -947,7 +964,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
     }
   };
 
-  // Función para manejar clic en carpeta de usuario
+  // FunciÃ³n para manejar clic en carpeta de usuario
   const onUserFolderClick = async (folder) => {
     setSelectedUserFolder(folder);
     
@@ -981,12 +998,12 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
     }
   };
 
-  // Función para manejar clic en carpeta de usuario (acordeón)
+  // FunciÃ³n para manejar clic en carpeta de usuario (acordeÃ³n)
   const onUserFolderAccordionClick = (folder) => {
     const isExpanded = expandedUserFolders.has(folder.path);
     
     if (isExpanded) {
-      // Si está expandido, lo contraemos
+      // Si estÃ¡ expandido, lo contraemos
       setExpandedUserFolders(prev => {
         const newSet = new Set(prev);
         newSet.delete(folder.path);
@@ -994,7 +1011,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       });
       setSelectedUserFolder(null);
     } else {
-      // Si está contraído, lo expandimos
+      // Si estÃ¡ contraÃ­do, lo expandimos
       setExpandedUserFolders(prev => new Set(prev).add(folder.path));
       onUserFolderClick(folder);
     }
@@ -1021,7 +1038,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
         clientBasePath = `clientes/${selectedClient.documentNumber}`;
       } else if (!isAdmin) {
         // Para usuarios regulares, usar su carpeta de cliente
-        // El backend automáticamente resuelve la carpeta del cliente
+        // El backend automÃ¡ticamente resuelve la carpeta del cliente
         clientBasePath = 'clientes';
       } else {
         throw new Error('No se puede determinar la carpeta del cliente');
@@ -1030,12 +1047,12 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       // Crear el nombre de la carpeta combinando tipo de proceso + nombre
       const processName = newProcessName.trim();
       
-      console.log('🔧 Proceso original:', processName);
-      console.log('🔧 Proceso original bytes:', Array.from(processName).map(c => c.charCodeAt(0).toString(16)).join(' '));
+      console.log('ðŸ”§ Proceso original:', processName);
+      console.log('ðŸ”§ Proceso original bytes:', Array.from(processName).map(c => c.charCodeAt(0).toString(16)).join(' '));
       
-      // Aplicar corrección agresiva
+      // Aplicar correcciÃ³n agresiva
       const correctedProcessName = aggressiveUTF8Fix(processName);
-      console.log('🔧 Proceso final (con corrección agresiva):', correctedProcessName);
+      console.log('ðŸ”§ Proceso final (con correcciÃ³n agresiva):', correctedProcessName);
       let folderName = '';
       
       if (newProcessType && correctedProcessName) {
@@ -1048,8 +1065,8 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
           'comercial': 'Proceso Comercial',
           'ejecutivo': 'Proceso Ejecutivo',
           'familia': 'Proceso de Familia',
-          'notarial': 'Trámite Notarial',
-          'tramite': 'Trámite'
+          'notarial': 'TrÃ¡mite Notarial',
+          'tramite': 'TrÃ¡mite'
         };
         const typeLabel = typeLabels[newProcessType] || newProcessType;
         folderName = `${typeLabel} - ${correctedProcessName}`;
@@ -1063,14 +1080,14 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       const fullPath = `${clientBasePath}/${folderName}`;
 
       console.log('Creando carpeta:', fullPath);
-      console.log('folderName (hex):', Buffer.from(folderName, 'utf8').toString('hex'));
-      console.log('fullPath (hex):', Buffer.from(fullPath, 'utf8').toString('hex'));
+      console.log('folderName (hex):', stringToHex(folderName));
+      console.log('fullPath (hex):', stringToHex(fullPath));
       
-      // Log del payload que se enviará al backend
+      // Log del payload que se enviarÃ¡ al backend
       const payload = { subfolder: fullPath };
-      console.log('🔧 Payload a enviar al backend:', payload);
-      console.log('🔧 Payload JSON:', JSON.stringify(payload));
-      console.log('🔧 Payload subfolder (hex):', Buffer.from(payload.subfolder, 'utf8').toString('hex'));
+      console.log('ðŸ”§ Payload a enviar al backend:', payload);
+      console.log('ðŸ”§ Payload JSON:', JSON.stringify(payload));
+      console.log('ðŸ”§ Payload subfolder (hex):', stringToHex(payload.subfolder));
       
       // Crear la carpeta usando la API
       const result = await createFolder(payload);
@@ -1082,7 +1099,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       setNewProcessType('');
       setShowCreateProcess(false);
 
-      // Mostrar notificación de éxito
+      // Mostrar notificaciÃ³n de Ã©xito
       setNoticeMessage(`Proceso creado exitosamente`);
       setShowSuccessNotice(true);
 
@@ -1118,16 +1135,16 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
 
   const onSaveProcessInfo = async () => {
     try {
-      // Aquí implementarías la lógica para guardar la información del proceso
-      console.log('Guardando información del proceso:', processData);
+      // AquÃ­ implementarÃ­as la lÃ³gica para guardar la informaciÃ³n del proceso
+      console.log('Guardando informaciÃ³n del proceso:', processData);
       setShowProcessInfo(false);
       setError(null);
     } catch (e) {
-      setError('Error guardando información: ' + e.message);
+      setError('Error guardando informaciÃ³n: ' + e.message);
     }
   };
 
-  // Funciones para selección múltiple
+  // Funciones para selecciÃ³n mÃºltiple
   const toggleMultiSelectMode = () => {
     setMultiSelectMode(!multiSelectMode);
     setSelectedItems(new Set());
@@ -1163,7 +1180,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
         clearTimeout(noticeTimeoutRef.current);
       }
       
-      // Establecer nuevo timeout para ocultar la notificación después de 5 segundos
+      // Establecer nuevo timeout para ocultar la notificaciÃ³n despuÃ©s de 5 segundos
       noticeTimeoutRef.current = setTimeout(() => {
         setShowSuccessNotice(false);
         setShowErrorNotice(false);
@@ -1180,7 +1197,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
   }, [showSuccessNotice, showErrorNotice]);
 
   const reloadCurrentFolder = async () => {
-    console.log('🔄 Iniciando recarga de carpeta...');
+    console.log('ðŸ”„ Iniciando recarga de carpeta...');
     setLoading(true);
     setError(null);
     setWarning(null);
@@ -1190,46 +1207,46 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       if (isAdmin && selectedClient && selectedFolder) {
         // Para administradores: recargar la carpeta del cliente seleccionada
         subfolder = selectedFolder.path;
-        console.log('📁 Admin - Carpeta específica:', subfolder);
+        console.log('ðŸ“ Admin - Carpeta especÃ­fica:', subfolder);
       } else if (!isAdmin && selectedUserFolder) {
         // Para usuarios regulares: recargar su carpeta seleccionada
         subfolder = selectedUserFolder.path;
-        console.log('👤 Usuario - Carpeta específica:', subfolder);
+        console.log('ðŸ‘¤ Usuario - Carpeta especÃ­fica:', subfolder);
       } else if (isAdmin && selectedClient) {
-        // Si hay cliente pero no carpeta específica, recargar la carpeta del cliente
+        // Si hay cliente pero no carpeta especÃ­fica, recargar la carpeta del cliente
         subfolder = `clientes/${selectedClient.documentNumber}`;
-        console.log('📁 Admin - Carpeta del cliente:', subfolder);
+        console.log('ðŸ“ Admin - Carpeta del cliente:', subfolder);
       } else if (!isAdmin) {
-        // Para usuarios regulares sin carpeta específica, recargar su carpeta base
+        // Para usuarios regulares sin carpeta especÃ­fica, recargar su carpeta base
         subfolder = 'clientes';
-        console.log('👤 Usuario - Carpeta base:', subfolder);
+        console.log('ðŸ‘¤ Usuario - Carpeta base:', subfolder);
       } else {
         // Fallback: recargar la carpeta por defecto
         subfolder = DEFAULT_FOLDER;
-        console.log('🔄 Fallback - Carpeta por defecto:', subfolder);
+        console.log('ðŸ”„ Fallback - Carpeta por defecto:', subfolder);
       }
       
-      console.log('📡 Llamando API con subfolder:', subfolder);
+      console.log('ðŸ“¡ Llamando API con subfolder:', subfolder);
       const data = await listRecentDocs({ limit: 100, subfolder });
-      console.log('📦 Datos recibidos de la API:', data);
+      console.log('ðŸ“¦ Datos recibidos de la API:', data);
       
       const allItems = Array.isArray(data?.items) ? data.items : [];
-      console.log('📋 Total de elementos recibidos:', allItems.length);
+      console.log('ðŸ“‹ Total de elementos recibidos:', allItems.length);
       
       // Mostrar tanto archivos como carpetas
       setDocs(allItems);
-      console.log('✅ Lista de documentos actualizada con', allItems.length, 'elementos');
+      console.log('âœ… Lista de documentos actualizada con', allItems.length, 'elementos');
       
       if (data?.warning) {
         setWarning(data.warning);
-        console.log('⚠️ Advertencia:', data.warning);
+        console.log('âš ï¸ Advertencia:', data.warning);
       }
     } catch (e) {
-      console.error('❌ Error recargando carpeta:', e);
+      console.error('âŒ Error recargando carpeta:', e);
       setError(e?.message || 'Error recargando documentos');
     } finally {
       setLoading(false);
-      console.log('🏁 Recarga completada');
+      console.log('ðŸ Recarga completada');
     }
   };
 
@@ -1249,26 +1266,26 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       
       for (const itemKey of itemsToDelete) {
         try {
-          console.log('🗑️ Eliminando elemento:', itemKey);
+          console.log('ðŸ—‘ï¸ Eliminando elemento:', itemKey);
           await deleteDocument(itemKey);
           deletedCount++;
-          console.log('✅ Elemento eliminado exitosamente:', itemKey);
+          console.log('âœ… Elemento eliminado exitosamente:', itemKey);
         } catch (e) {
-          console.error('❌ Error eliminando elemento:', itemKey, e);
+          console.error('âŒ Error eliminando elemento:', itemKey, e);
           const doc = docs.find(d => d.key === itemKey);
           const name = doc?.name || itemKey.split('/').pop() || 'Elemento';
           errors.push(`${name}: ${e?.message || 'Error desconocido'}`);
         }
       }
       
-      console.log(`📊 Resumen de eliminación: ${deletedCount} eliminados, ${errors.length} errores`);
+      console.log(`ðŸ“Š Resumen de eliminaciÃ³n: ${deletedCount} eliminados, ${errors.length} errores`);
       
-      // Limpiar selección y salir del modo de selección múltiple
+      // Limpiar selecciÃ³n y salir del modo de selecciÃ³n mÃºltiple
       setSelectedItems(new Set());
       setMultiSelectMode(false);
       setShowDeleteConfirm(false);
       
-      // Mostrar notificación de eliminación (siempre en rojo)
+      // Mostrar notificaciÃ³n de eliminaciÃ³n (siempre en rojo)
       if (errors.length === 0) {
         setNoticeMessage(`Elementos eliminados correctamente`);
         setShowErrorNotice(true); // Cambiado a rojo
@@ -1280,14 +1297,14 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
         setShowErrorNotice(true);
       }
       
-      // Pequeño delay para asegurar que el servidor haya procesado la eliminación
+      // PequeÃ±o delay para asegurar que el servidor haya procesado la eliminaciÃ³n
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Recargar la lista de documentos de la carpeta actual
       await reloadCurrentFolder();
       
     } catch (e) {
-      console.error('Error en eliminación masiva:', e);
+      console.error('Error en eliminaciÃ³n masiva:', e);
       const errorMsg = e?.message || 'Error eliminando elementos';
       setError(errorMsg);
       setNoticeMessage(`Error al eliminar elementos: ${errorMsg}`);
@@ -1333,7 +1350,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
           </div>
           {isModal && onClose && (
             <button className="btn btn-secondary" onClick={onClose} style={{ marginLeft: 'auto' }}>
-              ✕ Cerrar
+              Cerrar
             </button>
           )}
         </div>
@@ -1353,7 +1370,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
               onClick={toggleMultiSelectMode}
               title={multiSelectMode ? 'Salir del modo de selección' : 'Seleccionar múltiples archivos'}
             >
-              {multiSelectMode ? '✕ Cancelar selección' : '☑️ Seleccionar archivos'}
+              {multiSelectMode ? 'Cancelar selección' : 'Seleccionar archivos'}
             </button>
             {multiSelectMode && selectedItems.size > 0 && (
               <button 
@@ -1361,7 +1378,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 onClick={() => setShowDeleteConfirm(true)}
                 title={`Eliminar ${selectedItems.size} elemento${selectedItems.size > 1 ? 's' : ''} seleccionado${selectedItems.size > 1 ? 's' : ''}`}
               >
-                🗑️ Eliminar ({selectedItems.size})
+                Eliminar ({selectedItems.size})
               </button>
             )}
             <button className="btn btn-secondary">Ver información</button>
@@ -1389,7 +1406,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                       const isExpanded = expandedUserFolders.has(folder.path);
                       return (
                         <div key={folder.path} style={{ marginBottom: '8px' }}>
-                          {/* Nombre de la carpeta clickeable con indicador de acordeón */}
+                          {/* Nombre de la carpeta clickeable con indicador de acordeÃ³n */}
                           <div 
                             style={{ 
                               cursor: 'pointer',
@@ -1405,7 +1422,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                             }}
                             onClick={() => onUserFolderAccordionClick(folder)}
                           >
-                            {/* Indicador de acordeón */}
+                            {/* Indicador de acordeÃ³n */}
                             <span style={{
                               display: 'inline-block',
                               transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
@@ -1413,12 +1430,12 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                               fontSize: '12px',
                               color: isExpanded ? '#4fd1c5' : '#9fb3cc'
                             }}>
-                              ▼
+                              â–¼
                             </span>
                             {folder.name}
                           </div>
                           
-                          {/* Contenido de la carpeta (acordeón) */}
+                          {/* Contenido de la carpeta (acordeÃ³n) */}
                           {isExpanded && (
                             <div style={{ marginLeft: '16px', marginTop: '4px' }}>
                               <div style={{ color: '#9fb3cc', fontSize: '12px' }}>
@@ -1432,7 +1449,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                   )}
                 </>
               )}
-              {/* Mostrar carpetas del cliente cuando está en modo modal */}
+              {/* Mostrar carpetas del cliente cuando estÃ¡ en modo modal */}
               {isAdmin && isModal && selectedClient && (
                 <>
                   {loadingFolders ? (
@@ -1514,7 +1531,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                                   }}
                                   title="Eliminar carpeta (solo si está vacía)"
                                 >
-                                  🗑️
+                                  ðŸ—‘ï¸
                                 </button>
                               )}
                             </div>
@@ -1550,7 +1567,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 <div className="me-leaf" style={{ color: '#fecaca' }}>{assignedError}</div>
               )}
               {isAdmin && !isModal && !assignedError && assignedLoading && (
-                <div className="me-leaf" style={{ opacity: .8 }}>Cargando clientes�</div>
+                <div className="me-leaf" style={{ opacity: .8 }}>Cargando clientesï¿½</div>
               )}
               {isAdmin && !isModal && !assignedLoading && assignedClients.length === 0 && (
                 <div className="me-leaf" style={{ opacity: .8 }}>No tienes clientes asignados</div>
@@ -1561,7 +1578,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                     const isExpanded = expandedClients.has(c.id);
                     return (
                       <div key={c.id} style={{ marginBottom: '8px' }}>
-                        {/* Nombre del cliente clickeable con indicador de acorde�n */}
+                        {/* Nombre del cliente clickeable con indicador de acordeï¿½n */}
                         <div 
                           style={{ 
                             cursor: 'pointer',
@@ -1577,7 +1594,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                           }}
                           onClick={() => onClientClick(c)}
                         >
-                          {/* Indicador de acorde�n */}
+                          {/* Indicador de acordeï¿½n */}
                           <span style={{
                             display: 'inline-block',
                             transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
@@ -1585,12 +1602,12 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                             fontSize: '12px',
                             color: isExpanded ? '#4fd1c5' : '#9fb3cc'
                           }}>
-                            ▼
+                            â–¼
                           </span>
                           {c.name}
                         </div>
                         
-                        {/* Contenido del cliente (acorde�n) */}
+                        {/* Contenido del cliente (acordeï¿½n) */}
                         {isExpanded && (
                         <div style={{ marginLeft: '16px', marginTop: '4px' }}>
                           {loadingFolders ? (
@@ -1672,7 +1689,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                                           }}
                                           title="Eliminar carpeta (solo si está vacía)"
                                         >
-                                          🗑️
+                                          ðŸ—‘ï¸
                                         </button>
                                       )}
                                     </div>
@@ -1808,7 +1825,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                                   title="Descargar archivo"
                                   disabled={multiSelectMode}
                                 >
-                                  📥
+                                  ðŸ“¥
                                 </button>
                               </div>
                             )}
@@ -1827,7 +1844,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                   <thead>
                     <tr>
                       <th>Fecha</th>
-                      <th>Actuación</th>
+                      <th>ActuaciÃ³n</th>
                       <th>Tipo</th>
                       <th>Juzgado</th>
                       <th>Estado</th>
@@ -1880,12 +1897,12 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                     disabled={loading}
                     title={isAdmin ? 
                       (!selectedClient?.documentNumber ? 'Selecciona un cliente primero' : 
-                       !selectedFolder?.path ? 'Selecciona una carpeta específica del proceso judicial para subir documentos' : '') :
-                      (!selectedUserFolder?.path ? 'Selecciona una carpeta específica del proceso judicial para subir documentos' : '')
+                       !selectedFolder?.path ? 'Selecciona una carpeta especÃ­fica del proceso judicial para subir documentos' : '') :
+                      (!selectedUserFolder?.path ? 'Selecciona una carpeta especÃ­fica del proceso judicial para subir documentos' : '')
                     }
                     style={{ width: '100%', padding: '12px' }}
                   >
-                    {loading ? 'Subiendo...' : '📄 Radicar documento'}
+                    {loading ? 'Subiendo...' : 'Radicar documento'}
                   </button>
                   
                   {/* Input para editar el nombre del archivo */}
@@ -1910,19 +1927,19 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                         value={customFileName}
                         onChange={handleCustomFileNameChange}
                         onBlur={(e) => {
-                          // Corrección adicional al perder el foco
+                          // CorrecciÃ³n adicional al perder el foco
                           const corrected = aggressiveUTF8Fix(e.target.value);
                           if (corrected !== e.target.value) {
-                            console.log('🔧 FILE INPUT BLUR FIX - Original:', e.target.value, 'Corrected:', corrected);
+                            console.log('ðŸ”§ FILE INPUT BLUR FIX - Original:', e.target.value, 'Corrected:', corrected);
                             e.target.value = corrected;
                             setCustomFileName(corrected);
                           }
                         }}
                         onKeyUp={(e) => {
-                          // Corrección adicional al soltar tecla
+                          // CorrecciÃ³n adicional al soltar tecla
                           const corrected = aggressiveUTF8Fix(e.target.value);
                           if (corrected !== e.target.value) {
-                            console.log('🔧 FILE INPUT KEYUP FIX - Original:', e.target.value, 'Corrected:', corrected);
+                            console.log('ðŸ”§ FILE INPUT KEYUP FIX - Original:', e.target.value, 'Corrected:', corrected);
                             e.target.value = corrected;
                             setCustomFileName(corrected);
                           }
@@ -1946,7 +1963,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                           disabled={loading || !customFileName.trim()}
                           style={{ flex: 1, padding: '8px' }}
                         >
-                          {loading ? 'Subiendo...' : '✅ Subir'}
+                          {loading ? 'Subiendo...' : 'âœ… Subir'}
                         </button>
                         <button
                           className="btn btn-secondary btn-sm"
@@ -1954,7 +1971,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                           disabled={loading}
                           style={{ flex: 1, padding: '8px' }}
                         >
-                          ❌ Cancelar
+                          âŒ Cancelar
                         </button>
                       </div>
                     </div>
@@ -1965,7 +1982,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                     onClick={() => setShowCreateProcess(true)}
                     style={{ width: '100%', padding: '12px' }}
                   >
-                    📋 Crear Proceso
+                    Crear Proceso
                   </button>
                   
                   <button 
@@ -1973,7 +1990,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                     onClick={() => setShowProcessInfo(true)}
                     style={{ width: '100%', padding: '12px' }}
                   >
-                    ℹ️ Información del Expediente
+                    Información del Expediente
                   </button>
                   
                   <button 
@@ -1981,7 +1998,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                     onClick={() => setShowAudienceModal(true)}
                     style={{ width: '100%', padding: '12px' }}
                   >
-                    📅 Programar audiencia
+                    Programar audiencia
                   </button>
                 </div>
               </>
@@ -1992,10 +2009,10 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                   <div className="me-proc-grid">
                     <div className="me-tag">Radicado</div><div>110014105009-20250011400</div>
                     <div className="me-tag">Clase</div><div>Laboral - Ordinario</div>
-                    <div className="me-tag">Demandante</div><div>Juan Pérez</div>
+                    <div className="me-tag">Demandante</div><div>Juan PÃ©rez</div>
                     <div className="me-tag">Demandado</div><div>Acme S.A.S.</div>
                     <div className="me-tag">Juzgado</div><div>JDO 009 MPC</div>
-                    <div className="me-tag">Estado</div><div>En trámite</div>
+                    <div className="me-tag">Estado</div><div>En trÃ¡mite</div>
                   </div>
                   <hr className="me-hr" />
                   <button className="btn btn-primary" style={{ width: '100%' }}>Descargar expediente</button>
@@ -2053,7 +2070,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                   padding: '8px 12px',
                   marginTop: '8px'
                 }}>
-                  ℹ️ Esta ventana generará el nombre completo de la carpeta combinando el tipo de proceso seleccionado con el nombre que escribas.
+                  â„¹ï¸ Esta ventana generarÃ¡ el nombre completo de la carpeta combinando el tipo de proceso seleccionado con el nombre que escribas.
                 </div>
               </div>
               
@@ -2076,8 +2093,8 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                   <option value="comercial">Proceso Comercial</option>
                   <option value="ejecutivo">Proceso Ejecutivo</option>
                   <option value="familia">Proceso de Familia</option>
-                  <option value="notarial">Trámite Notarial</option>
-                  <option value="tramite">Trámite</option>
+                  <option value="notarial">TrÃ¡mite Notarial</option>
+                  <option value="tramite">TrÃ¡mite</option>
                 </select>
               </div>
             </div>
@@ -2171,7 +2188,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
               <button 
                 className="btn btn-primary" 
                 onClick={() => {
-                  // Aquí implementarías la lógica para renombrar el archivo
+                  // AquÃ­ implementarÃ­as la lÃ³gica para renombrar el archivo
                   console.log('Renombrando archivo:', selectedFileForAction.key, 'a:', newFileName);
                   setShowRenameFile(false);
                 }}
@@ -2229,7 +2246,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 borderRadius: '6px',
                 fontSize: '12px'
               }}>
-                ⚠️ Esta acción no se puede deshacer
+                âš ï¸ Esta acciÃ³n no se puede deshacer
               </div>
             </div>
             
@@ -2243,7 +2260,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
               <button 
                 className="btn btn-danger" 
                 onClick={() => {
-                  // Aquí implementarías la lógica para eliminar el archivo
+                  // AquÃ­ implementarÃ­as la lÃ³gica para eliminar el archivo
                   console.log('Eliminando archivo:', selectedFileForAction.key);
                   setShowDeleteFile(false);
                 }}
@@ -2255,7 +2272,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
         </div>
       )}
 
-      {/* Modal para información del expediente (solo en modo modal) */}
+      {/* Modal para informaciÃ³n del expediente (solo en modo modal) */}
       {isModal && showProcessInfo && (
         <div 
           style={{ 
@@ -2276,7 +2293,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
             onClick={(e) => e.stopPropagation()}
           >
             <div className="dash-header" style={{ marginBottom: 8 }}>
-              <div className="dash-title">Información del Expediente</div>
+              <div className="dash-title">InformaciÃ³n del Expediente</div>
             </div>
             
             <div className="dash-item" style={{ display: 'grid', gap: 16 }}>
@@ -2320,7 +2337,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                     className="me-input" 
                     value={processData.demandante}
                     onChange={(e) => setProcessData(prev => ({ ...prev, demandante: e.target.value }))}
-                    placeholder="Juan Pérez"
+                    placeholder="Juan PÃ©rez"
                     style={{ width: '100%' }}
                   />
                 </div>
@@ -2366,10 +2383,10 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                     style={{ width: '100%' }}
                   >
                     <option value="">Selecciona un estado...</option>
-                    <option value="en-tramite">En trámite</option>
+                    <option value="en-tramite">En trÃ¡mite</option>
                     <option value="sentencia">Sentencia</option>
                     <option value="archivado">Archivado</option>
-                    <option value="suspension">Suspensión</option>
+                    <option value="suspension">SuspensiÃ³n</option>
                   </select>
                 </div>
               </div>
@@ -2386,14 +2403,14 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 className="btn btn-primary" 
                 onClick={onSaveProcessInfo}
               >
-                Guardar Información
+                Guardar InformaciÃ³n
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal de confirmación de eliminación masiva */}
+      {/* Modal de confirmaciÃ³n de eliminaciÃ³n masiva */}
       {showDeleteConfirm && (
         <div 
           style={{ 
@@ -2414,12 +2431,12 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
             onClick={(e) => e.stopPropagation()}
           >
             <div className="dash-header" style={{ marginBottom: 8 }}>
-              <div className="dash-title">Confirmar Eliminación</div>
+              <div className="dash-title">Confirmar EliminaciÃ³n</div>
             </div>
             
             <div className="dash-item" style={{ display: 'grid', gap: 16 }}>
               <div>
-                ¿Estás seguro de que quieres eliminar {selectedItems.size} elemento{selectedItems.size > 1 ? 's' : ''} seleccionado{selectedItems.size > 1 ? 's' : ''}?
+                Â¿EstÃ¡s seguro de que quieres eliminar {selectedItems.size} elemento{selectedItems.size > 1 ? 's' : ''} seleccionado{selectedItems.size > 1 ? 's' : ''}?
               </div>
               
               <div style={{ 
@@ -2440,7 +2457,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                     return (
                       <li key={index} style={{ marginBottom: '4px' }}>
                         <span style={{ color: isFolder ? '#4fd1c5' : '#e5edf7' }}>
-                          {isFolder ? '📁' : '📄'} {name}
+                          {isFolder ? 'ðŸ“' : 'ðŸ“„'} {name}
                         </span>
                         <span style={{ color: '#9fb3cc', fontSize: '12px', marginLeft: '8px' }}>
                           ({isFolder ? 'Carpeta' : 'Archivo'})
@@ -2450,7 +2467,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                   })}
                   {selectedItems.size > 10 && (
                     <li style={{ color: '#9fb3cc', fontStyle: 'italic' }}>
-                      ... y {selectedItems.size - 10} elemento{selectedItems.size - 10 > 1 ? 's' : ''} más
+                      ... y {selectedItems.size - 10} elemento{selectedItems.size - 10 > 1 ? 's' : ''} mÃ¡s
                     </li>
                   )}
                 </ul>
@@ -2463,7 +2480,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 borderRadius: '6px',
                 fontSize: '12px'
               }}>
-                ⚠️ Esta acción no se puede deshacer
+                âš ï¸ Esta acciÃ³n no se puede deshacer
               </div>
             </div>
             
@@ -2521,7 +2538,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 onClick={() => setShowAudienceModal(false)}
                 style={{ padding: '4px 8px' }}
               >
-                ✕
+                âœ•
               </button>
             </div>
             
@@ -2548,13 +2565,13 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
               
               <div>
                 <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: '500' }}>
-                  Actuación
+                  ActuaciÃ³n
                 </label>
                 <input
                   type="text"
                   value={audienceData.actuacion}
                   onChange={(e) => setAudienceData(prev => ({ ...prev, actuacion: e.target.value }))}
-                  placeholder="Ej: Audiencia de conciliación"
+                  placeholder="Ej: Audiencia de conciliaciÃ³n"
                   style={{
                     width: '100%',
                     padding: '8px 12px',
@@ -2585,7 +2602,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                   }}
                 >
                   <option value="">Seleccionar tipo</option>
-                  <option value="conciliacion">Conciliación</option>
+                  <option value="conciliacion">ConciliaciÃ³n</option>
                   <option value="audiencia_inicial">Audiencia Inicial</option>
                   <option value="audiencia_pruebas">Audiencia de Pruebas</option>
                   <option value="audiencia_sentencia">Audiencia de Sentencia</option>
@@ -2717,7 +2734,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 fontSize: '18px',
                 fontWeight: '600'
               }}>
-                🗑️ Eliminar Carpeta
+                Eliminar Carpeta
               </h3>
               <p style={{ 
                 color: '#9fb3cc', 
@@ -2733,7 +2750,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 fontSize: '12px',
                 fontWeight: '500'
               }}>
-                ⚠️ Solo se puede eliminar si la carpeta está vacía
+                Solo se puede eliminar si la carpeta está vacía.
               </p>
             </div>
             
@@ -2769,6 +2786,9 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
     </div>
   );
 }
+
+
+
 
 
 

@@ -26,7 +26,7 @@ import Register from './pages/Register.jsx';
 import Panel from './pages/Panel.jsx';
 import AdminUsuarios from './pages/AdminUsuariosResponsive/index.jsx';
 import AdminTareas from './pages/AdminTareas/index.jsx';
-import ClientesActivos from './pages/ClientesActivos.jsx';
+import ClientesActivos from './pages/ClientesActivos/index.jsx';
 import Dashboard from './components/protected/Dashboard.jsx';
 import MiExpediente from './pages/MiExpediente.jsx';
 import MisCasos from './pages/MisCasos.jsx';
