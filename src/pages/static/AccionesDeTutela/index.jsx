@@ -1,9 +1,9 @@
 ﻿import React from 'react';
-import extractStylesFromHtml from '../../utils/extractStylesFromHtml';
+import extractStylesFromHtml from '../../../utils/extractStylesFromHtml';
 import pageHtml from '../../../old/acciones-de-tutela.html?raw';
-import useNormalizeAssets from '../../hooks/useNormalizeAssets';
-import useMenu from '../../hooks/useMenu';
-import usePageTransition from '../../hooks/usePageTransition';
+import useNormalizeAssets from '../../../hooks/useNormalizeAssets';
+import useMenu from '../../../hooks/useMenu';
+import usePageTransition from '../../../hooks/usePageTransition';
 import { Link } from 'react-router-dom';
 
 const AccionesDeTutela = () => {
