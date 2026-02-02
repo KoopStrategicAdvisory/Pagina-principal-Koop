@@ -105,10 +105,10 @@ const TramitesNotariales = () => {
               <div className="brand-text">KOOP STRATEGIC ADVISORY</div>
             </div>
             <p className="footer-copy">
-              Estudio jurídico & contable. Litigio estratégico, cumplimiento y soluciones 360° para la gestión del riesgo laboral.
+              Estudio jurídico & contable. Litigio estratégico, cumplimiento y soluciones 360° para la gestión del riesgo jurídico.
             </p>
             <div className="footer-cta">
-              <h4>¿Necesitas una asesoría laboral hoy?</h4>
+              <h4>¿Necesitas una asesoría?</h4>
               <div className="btns">
                 <a className="btn btn-whatsapp" href="https://wa.me/573137213878?text=Cordial Saludo%20Koop,%20deseo%20conocer%20los%20costos%20del%20siguiente%20proceso%20notarial:" target="_blank" rel="noopener">
                   <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -116,7 +116,7 @@ const TramitesNotariales = () => {
                   </svg>
                   WhatsApp
                 </a>
-                <a className="btn btn-mail" href="mailto:direccionjuridicakoop@hotmail.com?subject=Asesor%C3%ADa%20Laboral%20Koop">
+                <a className="btn btn-mail" href="mailto:direccionjuridicakoop@hotmail.com?subject=Asesor%C3%ADa%20Notarial%20Koop">
                   <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v.2l10 5.9L22 6.2V6a2 2 0 0 0-2-2Zm0 4.1-8 4.8-8-4.8V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8.1Z"/></svg>
                   Escríbenos
                 </a>
@@ -135,7 +135,7 @@ const TramitesNotariales = () => {
           </div>
     
           <div className="footer-col">
-            <h5>Servicios laborales</h5>
+            <h5>Servicios Notariales</h5>
             <ul className="footer-list">
               <li><a href="#compraventa">Compraventa de inmuebles</a></li>
               <li><a href="#constitucion">Constitución, reforma o liquidación de sociedades</a></li>

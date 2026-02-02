@@ -135,9 +135,9 @@ const DerechoAdministrativo = () => {
             </ul>
           </div>
     
-          {/* Servicios de Familia */}
+          {/* Servicios de Administrativo */}
           <div className="footer-col">
-            <h5>Servicios de familia</h5>
+            <h5>Servicios Administrativos</h5>
             <ul className="footer-list">
               <li><a href="#divorcio">Gestión Urbanística</a></li>
               <li><a href="#custodia">Procesos Disciplinarios</a></li>

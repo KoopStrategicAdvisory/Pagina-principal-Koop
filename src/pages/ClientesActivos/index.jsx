@@ -654,7 +654,7 @@ export default function ClientesActivos() {
                                 })
                                 .map((f) => {
                                   const dt = f.lastModified ? new Date(f.lastModified) : (f.createdTime ? new Date(f.createdTime) : null);
-                                  const isFolder = f.isFolder || f.key?.endsWith('/') || f.name?.endsWith('/');
+                                  const isFolder = f.isFolder || f.key?.endsWith('/') || f.name?.endsWith('/');  
                                   
                                   // Extraer solo el nombre de la carpeta/archivo, sin la ruta completa
                                   let name = f.name || (f.key || '').split('/').pop();

@@ -40,7 +40,7 @@ const AccionesDeTutela = () => {
     
           <div className="labor-grid">
             {/* 1. Tutela al Derecho de Petición */}
-            <a href="#protocolos" className="labor-card" style={{ '--bg': 'url(\'img/tutelapeticion.jpeg\')' }}>
+            <a href="#peticion" className="labor-card" style={{ '--bg': 'url(\'img/tutelapeticion.jpeg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
                 <div className="labor-card-title"><span className="labor-dot"></span>Tutela al Derecho de Petición</div>
@@ -49,7 +49,7 @@ const AccionesDeTutela = () => {
             </a>
 
             {/* 2. Tutelas en temas de Salud */}
-            <a href="#fideicomisos" className="labor-card" style={{ '--bg': 'url(\'img/tutelasalud.jpg\')' }}>
+            <a href="#salud" className="labor-card" style={{ '--bg': 'url(\'img/tutelasalud.jpg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
                 <div className="labor-card-title"><span className="labor-dot"></span>Tutela en  Salud</div>
@@ -58,7 +58,7 @@ const AccionesDeTutela = () => {
             </a>
 
             {/* 3. Revocatoria de decisiones judiciales */}
-            <a href="#sucesion" className="labor-card" style={{ '--bg': 'url(\'img/tuteladebido.jpeg\')' }}>
+            <a href="#revocatoria" className="labor-card" style={{ '--bg': 'url(\'img/tuteladebido.jpeg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
                 <div className="labor-card-title"><span className="labor-dot"></span>Revocatoria de decisiones judiciales</div>
@@ -67,7 +67,7 @@ const AccionesDeTutela = () => {
             </a>
  
              {/* 4. Pensión mediante tutela */}
-             <a href="#protocolos" className="labor-card" style={{ '--bg': 'url(\'img/jueztutela.jpg\')' }}>
+             <a href="#tutelapension" className="labor-card" style={{ '--bg': 'url(\'img/jueztutela.jpg\')' }}>
               <div className="labor-card-content">
                 <span className="labor-badge">SERVICIO</span>
                 <div className="labor-card-title"><span className="labor-dot"></span>Tutela para obtener pensión</div>
@@ -94,7 +94,7 @@ const AccionesDeTutela = () => {
               Estudio jurídico & contable. Continuidad y eficiencia para tu legado.
             </p>
             <div className="footer-cta">
-              <h4>¿Necesitas una asesoría en Asesoría Contable?</h4>
+              <h4>¿Necesitas una asesoría en Asesoría?</h4>
               <div className="btns">
                 <a className="btn btn-whatsapp" href="https://wa.me/573137213878?text=Cordial%20Saludo%20Koop,%20deseo%20asesor%C3%ADa%20en%20planeaci%C3%B3n%20patrimonial%20sobre%20el%20siguiente%20tema:" target="_blank" rel="noopener">
                   {/* Ícono WhatsApp (22px) */}
@@ -125,14 +125,12 @@ const AccionesDeTutela = () => {
     
           {/* Servicios de Familia */}
           <div className="footer-col">
-            <h5>Servicios de familia</h5>
+            <h5>Servicios Notariales</h5>
             <ul className="footer-list">
-              <li><a href="#divorcio">Divorcio y separación</a></li>
-              <li><a href="#custodia">Custodia y patria potestad</a></li>
-              <li><a href="#alimentos">Alimentos y pensión alimentaria</a></li>
-              <li><a href="#sociedad">Liquidación de sociedad conyugal</a></li>
-              <li><a href="#adopciones">Adopciones</a></li>
-              <li><a href="#capitulaciones">Capitulaciones matrimoniales</a></li>
+              <li><a href="#peticion">Derecho de petición</a></li>
+              <li><a href="#salud">Tutela en salud</a></li>
+              <li><a href="#revocatoria">Revocatoria a decisiones judiciales</a></li>
+              <li><a href="#tutelapension">Tutela para obtener pensión</a></li>
             </ul>
           </div>
     
