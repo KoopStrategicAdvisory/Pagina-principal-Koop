@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import api from '../../api/axios';
-import { useAuth } from '../../context/AuthContext';
+import api from '../../../api/axios';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function SpotifyCallback() {
   const navigate = useNavigate();

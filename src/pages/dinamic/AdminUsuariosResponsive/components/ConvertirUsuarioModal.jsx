@@ -1,5 +1,5 @@
-import { DangerNotice } from '../../../components/common/Notice';
-import { EditForm, EditRow, EditField, EditTextArea, EditSelect } from '../../../components/common/EditFormKit';
+import { DangerNotice } from '../../../../components/common/Notice';
+import { EditForm, EditRow, EditField, EditTextArea, EditSelect } from '../../../../components/common/EditFormKit';
 
 export default function ConvertirUsuarioModal({
   clientModal,

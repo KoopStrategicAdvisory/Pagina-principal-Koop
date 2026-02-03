@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { listUsers, setUserActive, grantAdminRole, revokeAdminRole, deleteUser } from "../../api/adminUsers";
-import { createClientFromUser } from "../../api/clients";
+import { useAuth } from "../../../context/AuthContext";
+import { listUsers, setUserActive, grantAdminRole, revokeAdminRole, deleteUser } from "../../../api/adminUsers";
+import { createClientFromUser } from "../../../api/clients";
 import "../../styles/dashboard.css";
-import { SuccessNotice, DangerNotice } from '../../components/common/Notice';
-import { EditForm, EditRow, EditField, EditTextArea } from '../../components/common/EditFormKit';
+import { SuccessNotice, DangerNotice } from '../../../components/common/Notice';
+import { EditForm, EditRow, EditField, EditTextArea } from '../../../components/common/EditFormKit';
 import UsuariosPendientesActivar from './components/UsuariosPendientesActivar';
 import UsuariosActivos from './components/UsuariosActivos';
 import ConvertirUsuarioModal from './components/ConvertirUsuarioModal';

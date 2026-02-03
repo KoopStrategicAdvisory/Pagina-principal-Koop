@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../../styles/auth.css';
 import logo from '../../Images/Koop Logo.png';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../../../context/AuthContext';
 
 export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
