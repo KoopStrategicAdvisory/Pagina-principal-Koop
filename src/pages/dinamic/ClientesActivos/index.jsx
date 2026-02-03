@@ -3,7 +3,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { listActiveClients, updateClient, assignClientAdmin, deleteClient } from '../../../api/clients';
 import { listUsers as listAllUsers } from '../../../api/adminUsers';
 import { listRecentDocs, uploadDoc, getDownloadUrl, createFolder, getDiagnostics } from '../../../api/docs';
-import '../../styles/dashboard.css';
+import '../../../styles/dashboard.css';
 import { SuccessNotice, DangerNotice } from '../../../components/common/Notice';
 import { EditForm, EditField, EditRow } from '../../../components/common/EditFormKit';
 import MiExpediente from '../Miexpediente';

@@ -1,11 +1,11 @@
 ﻿import React from 'react';
 import extractStylesFromHtml from '../../../utils/extractStylesFromHtml';
-import pageHtml from '../../../old/derecho.html?raw';
+import pageHtml from '../../../../old/derecho.html?raw';
 import useNormalizeAssets from '../../../hooks/useNormalizeAssets';
 import useMenu from '../../../hooks/useMenu';
 import usePageTransition from '../../../hooks/usePageTransition';
 import { Link } from 'react-router-dom';
-import imgDespido from '../../Images/Despidoinjustificado.jpg';
+import imgDespido from '../../../Images/Despidoinjustificado.jpg';
 
 const Derecho = () => {
   useMenu();

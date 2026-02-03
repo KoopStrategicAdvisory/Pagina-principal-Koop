@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import '../../styles/auth.css';
-import logo from '../../Images/Koop Logo.png';
+import '../../../../styles/auth.css';
+import logo from '../../../../Images/Koop Logo.png';
 import { useAuth } from '../../../../context/AuthContext';
 
 export default function Register() {

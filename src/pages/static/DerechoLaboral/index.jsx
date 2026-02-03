@@ -1,17 +1,17 @@
 ﻿import React from 'react';
 import extractStylesFromHtml from '../../../utils/extractStylesFromHtml';
-import pageHtml from '../../../old/derecho-laboral.html?raw';
+import pageHtml from '../../../../old/derecho-laboral.html?raw';
 import useNormalizeAssets from '../../../hooks/useNormalizeAssets';
 import useMenu from '../../../hooks/useMenu';
 import usePageTransition from '../../../hooks/usePageTransition';
 import { Link } from 'react-router-dom';
 // Imágenes específicas de la página (provenientes de old/)
-import imgDespido from '../../Images/Despidoinjustificado.jpg';
-import imgLiquidaciones from '../../Images/liquidaciones.jpeg';
-import imgAcoso from '../../Images/acoso.jpg';
-import imgPensiones from '../../Images/pensiones.jpg';
-import imgReintegro from '../../Images/reintegro.png';
-import imgContratoRealidad from '../../Images/contratorealidad.png';
+import imgDespido from '../../../Images/Despidoinjustificado.jpg';
+import imgLiquidaciones from '../../../Images/liquidaciones.jpeg';
+import imgAcoso from '../../../Images/acoso.jpg';
+import imgPensiones from '../../../Images/pensiones.jpg';
+import imgReintegro from '../../../Images/reintegro.png';
+import imgContratoRealidad from '../../../Images/contratorealidad.png';
 
 const DerechoLaboral = () => {
   useMenu();

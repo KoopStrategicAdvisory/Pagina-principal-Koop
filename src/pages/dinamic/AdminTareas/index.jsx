@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import '../../styles/dashboard.css';
-import '../../styles/mi-expediente.css';
+import '../../../styles/dashboard.css';
+import '../../../styles/mi-expediente.css';
 import { SuccessNotice, DangerNotice } from '../../../components/common/Notice';
 import { listUsers } from '../../../api/adminUsers';
 

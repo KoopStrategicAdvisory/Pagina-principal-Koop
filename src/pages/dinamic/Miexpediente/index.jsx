@@ -1,11 +1,11 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
-import '../../styles/dashboard.css';
-import '../../styles/mi-expediente.css';
-import { useAuth } from '../../context/AuthContext.jsx';
-import { normalizeUpperAscii } from '../../utils/strings.js';
-import { listRecentDocs, uploadDoc, getDownloadUrl, getClientDocumentHistory, getDiagnostics, createFolder, deleteDocument, deleteFolder } from '../../api/docs.js';
-import { listActiveClients } from '../../api/clients.js';
-import { SuccessNotice, DangerNotice } from '../../components/common/Notice.jsx';
+import '../../../styles/dashboard.css';
+import '../../../styles/mi-expediente.css';
+import { useAuth } from '../../../context/AuthContext.jsx';
+import { normalizeUpperAscii } from '../../../utils/strings.js';
+import { listRecentDocs, uploadDoc, getDownloadUrl, getClientDocumentHistory, getDiagnostics, createFolder, deleteDocument, deleteFolder } from '../../../api/docs.js';
+import { listActiveClients } from '../../../api/clients.js';
+import { SuccessNotice, DangerNotice } from '../../../components/common/Notice.jsx';
 
 const convertLatin1ToUtf8 = (input) => {
   if (!input) return input;
