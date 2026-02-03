@@ -7,6 +7,10 @@ import useCardsCarousel from '../hooks/useCardsCarousel';
 import useNormalizeAssets from '../hooks/useNormalizeAssets';
 import extractStylesFromHtml from '../utils/extractStylesFromHtml';
 import pageHtml from '../../old/index.html?raw';
+import SiteFooter from '../components/common/SiteFooter';
+import { simpleFooterConfigs } from '../constants/footerConfigs';
+
+const HOME_FOOTER_CONFIG = simpleFooterConfigs.home;
 
 const Index = () => {
   useMenu();
@@ -127,15 +131,7 @@ const Index = () => {
           </div>
         </section>
     
-        {/* FOOTER */}
-        <footer className="site-footer">
-          <div className="footer-container">
-            <div className="footer-left">© 2024 Creado por Koop Strategic Advisory</div>
-            <div className="footer-right">
-              <a href="/privacidad" target="_blank">Política de Privacidad</a>
-            </div>
-          </div>
-        </footer>
+        <SiteFooter {...HOME_FOOTER_CONFIG} />
       </div> {/* /#app */}
     
       {/*

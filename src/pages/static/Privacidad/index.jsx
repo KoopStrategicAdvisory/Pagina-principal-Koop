@@ -4,7 +4,10 @@ import pageHtml from '../../../../old/privacidad.html?raw';
 import useNormalizeAssets from '../../../hooks/useNormalizeAssets';
 import useMenu from '../../../hooks/useMenu';
 import usePageTransition from '../../../hooks/usePageTransition';
-import { Link } from 'react-router-dom';
+import SiteFooter from '../../../components/common/SiteFooter';
+import { simpleFooterConfigs } from '../../../constants/footerConfigs';
+
+const FOOTER_CONFIG = simpleFooterConfigs.privacy;
 
 const Privacidad = () => {
   useMenu();
@@ -21,12 +24,7 @@ const Privacidad = () => {
         <h1>Política de Privacidad</h1>
         <p>Esta página describe las políticas de privacidad de Koop Strategic Advisory. Su contenido se actualizará próximamente.</p>
       </main>
-      <footer className="site-footer">
-        <div className="footer-container">
-          <div className="footer-left">© <span id="year"></span> Creado por Koop Strategic Advisory</div>
-          <div className="footer-right"><a href="/privacidad">Política de Privacidad</a></div>
-        </div>
-      </footer>
+      <SiteFooter {...FOOTER_CONFIG} />
       {/*
         const menuToggle = document.getElementById('menu-toggle');
         const navMenu = document.getElementById('nav-menu');
