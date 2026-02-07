@@ -3,6 +3,7 @@ import { useAuth } from '../../../context/AuthContext';
 import '../../../styles/dashboard.css';
 import '../../../styles/mi-expediente.css';
 import { SuccessNotice, DangerNotice } from '../../../components/common/Notice';
+import { EditForm, EditRow, EditField, EditTextArea, EditSelect } from '../../../components/common/EditFormKit';
 import { listUsers } from '../../../api/adminUsers';
 
 const ALLOWED_ROLES = ['admin', 'user'];
@@ -133,6 +134,94 @@ function fmtDate(iso) {
 
 function isOverdue(iso) {
   try { return new Date(iso) < new Date(new Date().toDateString()); } catch { return false; }
+}
+
+function TaskFormFields({ formData, setFormData, admins }) {
+  const adminOptions = admins.map((admin) => ({
+    value: admin.id,
+    label: admin.name || admin.email || 'Administrador',
+  }));
+
+  const handleChange = (field) => (event) => {
+    const { value } = event.target;
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const priorityOptions = [
+    { value: 'baja', label: 'Baja' },
+    { value: 'media', label: 'Media' },
+    { value: 'alta', label: 'Alta' },
+  ];
+
+  const today = new Date().toISOString().split('T')[0];
+
+  return (
+    <EditForm style={{ marginTop: 8 }}>
+      <EditRow cols={2}>
+        <EditField
+          label="Título *"
+          value={formData.title}
+          onChange={handleChange('title')}
+          inputProps={{ placeholder: 'Título de la tarea' }}
+        />
+        <EditField
+          label="Cliente *"
+          value={formData.client}
+          onChange={handleChange('client')}
+          inputProps={{ placeholder: 'Nombre del cliente' }}
+        />
+      </EditRow>
+
+      <EditTextArea
+        label="Descripción"
+        rows={4}
+        value={formData.description}
+        onChange={handleChange('description')}
+        placeholder="Descripción detallada de la tarea"
+      />
+
+      <EditRow cols={2}>
+        <EditSelect
+          label="Prioridad"
+          value={formData.priority}
+          onChange={handleChange('priority')}
+          options={priorityOptions}
+          placeholder={null}
+        />
+        <EditField
+          label="Fecha límite"
+          type="date"
+          value={formData.due || ''}
+          onChange={handleChange('due')}
+          inputProps={{ min: today }}
+        />
+      </EditRow>
+
+      <EditRow cols={2}>
+        <EditSelect
+          label="Asignar a"
+          value={formData.assignee || ''}
+          onChange={handleChange('assignee')}
+          options={adminOptions}
+          placeholder={admins.length ? 'Selecciona un administrador' : 'No hay administradores disponibles'}
+          selectProps={{ disabled: !admins.length }}
+        />
+        <EditField
+          label="Tags (separados por comas)"
+          value={formData.tags || ''}
+          onChange={handleChange('tags')}
+          inputProps={{ placeholder: 'Laboral, Audiencia, Civil' }}
+        />
+      </EditRow>
+
+      <EditField
+        label="Radicado"
+        value={formData.radicado || ''}
+        onChange={handleChange('radicado')}
+        inputProps={{ placeholder: 'Número de radicado (opcional)' }}
+      />
+    </EditForm>
+  );
 }
 
 export default function AdminTareas() {
@@ -1002,184 +1091,9 @@ export default function AdminTareas() {
               Debug: Admins: {admins.length}, Assignee: {formData.assignee || 'ninguno'}
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Título *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}
-                  placeholder="Título de la tarea"
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Cliente *
-                </label>
-                <input
-                  type="text"
-                  value={formData.client}
-                  onChange={(e) => setFormData(prev => ({ ...prev, client: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}
-                  placeholder="Nombre del cliente"
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Descripción
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px',
-                    minHeight: '80px',
-                    resize: 'vertical'
-                  }}
-                  placeholder="Descripción detallada de la tarea"
-                />
-              </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                    Prioridad
-                  </label>
-                  <select
-                    value={formData.priority}
-                    onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      background: '#2a3a51',
-                      border: '1px solid #394b61',
-                      borderRadius: '8px',
-                      color: '#e2e8f0',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <option value="baja">Baja</option>
-                    <option value="media">Media</option>
-                    <option value="alta">Alta</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                    Fecha límite
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.due}
-                    onChange={(e) => setFormData(prev => ({ ...prev, due: e.target.value }))}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      background: '#2a3a51',
-                      border: '1px solid #394b61',
-                      borderRadius: '8px',
-                      color: '#e2e8f0',
-                      fontSize: '14px'
-                    }}
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Asignar a
-                </label>
-                <select
-                  value={formData.assignee}
-                  onChange={(e) => setFormData(prev => ({ ...prev, assignee: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}
-                >
-                  {admins.map(admin => (
-                    <option key={admin.id} value={admin.id}>
-                      {admin.name || admin.email} (Admin)
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Tags (separados por comas)
-                </label>
-                <input
-                  type="text"
-                  value={formData.tags}
-                  onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}
-                  placeholder="Laboral, Audiencia, Civil"
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Radicado
-                </label>
-                <input
-                  type="text"
-                  value={formData.radicado}
-                  onChange={(e) => setFormData(prev => ({ ...prev, radicado: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}
-                  placeholder="Número de radicado (opcional)"
-                />
-              </div>
-            </div>
-            
+            <TaskFormFields formData={formData} setFormData={setFormData} admins={admins} />
+
+
             <div style={{ 
               display: 'flex', 
               gap: '12px', 
@@ -1240,179 +1154,9 @@ export default function AdminTareas() {
               ✏️ Editar Tarea
             </h3>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Título *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Cliente *
-                </label>
-                <input
-                  type="text"
-                  value={formData.client}
-                  onChange={(e) => setFormData(prev => ({ ...prev, client: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Descripción
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px',
-                    minHeight: '80px',
-                    resize: 'vertical'
-                  }}
-                />
-              </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                    Prioridad
-                  </label>
-                  <select
-                    value={formData.priority}
-                    onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      background: '#2a3a51',
-                      border: '1px solid #394b61',
-                      borderRadius: '8px',
-                      color: '#e2e8f0',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <option value="baja">Baja</option>
-                    <option value="media">Media</option>
-                    <option value="alta">Alta</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                    Fecha límite
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.due}
-                    onChange={(e) => setFormData(prev => ({ ...prev, due: e.target.value }))}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      background: '#2a3a51',
-                      border: '1px solid #394b61',
-                      borderRadius: '8px',
-                      color: '#e2e8f0',
-                      fontSize: '14px'
-                    }}
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Asignar a
-                </label>
-                <select
-                  value={formData.assignee}
-                  onChange={(e) => setFormData(prev => ({ ...prev, assignee: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}
-                >
-                  {admins.map(admin => (
-                    <option key={admin.id} value={admin.id}>
-                      {admin.name || admin.email} (Admin)
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Tags (separados por comas)
-                </label>
-                <input
-                  type="text"
-                  value={formData.tags}
-                  onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#9fb3cc', fontSize: '14px' }}>
-                  Radicado
-                </label>
-                <input
-                  type="text"
-                  value={formData.radicado}
-                  onChange={(e) => setFormData(prev => ({ ...prev, radicado: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#2a3a51',
-                    border: '1px solid #394b61',
-                    borderRadius: '8px',
-                    color: '#e2e8f0',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-            </div>
-            
+            <TaskFormFields formData={formData} setFormData={setFormData} admins={admins} />
+
+
             <div style={{ 
               display: 'flex', 
               gap: '12px', 
@@ -1521,4 +1265,7 @@ export default function AdminTareas() {
     </div>
   );
 }
+
+
+
 

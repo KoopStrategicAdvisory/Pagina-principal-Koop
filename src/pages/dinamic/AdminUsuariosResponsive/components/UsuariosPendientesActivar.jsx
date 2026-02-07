@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 
-const ALLOWED_ROLES = ['admin', 'user'];
+const ALLOWED_ROLES = ['admin', 'lawyer', 'client', 'user'];
 function normalizeRoles(value, { defaultRole = 'user' } = {}) {
   const normalizedDefault = String(defaultRole || 'user').trim().toLowerCase();
   const safeDefault = ALLOWED_ROLES.includes(normalizedDefault) ? normalizedDefault : 'user';
@@ -9,6 +9,8 @@ function normalizeRoles(value, { defaultRole = 'user' } = {}) {
     .map((role) => String(role || '').trim().toLowerCase())
     .filter((role) => ALLOWED_ROLES.includes(role));
   if (normalized.includes('admin')) return ['admin'];
+  if (normalized.includes('lawyer')) return ['lawyer'];
+  if (normalized.includes('client')) return ['client'];
   if (normalized.includes('user')) return ['user'];
   return [safeDefault];
 }
@@ -22,12 +24,27 @@ export default function UsuariosPendientesActivar({
   deleting,
   onToggleActive,
   onOpenClientModal,
-  onMakeAdmin,
-  onRevokeAdmin,
+  onChangeRole,
   onRemoveUser,
   initialOpen = true,
 }) {
   const [open, setOpen] = useState(Boolean(initialOpen));
+  const [rolePanel, setRolePanel] = useState(null);
+
+  const rolePanelStyle = {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 8,
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 8,
+    background: '#0f172a',
+    border: '1px solid rgba(148,163,184,0.35)',
+  };
+
+  const toggleRolePanel = (id) => {
+    setRolePanel((prev) => (prev === id ? null : id));
+  };
 
   const pending = useMemo(() => {
     const isInactive = (u) => u?.active === false || u?.isActive === false;
@@ -43,9 +60,15 @@ export default function UsuariosPendientesActivar({
     const created = u.createdAt ? new Date(u.createdAt) : null;
     const roles = normalizeRoles(u.roles);
     const hasAdminRole = roles.includes('admin');
+    const isLawyer = roles.includes('lawyer');
+    const isClient = roles.includes('client');
     const isActive = u.active !== false && u.isActive !== false;
     const isSelf = currentUserId === u.id;
+    const roleIsUser = roles.includes('user');
     const rolesLabel = roles.length > 0 ? roles.join(', ') : '-';
+    const rolePanelOpen = rolePanel === u.id;
+    const roleUpdatingCurrent = roleUpdating?.id === u.id;
+
     return (
       <tr key={u.id}>
         <td>{u.name || '-'}</td>
@@ -68,28 +91,10 @@ export default function UsuariosPendientesActivar({
             </button>
             <button
               className="btn btn-secondary btn-sm"
-              onClick={() => onOpenClientModal?.(u)}
+              onClick={() => toggleRolePanel(u.id)}
             >
-              Convertir a cliente
+              {rolePanelOpen ? 'Cerrar roles' : 'Administrar roles'}
             </button>
-            {!hasAdminRole ? (
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => onMakeAdmin?.(u.id)}
-                disabled={roleUpdating === u.id}
-              >
-                {roleUpdating === u.id ? 'Asignando...' : 'Hacer admin'}
-              </button>
-            ) : (
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => onRevokeAdmin?.(u.id)}
-                disabled={roleUpdating === u.id || isSelf}
-                title={isSelf ? 'No puedes modificar tu propio rol' : 'Quitar rol admin'}
-              >
-                {roleUpdating === u.id ? 'Quitando...' : 'Quitar admin'}
-              </button>
-            )}
             <button
               className="btn btn-danger btn-sm"
               onClick={() => onRemoveUser?.(u.id)}
@@ -99,6 +104,48 @@ export default function UsuariosPendientesActivar({
               {deleting === u.id ? 'Eliminando...' : 'Eliminar'}
             </button>
           </div>
+          {rolePanelOpen && (
+            <div style={rolePanelStyle}>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  onOpenClientModal?.(u);
+                  toggleRolePanel(u.id);
+                }}
+              >
+                Convertir a cliente
+              </button>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => onChangeRole?.(u.id, 'admin')}
+                disabled={roleUpdatingCurrent || hasAdminRole}
+              >
+                {roleUpdatingCurrent && !hasAdminRole ? 'Guardando...' : 'Hacer admin'}
+              </button>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => onChangeRole?.(u.id, 'lawyer')}
+                disabled={roleUpdatingCurrent || isLawyer}
+              >
+                {roleUpdatingCurrent && !isLawyer ? 'Guardando...' : 'Convertir a abogado'}
+              </button>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => onChangeRole?.(u.id, 'client')}
+                disabled={roleUpdatingCurrent || isClient}
+              >
+                {roleUpdatingCurrent && !isClient ? 'Guardando...' : 'Asignar rol cliente'}
+              </button>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => onChangeRole?.(u.id, 'user')}
+                disabled={roleUpdatingCurrent || roleIsUser || isSelf}
+                title={isSelf ? 'No puedes degradarte a ti mismo' : undefined}
+              >
+                {roleUpdatingCurrent && !roleIsUser ? 'Guardando...' : 'Degradar a usuario'}
+              </button>
+            </div>
+          )}
         </td>
       </tr>
     );

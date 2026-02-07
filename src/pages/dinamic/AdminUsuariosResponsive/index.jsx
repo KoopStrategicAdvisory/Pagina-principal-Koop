@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
-import { listUsers, setUserActive, grantAdminRole, revokeAdminRole, deleteUser } from "../../../api/adminUsers";
+import { listUsers, setUserActive, deleteUser, setUserRole } from "../../../api/adminUsers";
 import { createClientFromUser } from "../../../api/clients";
 import "../../../styles/dashboard.css";
 import { SuccessNotice, DangerNotice } from '../../../components/common/Notice';
@@ -9,7 +9,13 @@ import UsuariosPendientesActivar from './components/UsuariosPendientesActivar';
 import UsuariosActivos from './components/UsuariosActivos';
 import ConvertirUsuarioModal from './components/ConvertirUsuarioModal';
 
-const ALLOWED_ROLES = ['admin', 'user'];
+const ALLOWED_ROLES = ['admin', 'lawyer', 'client', 'user'];
+const ROLE_OPTIONS = [
+  { id: 'admin', label: 'Administrador' },
+  { id: 'lawyer', label: 'Abogado' },
+  { id: 'client', label: 'Cliente' },
+  { id: 'user', label: 'Usuario' },
+];
 
 function normalizeRoles(value, { defaultRole = 'user' } = {}) {
   const normalizedDefault = String(defaultRole || 'user').trim().toLowerCase();
@@ -19,6 +25,8 @@ function normalizeRoles(value, { defaultRole = 'user' } = {}) {
     .map((role) => String(role || '').trim().toLowerCase())
     .filter((role) => ALLOWED_ROLES.includes(role));
   if (normalized.includes('admin')) return ['admin'];
+  if (normalized.includes('lawyer')) return ['lawyer'];
+  if (normalized.includes('client')) return ['client'];
   if (normalized.includes('user')) return ['user'];
   return [safeDefault];
 }
@@ -40,10 +48,14 @@ export default function AdminUsuarios() {
   const [clientSaving, setClientSaving] = useState(false);
   const [clientError, setClientError] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [mobileRolePanel, setMobileRolePanel] = useState(null);
   const [showPending, setShowPending] = useState(true);
   const [showActive, setShowActive] = useState(false);
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState(null);
+  const toggleMobileRolePanel = (id) => {
+    setMobileRolePanel((prev) => (prev === id ? null : id));
+  };
 
   const currentUserId = user?.id;
 
@@ -82,32 +94,25 @@ export default function AdminUsuarios() {
     }
   };
 
-  const makeAdmin = async (id) => {
-    const confirmed = window.confirm('Deseas otorgar rol de administrador a este usuario?');
+  const changeRole = async (id, role) => {
+    const normalizedRole = String(role || '').trim().toLowerCase();
+    if (!normalizedRole) return;
+    const roleLabels = {
+      admin: 'administrador',
+      lawyer: 'abogado',
+      client: 'cliente',
+      user: 'usuario',
+    };
+    const isDemote = normalizedRole === 'user';
+    const message = isDemote
+      ? `Deseas degradar este usuario al rol ${roleLabels[normalizedRole] || normalizedRole}?`
+      : `Deseas asignar el rol ${roleLabels[normalizedRole] || normalizedRole} a este usuario?`;
+    const confirmed = window.confirm(message);
     if (!confirmed) return;
     try {
       setError(null);
-      setRoleUpdating(id);
-      const data = await grantAdminRole(id);
-      if (data?.user) {
-        setUsers((prev) =>
-          prev.map((u) => (u.id === id ? { ...u, ...data.user, roles: normalizeRoles(data.user.roles) } : u))
-        );
-      }
-    } catch (e) {
-      setError(e?.response?.data?.message || e?.message || 'No se pudo actualizar los roles');
-    } finally {
-      setRoleUpdating(null);
-    }
-  };
-
-  const revokeAdmin = async (id) => {
-    const confirmed = window.confirm('Deseas quitar el rol de administrador a este usuario?');
-    if (!confirmed) return;
-    try {
-      setError(null);
-      setRoleUpdating(id);
-      const data = await revokeAdminRole(id);
+      setRoleUpdating({ id, role: normalizedRole });
+      const data = await setUserRole(id, normalizedRole);
       if (data?.user) {
         setUsers((prev) =>
           prev.map((u) => (u.id === id ? { ...u, ...data.user, roles: normalizeRoles(data.user.roles) } : u))
@@ -137,7 +142,13 @@ export default function AdminUsuarios() {
   const openClientModal = (u) => {
     setClientError(null);
     const normRoles = normalizeRoles(u.roles);
-    const role = normRoles.includes('admin') ? 'admin' : 'user';
+    const role = normRoles.includes('admin')
+      ? 'admin'
+      : normRoles.includes('lawyer')
+        ? 'lawyer'
+        : normRoles.includes('client')
+          ? 'client'
+          : 'client';
     setClientModal({
       userId: u.id,
       fullName: u.name || "",
@@ -147,7 +158,7 @@ export default function AdminUsuarios() {
       phone: "",
       email: u.email || "",
       address: "",
-      contactInfo: "",
+        contactInfo: "",
       role,
     });
   };
@@ -273,71 +284,6 @@ export default function AdminUsuarios() {
           const pending = filtered.filter(isInactive).sort(byCreatedAtDesc);
           const actives = filtered.filter((u) => !isInactive(u)).sort(byCreatedAtDesc);
 
-          const renderRow = (u) => {
-            const created = u.createdAt ? new Date(u.createdAt) : null;
-            const roles = normalizeRoles(u.roles);
-            const hasAdminRole = roles.includes('admin');
-            const isActive = u.active !== false && u.isActive !== false;
-            const isSelf = currentUserId === u.id;
-            const rolesLabel = roles.length > 0 ? roles.join(', ') : '-';
-            return (
-              <tr key={u.id}>
-                <td>{u.name || '-'}</td>
-                <td>{u.email}</td>
-                <td>{rolesLabel}</td>
-                <td>
-                  <span className={`me-badge ${isActive ? 'me-badge-success' : 'me-badge-error'}`}>
-                    {isActive ? 'Activo' : 'Inactivo'}
-                  </span>
-                </td>
-                <td>{created ? created.toLocaleString() : '-'}</td>
-                <td>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => toggleActive(u.id, !isActive)}
-                      disabled={updating === u.id}
-                    >
-                      {updating === u.id ? 'Guardando...' : isActive ? 'Desactivar' : 'Activar'}
-                    </button>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => openClientModal(u)}
-                    >
-                      Convertir a cliente
-                    </button>
-                    {!hasAdminRole ? (
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => makeAdmin(u.id)}
-                        disabled={roleUpdating === u.id}
-                      >
-                        {roleUpdating === u.id ? 'Asignando...' : 'Hacer admin'}
-                      </button>
-                    ) : (
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => revokeAdmin(u.id)}
-                        disabled={roleUpdating === u.id || isSelf}
-                        title={isSelf ? 'No puedes modificar tu propio rol' : 'Quitar rol admin'}
-                      >
-                        {roleUpdating === u.id ? 'Quitando...' : 'Quitar admin'}
-                      </button>
-                    )}
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => removeUser(u.id)}
-                      disabled={deleting === u.id || isSelf}
-                      title={isSelf ? 'No puedes eliminar tu propio usuario' : 'Eliminar usuario'}
-                    >
-                      {deleting === u.id ? 'Eliminando...' : 'Eliminar'}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            );
-          };
-
           return (
             <>
               <UsuariosPendientesActivar
@@ -349,8 +295,7 @@ export default function AdminUsuarios() {
                 deleting={deleting}
                 onToggleActive={toggleActive}
                 onOpenClientModal={openClientModal}
-                onMakeAdmin={makeAdmin}
-                onRevokeAdmin={revokeAdmin}
+                onChangeRole={changeRole}
                 onRemoveUser={removeUser}
                 initialOpen={showPending}
               />
@@ -364,8 +309,7 @@ export default function AdminUsuarios() {
                 deleting={deleting}
                 onToggleActive={toggleActive}
                 onOpenClientModal={openClientModal}
-                onMakeAdmin={makeAdmin}
-                onRevokeAdmin={revokeAdmin}
+                onChangeRole={changeRole}
                 onRemoveUser={removeUser}
                 initialOpen={showActive}
               />
@@ -397,9 +341,14 @@ export default function AdminUsuarios() {
             const created = u.createdAt ? new Date(u.createdAt) : null;
             const roles = normalizeRoles(u.roles);
             const hasAdminRole = roles.includes('admin');
+            const isLawyer = roles.includes('lawyer');
+            const isClient = roles.includes('client');
+            const roleIsUser = roles.includes('user');
             const isActive = u.active !== false && u.isActive !== false;
             const isSelf = currentUserId === u.id;
             const isOpen = expandedId === u.id;
+            const rolePanelOpen = mobileRolePanel === u.id;
+            const roleUpdatingCurrent = roleUpdating?.id === u.id;
             const rolesLabel = roles.length > 0 ? roles.join(', ') : '-';
             return (
               <div key={u.id} className="mobile-item">
@@ -431,28 +380,10 @@ export default function AdminUsuarios() {
                       </button>
                       <button
                         className="btn btn-secondary btn-sm"
-                        onClick={() => openClientModal(u)}
+                        onClick={() => toggleMobileRolePanel(u.id)}
                       >
-                        Convertir a cliente
+                        {rolePanelOpen ? 'Cerrar roles' : 'Administrar roles'}
                       </button>
-                      {!hasAdminRole ? (
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => makeAdmin(u.id)}
-                          disabled={roleUpdating === u.id}
-                        >
-                          {roleUpdating === u.id ? 'Asignando...' : 'Hacer admin'}
-                        </button>
-                      ) : (
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => revokeAdmin(u.id)}
-                          disabled={roleUpdating === u.id || isSelf}
-                          title={isSelf ? 'No puedes modificar tu propio rol' : 'Quitar rol admin'}
-                        >
-                          {roleUpdating === u.id ? 'Quitando...' : 'Quitar admin'}
-                        </button>
-                      )}
                       <button
                         className="btn btn-danger btn-sm"
                         onClick={() => removeUser(u.id)}
@@ -462,6 +393,48 @@ export default function AdminUsuarios() {
                         {deleting === u.id ? 'Eliminando...' : 'Eliminar'}
                       </button>
                     </div>
+                    {rolePanelOpen && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10, padding: 10, borderRadius: 8, background: '#0f172a', border: '1px solid rgba(148,163,184,0.35)' }}>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => {
+                            openClientModal(u);
+                            toggleMobileRolePanel(u.id);
+                          }}
+                        >
+                          Convertir a cliente
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => changeRole(u.id, 'admin')}
+                          disabled={roleUpdatingCurrent || hasAdminRole}
+                        >
+                          {roleUpdatingCurrent && !hasAdminRole ? 'Guardando...' : 'Hacer admin'}
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => changeRole(u.id, 'lawyer')}
+                          disabled={roleUpdatingCurrent || isLawyer}
+                        >
+                          {roleUpdatingCurrent && !isLawyer ? 'Guardando...' : 'Convertir a abogado'}
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => changeRole(u.id, 'client')}
+                          disabled={roleUpdatingCurrent || isClient}
+                        >
+                          {roleUpdatingCurrent && !isClient ? 'Guardando...' : 'Asignar rol cliente'}
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => changeRole(u.id, 'user')}
+                          disabled={roleUpdatingCurrent || roleIsUser || isSelf}
+                          title={isSelf ? 'No puedes degradarte a ti mismo' : undefined}
+                        >
+                          {roleUpdatingCurrent && !roleIsUser ? 'Guardando...' : 'Degradar a usuario'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -524,6 +497,7 @@ export default function AdminUsuarios() {
         onClearError={() => setClientError(null)}
         onSave={saveClient}
         onChange={(patch) => setClientModal((prev) => ({ ...prev, ...patch }))}
+        rolesOptions={ROLE_OPTIONS}
       />
     </div>
   );

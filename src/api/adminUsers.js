@@ -10,17 +10,12 @@ export async function setUserActive(id, active) {
   return data;
 }
 
-export async function grantAdminRole(id) {
-  const { data } = await api.post(`/admin/users/${id}/grant-admin`);
-  return data;
-}
-
-export async function revokeAdminRole(id) {
-  const { data } = await api.post(`/admin/users/${id}/revoke-admin`);
-  return data;
-}
-
 export async function deleteUser(id) {
   const { data } = await api.delete(`/admin/users/${id}`);
+  return data;
+}
+
+export async function setUserRole(id, role) {
+  const { data } = await api.post(`/admin/users/${id}/role`, { role });
   return data;
 }

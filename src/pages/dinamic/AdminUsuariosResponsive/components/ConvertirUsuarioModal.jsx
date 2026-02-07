@@ -1,6 +1,13 @@
 import { DangerNotice } from '../../../../components/common/Notice';
 import { EditForm, EditRow, EditField, EditTextArea, EditSelect } from '../../../../components/common/EditFormKit';
 
+const DEFAULT_ROLE_OPTIONS = [
+  { id: 'admin', label: 'Administrador' },
+  { id: 'lawyer', label: 'Abogado' },
+  { id: 'client', label: 'Cliente' },
+  { id: 'user', label: 'Usuario' },
+];
+
 export default function ConvertirUsuarioModal({
   clientModal,
   clientError,
@@ -9,10 +16,7 @@ export default function ConvertirUsuarioModal({
   onClearError,
   onSave,
   onChange,
-  rolesOptions = [
-    { id: 'user', label: 'Usuario' },
-    { id: 'admin', label: 'Administrador' },
-  ],
+  rolesOptions = DEFAULT_ROLE_OPTIONS,
 }) {
   if (!clientModal) return null;
 

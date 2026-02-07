@@ -7,6 +7,34 @@ import { listRecentDocs, uploadDoc, getDownloadUrl, getClientDocumentHistory, ge
 import { listActiveClients } from '../../../api/clients.js';
 import { SuccessNotice, DangerNotice } from '../../../components/common/Notice.jsx';
 
+const actionChipBase = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 4,
+  padding: '6px 12px',
+  fontSize: 12,
+  lineHeight: 1.1,
+  borderRadius: 999,
+  minHeight: 28,
+};
+
+const actionChipPrimary = {
+  ...actionChipBase,
+  fontWeight: 600,
+  color: '#0f172a',
+  background: 'linear-gradient(135deg, #2dd4bf, #0ea5e9)',
+  border: '1px solid rgba(14,165,233,0.4)',
+  boxShadow: '0 3px 6px rgba(14,165,233,0.25)',
+};
+
+const actionChipSecondary = {
+  ...actionChipBase,
+  color: '#e2e8f0',
+  background: 'rgba(15,23,42,0.65)',
+  border: '1px solid rgba(148,163,184,0.35)',
+};
+
 const convertLatin1ToUtf8 = (input) => {
   if (!input) return input;
   try {
@@ -191,6 +219,10 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [warning, setWarning] = useState(null);
+  const [previewDoc, setPreviewDoc] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(null);
 
   // Estados para notificaciones
   const [showSuccessNotice, setShowSuccessNotice] = useState(false);
@@ -610,12 +642,97 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
     setShowFileNameInput(false);
   };
 
-  const onDownload = async (key, fallbackUrl) => {
+  const getFallbackUrl = (doc, fallbackUrl) => {
+    return (
+      fallbackUrl ||
+      doc?.downloadURL ||
+      doc?.downloadUrl ||
+      doc?.webContentLink ||
+      doc?.webViewLink ||
+      doc?.url ||
+      doc?.fallbackUrl ||
+      null
+    );
+  };
+
+  const fetchDocumentUrl = async (doc, fallbackUrl) => {
+    if (!doc?.key) throw new Error('Documento sin identificador');
+    const safeFallback = getFallbackUrl(doc, fallbackUrl);
+    const { downloadURL, downloadUrl, url } = await getDownloadUrl(doc.key, 600);
+    const finalUrl = downloadURL || downloadUrl || url || safeFallback;
+    if (!finalUrl) throw new Error('No se recibió URL de previsualización');
+    return finalUrl;
+  };
+
+  const closePreviewModal = () => {
+    setPreviewDoc(null);
+    setPreviewUrl('');
+    setPreviewError(null);
+    setPreviewLoading(false);
+  };
+
+  const onPreviewDocument = async (doc, fallbackUrl) => {
+    if (!doc?.key) return;
+    setPreviewDoc({ ...doc, fallbackUrl });
+    setPreviewUrl('');
+    setPreviewError(null);
+    setPreviewLoading(true);
+
     try {
-      const { url } = await getDownloadUrl(key, 600);
-      window.open(url || fallbackUrl, '_blank');
+      const finalUrl = await fetchDocumentUrl(doc, fallbackUrl);
+      setPreviewUrl(finalUrl);
     } catch (e) {
-      if (fallbackUrl) window.open(fallbackUrl, '_blank');
+      console.error('Error obteniendo URL de previsualización:', e);
+      const friendly = e?.response?.data?.message || e?.message || 'No se pudo abrir el documento';
+      setPreviewError(friendly);
+      if (fallbackUrl) {
+        setPreviewUrl(fallbackUrl);
+      }
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const retryPreviewDocument = () => {
+    if (!previewDoc?.key) return;
+    onPreviewDocument(previewDoc, getFallbackUrl(previewDoc));
+  };
+
+  const onDownloadDocument = async (doc, fallbackUrl) => {
+    try {
+      const url = await fetchDocumentUrl(doc, fallbackUrl);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      anchor.download = doc?.name || doc?.key?.split('/').pop() || 'documento';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    } catch (e) {
+      console.error('Error descargando documento:', e);
+      const friendly = e?.response?.data?.message || e?.message || 'No se pudo descargar el documento';
+      setError(friendly);
+      setNoticeMessage(friendly);
+      setShowErrorNotice(true);
+    }
+  };
+
+  const onShareDocument = async (doc, fallbackUrl) => {
+    try {
+      const url = await fetchDocumentUrl(doc, fallbackUrl);
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setNoticeMessage('Enlace copiado al portapapeles');
+        setShowSuccessNotice(true);
+      } else {
+        window.prompt('Copia el siguiente enlace', url);
+      }
+    } catch (e) {
+      console.error('Error compartiendo documento:', e);
+      const friendly = e?.response?.data?.message || e?.message || 'No se pudo obtener el enlace para compartir';
+      setNoticeMessage(friendly);
+      setShowErrorNotice(true);
     }
   };
 
@@ -1146,8 +1263,9 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
 
   // Funciones para selecciÃ³n mÃºltiple
   const toggleMultiSelectMode = () => {
-    setMultiSelectMode(!multiSelectMode);
+    if (!isAdmin) return;
     setSelectedItems(new Set());
+    setMultiSelectMode((prev) => !prev);
   };
 
   const toggleItemSelection = (itemKey) => {
@@ -1232,12 +1350,37 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       
       const allItems = Array.isArray(data?.items) ? data.items : [];
       console.log('ðŸ“‹ Total de elementos recibidos:', allItems.length);
+      const filesOnly = allItems.filter((item) => !(item?.isFolder || String(item?.key || '').endsWith('/')));
       
       // Mostrar tanto archivos como carpetas
       setDocs(allItems);
       console.log('âœ… Lista de documentos actualizada con', allItems.length, 'elementos');
       
-      if (data?.warning) {
+      if (isAdmin && selectedClient && selectedFolder) {
+        setClientFolders((prev) => {
+          const clientData = prev[selectedClient.id];
+          if (!clientData || !clientData[selectedFolder.path]) return prev;
+          return {
+            ...prev,
+            [selectedClient.id]: {
+              ...clientData,
+              [selectedFolder.path]: {
+                ...clientData[selectedFolder.path],
+                documents: filesOnly,
+              },
+            },
+          };
+        });
+        setSelectedFolder((prev) => (prev ? { ...prev, documents: filesOnly } : prev));
+      } else if (!isAdmin && selectedUserFolder) {
+        setUserFolders((prev) =>
+          prev.map((folder) =>
+            folder.path === selectedUserFolder.path ? { ...folder, documents: filesOnly } : folder
+          )
+        );
+        setSelectedUserFolder((prev) => (prev ? { ...prev, documents: filesOnly } : prev));
+      }
+if (data?.warning) {
         setWarning(data.warning);
         console.log('âš ï¸ Advertencia:', data.warning);
       }
@@ -1365,21 +1508,25 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
           </select>
           <input className="me-input" placeholder="Buscar..." />
           <div className="me-actions">
-            <button 
-              className={`btn ${multiSelectMode ? 'btn-orange' : 'btn-secondary'}`}
-              onClick={toggleMultiSelectMode}
-              title={multiSelectMode ? 'Salir del modo de selección' : 'Seleccionar múltiples archivos'}
-            >
-              {multiSelectMode ? 'Cancelar selección' : 'Seleccionar archivos'}
-            </button>
-            {multiSelectMode && selectedItems.size > 0 && (
-              <button 
-                className="btn btn-danger"
-                onClick={() => setShowDeleteConfirm(true)}
-                title={`Eliminar ${selectedItems.size} elemento${selectedItems.size > 1 ? 's' : ''} seleccionado${selectedItems.size > 1 ? 's' : ''}`}
-              >
-                Eliminar ({selectedItems.size})
-              </button>
+            {isAdmin && (
+              <>
+                <button
+                  className={`btn ${multiSelectMode ? 'btn-orange' : 'btn-secondary'}`}
+                  onClick={toggleMultiSelectMode}
+                  title={multiSelectMode ? 'Salir del modo de selección' : 'Seleccionar múltiples archivos'}
+                >
+                  {multiSelectMode ? 'Cancelar selección' : 'Seleccionar archivos'}
+                </button>
+                {multiSelectMode && selectedItems.size > 0 && (
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    title={`Eliminar ${selectedItems.size} elemento${selectedItems.size > 1 ? 's' : ''} seleccionado${selectedItems.size > 1 ? 's' : ''}`}
+                  >
+                    Eliminar ({selectedItems.size})
+                  </button>
+                )}
+              </>
             )}
             <button className="btn btn-secondary">Ver información</button>
           </div>
@@ -1516,7 +1663,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                               }}>
                                 {folder.name}
                               </div>
-                              {multiSelectMode && (
+                              {isAdmin && multiSelectMode && (
                                 <button
                                   className="btn btn-secondary btn-sm"
                                   onClick={(e) => {
@@ -1674,7 +1821,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                                       }}>
                                         {folder.name}
                                       </div>
-                                      {multiSelectMode && (
+                                      {isAdmin && multiSelectMode && (
                                         <button
                                           className="btn btn-secondary btn-sm"
                                           onClick={(e) => {
@@ -1814,21 +1961,65 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                           </td>
                           <td>{sizeKb ? `${sizeKb} KB` : '-'}</td>
                           <td>
-                            {!isAdmin && (
-                              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                                <button
-                                  className="btn btn-secondary btn-sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDownload(d.key, d.downloadURL || d.downloadUrl || d.webContentLink || d.webViewLink);
-                                  }}
-                                  title="Descargar archivo"
-                                  disabled={multiSelectMode}
-                                >
-                                  ðŸ“¥
-                                </button>
-                              </div>
-                            )}
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                              <button
+                                type="button"
+                                className="btn btn-primary btn-sm"
+                                style={actionChipPrimary}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onPreviewDocument(
+                                    d,
+                                    d.downloadURL || d.downloadUrl || d.webContentLink || d.webViewLink
+                                  );
+                                }}
+                                title="Previsualizar documento"
+                                disabled={isAdmin && multiSelectMode}
+                              >
+                                <span role="img" aria-label="ver" style={{ fontSize: 12 }}>
+                                  👁️
+                                </span>
+                                <span style={{ fontWeight: 600 }}>Ver</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                style={actionChipSecondary}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDownloadDocument(
+                                    d,
+                                    d.downloadURL || d.downloadUrl || d.webContentLink || d.webViewLink
+                                  );
+                                }}
+                                title="Descargar documento"
+                                disabled={isAdmin && multiSelectMode}
+                              >
+                                <span role="img" aria-label="descargar" style={{ fontSize: 12 }}>
+                                  ⬇️
+                                </span>
+                                <span>Descargar</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                style={actionChipSecondary}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onShareDocument(
+                                    d,
+                                    d.downloadURL || d.downloadUrl || d.webContentLink || d.webViewLink
+                                  );
+                                }}
+                                title="Compartir enlace"
+                                disabled={isAdmin && multiSelectMode}
+                              >
+                                <span role="img" aria-label="link" style={{ fontSize: 12 }}>
+                                  🔗
+                                </span>
+                                <span>Compartir</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -2411,7 +2602,7 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       )}
 
       {/* Modal de confirmaciÃ³n de eliminaciÃ³n masiva */}
-      {showDeleteConfirm && (
+      {isAdmin && showDeleteConfirm && (
         <div 
           style={{ 
             position: 'fixed', 
@@ -2687,6 +2878,159 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
                 disabled={!audienceData.fecha || !audienceData.actuacion || !audienceData.tipo || !audienceData.juzgado || !audienceData.estado}
               >
                 Programar Audiencia
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {previewDoc && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            zIndex: 9000,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closePreviewModal();
+          }}
+        >
+          <div
+            className="dash-card"
+            style={{
+              width: '100%',
+              maxWidth: 1100,
+              maxHeight: '95vh',
+              display: 'flex',
+              flexDirection: 'column',
+              background: '#0f172a',
+              border: '1px solid rgba(148,163,184,0.35)',
+              boxShadow: '0 25px 45px rgba(0,0,0,0.45)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="dash-header"
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}
+            >
+              <div>
+                <div className="dash-title" style={{ marginBottom: 4 }}>
+                  Previsualizar documento
+                </div>
+                <div style={{ fontSize: 14, color: '#cbd5e1' }}>
+                  {previewDoc?.name || previewDoc?.key?.split('/').pop() || 'Documento'}
+                </div>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={closePreviewModal}>
+                Cerrar
+              </button>
+            </div>
+            <div className="dash-item" style={{ flex: 1, overflow: 'hidden', background: '#0f172a' }}>
+              {previewLoading ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '70vh',
+                    color: '#cbd5e1',
+                    gap: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      border: '3px solid #4fd1c5',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite',
+                    }}
+                  />
+                  Cargando vista previa...
+                </div>
+              ) : previewUrl ? (
+                <iframe
+                  title="Vista previa del documento"
+                  src={previewUrl}
+                  style={{
+                    width: '100%',
+                    height: '70vh',
+                    border: 'none',
+                    borderRadius: 12,
+                    background: '#fff',
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '70vh',
+                    color: '#fecaca',
+                    textAlign: 'center',
+                    gap: 16,
+                  }}
+                >
+                  <div style={{ fontSize: 16 }}>{previewError || 'No se pudo cargar el documento.'}</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <button className="btn btn-primary btn-sm" onClick={retryPreviewDocument} disabled={previewLoading}>
+                      Reintentar
+                    </button>
+                    {previewDoc?.fallbackUrl && (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => window.open(previewDoc.fallbackUrl, '_blank', 'noopener,noreferrer')}
+                      >
+                        Abrir enlace directo
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+              <button
+                className="btn btn-secondary btn-sm"
+                style={actionChipSecondary}
+                onClick={() => onDownloadDocument(previewDoc, getFallbackUrl(previewDoc))}
+                disabled={previewLoading}
+              >
+                ⬇️ Descargar
+              </button>
+              <button
+                className="btn btn-secondary btn-sm"
+                style={actionChipSecondary}
+                onClick={() => onShareDocument(previewDoc, getFallbackUrl(previewDoc))}
+                disabled={previewLoading}
+              >
+                🔗 Compartir
+              </button>
+              {previewUrl && (
+                <button
+                  className="btn btn-primary btn-sm"
+                  style={actionChipPrimary}
+                  onClick={() => window.open(previewUrl, '_blank', 'noopener,noreferrer')}
+                >
+                  Abrir pestaña
+                </button>
+              )}
+              <button
+                className="btn btn-secondary btn-sm"
+                style={actionChipSecondary}
+                onClick={closePreviewModal}
+              >
+                Cerrar
               </button>
             </div>
           </div>
