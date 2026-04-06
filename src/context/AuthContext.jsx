@@ -7,7 +7,7 @@ import { loginApi, registerApi, logoutApi, refreshApi } from '../api/auth';
 import { setupAxiosInterceptors } from '../api/axios';
 
 const AuthContext = createContext(null);
-const ALLOWED_ROLES = ['admin', 'user'];
+const ALLOWED_ROLES = ['admin', 'lawyer', 'user'];
 
 function normalizeRoles(value, { defaultRole = 'user' } = {}) {
   const normalizedDefault = String(defaultRole || 'user').trim().toLowerCase();
@@ -18,6 +18,9 @@ function normalizeRoles(value, { defaultRole = 'user' } = {}) {
     .filter((role) => ALLOWED_ROLES.includes(role));
   if (normalized.includes('admin')) {
     return ['admin'];
+  }
+  if (normalized.includes('lawyer')) {
+    return ['lawyer'];
   }
   if (normalized.includes('user')) {
     return ['user'];

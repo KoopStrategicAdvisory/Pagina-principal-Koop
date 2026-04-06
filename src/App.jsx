@@ -32,6 +32,7 @@ import MiExpediente from './pages/dinamic/Miexpediente/index.jsx';
 import MisCasos from './pages/dinamic/MisCasos/index.jsx';
 import Logout from './pages/dinamic/auth/Logout/index.jsx';
 import SpotifyCallback from './pages/dinamic/SpotifyCallback/index.jsx';
+import Consultas from './pages/dinamic/Consultas/index.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
@@ -54,6 +55,19 @@ function App() {
   };
 
   //Acá se manipula el navbar para que no aparezca en login, register y dashboard
+
+  const AdminLawyerRoute = ({ children }) => {
+    const { isAuthenticated, user } = useAuth();
+    const roles = Array.isArray(user?.roles) ? user.roles : [user?.roles];
+    const allowed = roles.some((role) => ['admin', 'lawyer'].includes(String(role || '').toLowerCase()));
+    if (!isAuthenticated) {
+      return <Navigate to="/login" replace />;
+    }
+    if (!allowed) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return children;
+  };
 
   // Shell: layout básico (Navbar + Rutas)
   const Shell = () => {
@@ -158,6 +172,14 @@ function App() {
               <ProtectedRoute>
                 <MisCasos />
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/consultas"
+            element={
+              <AdminLawyerRoute>
+                <Consultas />
+              </AdminLawyerRoute>
             }
           />
           {/* Legacy .html paths -> redirect to SPA routes */}
