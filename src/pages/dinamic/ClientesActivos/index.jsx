@@ -1,253 +1,56 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '../../../context/AuthContext';
-import { listActiveClients, updateClient, assignClientAdmin, deleteClient } from '../../../api/clients';
-import { listUsers as listAllUsers } from '../../../api/adminUsers';
-import { listRecentDocs, uploadDoc, getDownloadUrl, createFolder, getDiagnostics } from '../../../api/docs';
+import { useActiveClients } from '../../../hooks/useActiveClients';
 import '../../../styles/dashboard.css';
 import { SuccessNotice, DangerNotice } from '../../../components/common/Notice';
 import { EditForm, EditField, EditRow } from '../../../components/common/EditFormKit';
 import MiExpediente from '../Miexpediente';
 
-const ALLOWED_ROLES = ['admin', 'user'];
-
-
-function normalizeRoles(value, { defaultRole = 'user' } = {}) {
-  const normalizedDefault = String(defaultRole || 'user').trim().toLowerCase();
-  const safeDefault = ALLOWED_ROLES.includes(normalizedDefault) ? normalizedDefault : 'user';
-  const roles = Array.isArray(value) ? value : [value];
-  const normalized = roles
-    .map((role) => String(role || '').trim().toLowerCase())
-    .filter((role) => ALLOWED_ROLES.includes(role));
-  if (normalized.includes('admin')) return ['admin'];
-  if (normalized.includes('user')) return ['user'];
-  return [safeDefault];
-}
-
-function useIsAdmin(user) {
-  const roles = normalizeRoles(user?.roles);
-  return roles.includes('admin');
-}
-
 export default function ClientesActivos() {
-  const { user } = useAuth();
-  const isAdmin = useIsAdmin(user);
-  const [clients, setClients] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [editing, setEditing] = useState(null); // { id, name, email, documentNumber, phone }
-  const [saving, setSaving] = useState(false);
-  const [search, setSearch] = useState('');
-  const [expandedId, setExpandedId] = useState(null);
-  // Asignación de admins (UI local)
-  const [assignOpen, setAssignOpen] = useState(false);
-  const [assignClient, setAssignClient] = useState(null);
-  const [admins, setAdmins] = useState([]);
-  const [adminsLoading, setAdminsLoading] = useState(false);
-  const [adminsError, setAdminsError] = useState(null);
-  const [selectedAdminId, setSelectedAdminId] = useState('');
-
-  // Archivos por cliente (S3)
-  const [filesOpen, setFilesOpen] = useState(false);
-  const [filesClient, setFilesClient] = useState(null);
-  const [expandedClient, setExpandedClient] = useState(null);
-  const [clientFiles, setClientFiles] = useState({});
-  const [loadingFiles, setLoadingFiles] = useState({});
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-  const [confirmDeleteClient, setConfirmDeleteClient] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState(null);
-  const [deletePass, setDeletePass] = useState('');
-  const [notice, setNotice] = useState(null);
-  const [noticeKind, setNoticeKind] = useState('success');
-
-  const showNotice = (msg, kind = 'success') => {
-    setNotice(String(msg || ''));
-    setNoticeKind(kind);
-    try { clearTimeout(showNotice._t); } catch {}
-    showNotice._t = setTimeout(() => setNotice(null), 3500);
-  };
-
-  const fetchClients = async () => {
-    if (!isAdmin) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await listActiveClients();
-      const items = Array.isArray(data?.items) ? data.items : [];
-      setClients(items);
-    } catch (e) {
-      setError(e?.response?.data?.message || e?.message || 'No se pudo cargar la lista de clientes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchClients();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin]);
-
-  const filtered = useMemo(() => {
-    const q = String(search || '').trim().toLowerCase();
-    if (!q) return clients;
-    return clients.filter((c) =>
-      [c.name, c.email, c.documentNumber, c.phone, c.id]
-        .map((v) => String(v || '').toLowerCase())
-        .some((v) => v.includes(q))
-    );
-  }, [clients, search]);
-
-  // Helpers de asignación (persistencia en backend)
-  const getAssignedFor = (clientId) => {
-    const found = clients.find(c=>c.id===clientId);
-    return found?.assignedAdmin || null;
-  };
-
-  const openAssignModal = async (client) => {
-    setAssignClient(client);
-    setAssignOpen(true);
-    setAdminsError(null);
-    setAdminsLoading(true);
-    try {
-      const data = await listAllUsers();
-      const items = Array.isArray(data?.items) ? data.items : [];
-      const adminUsers = items.filter((u) => (Array.isArray(u.roles) ? u.roles : [u.roles]).map(r=>String(r||'').toLowerCase()).includes('admin'));
-      setAdmins(adminUsers.map(u=>({ id:u.id, name:u.name||u.email||u.id, email:u.email })));
-      const current = getAssignedFor(client.id);
-      setSelectedAdminId(current?.id || '');
-    } catch (e) {
-      setAdminsError(e?.response?.data?.message || e?.message || 'No se pudo cargar administradores');
-    } finally {
-      setAdminsLoading(false);
-    }
-  };
-
-  const onSaveAssignment = async () => {
-    try {
-      const payloadId = selectedAdminId || '';
-      await assignClientAdmin(assignClient.id, payloadId);
-      // Refrescar lista en memoria para reflejar assignedAdmin
-      await fetchClients();
-      setAssignOpen(false);
-      setAssignClient(null);
-    } catch (e) {
-      setAdminsError(e?.response?.data?.message || e?.message || 'No se pudo asignar');
-    }
-  };
-
-  const onEdit = (client) => {
-    setEditing({
-      id: client.id,
-      name: client.name || '',
-      email: client.email || '',
-      documentNumber: client.documentNumber || '',
-      phone: client.phone || '',
-    });
-  };
-
-  const onSave = async () => {
-    if (!editing) return;
-    const payload = {
-      name: String(editing.name || '').trim(),
-      documentNumber: String(editing.documentNumber || '').trim(),
-      phone: String(editing.phone || '').trim(),
-    };
-    try {
-      setSaving(true);
-      setError(null);
-      const resp = await updateClient(editing.id, payload);
-      const updated = resp?.client || null;
-      if (updated) {
-        setClients((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
-      }
-      setEditing(null);
-    } catch (e) {
-      setError(e?.response?.data?.message || e?.message || 'No se pudo guardar la informacion');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const onAskDelete = (client) => {
-    setConfirmDeleteClient(client);
-    setConfirmDeleteOpen(true);
-    setDeleteError(null);
-    setDeletePass('');
-  };
-
-  const onConfirmDelete = async () => {
-    if (!confirmDeleteClient) return;
-    try {
-      setDeleting(true);
-      setDeleteError(null);
-      const res = await deleteClient(confirmDeleteClient.id, deletePass);
-      await fetchClients();
-      setConfirmDeleteOpen(false);
-      setConfirmDeleteClient(null);
-      const deleted = res?.s3?.deleted;
-      if (typeof deleted === 'number') {
-        showNotice(`Cliente eliminado. Archivos S3 eliminados: ${deleted}`, 'danger');
-      } else {
-        showNotice('Cliente eliminado correctamente', 'danger');
-      }
-    } catch (e) {
-      setDeleteError(e?.response?.data?.message || e?.message || 'No se pudo eliminar el cliente');
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const openFilesModal = async (client) => {
-    setFilesClient(client);
-    setFilesOpen(true);
-  };
-
-  // Función para obtener la carpeta del cliente
-  const folderForClient = (c) => {
-    const idPart = String(c?.documentNumber || c?.id || '').trim();
-    return idPart ? `clientes/${idPart}/` : 'clientes/sin-id/';
-  };
-
-  // Función para cargar archivos de un cliente
-  const loadClientFiles = async (client) => {
-    const clientId = client.id;
-    const folder = folderForClient(client);
-    
-    setLoadingFiles(prev => ({ ...prev, [clientId]: true }));
-    
-    try {
-      const subfolder = folder.startsWith('clientes/') ? folder.replace(/\/$/, '') : folder;
-      const data = await listRecentDocs({ limit: 50, subfolder });
-      const files = Array.isArray(data?.items) ? data.items : [];
-      
-      setClientFiles(prev => ({ ...prev, [clientId]: files }));
-    } catch (e) {
-      console.error('Error al cargar archivos:', e);
-      setClientFiles(prev => ({ ...prev, [clientId]: [] }));
-    } finally {
-      setLoadingFiles(prev => ({ ...prev, [clientId]: false }));
-    }
-  };
-
-  // Función para expandir/contraer cliente
-  const toggleClientExpansion = async (client) => {
-    const clientId = client.id;
-    
-    if (expandedClient === clientId) {
-      // Contraer
-      setExpandedClient(null);
-    } else {
-      // Expandir
-      setExpandedClient(clientId);
-      
-      // Cargar archivos si no están cargados
-      if (!clientFiles[clientId]) {
-        await loadClientFiles(client);
-      }
-    }
-  };
-
-
+  const {
+    isAdmin,
+    loading,
+    error,
+    editing,
+    setEditing,
+    saving,
+    search,
+    setSearch,
+    expandedClient,
+    collapseClient,
+    assignOpen,
+    assignClient,
+    admins,
+    adminsLoading,
+    adminsError,
+    selectedAdminId,
+    setSelectedAdminId,
+    filesOpen,
+    filesClient,
+    clientFiles,
+    loadingFiles,
+    confirmDeleteOpen,
+    confirmDeleteClient,
+    deleting,
+    deleteError,
+    deletePass,
+    setDeletePass,
+    notice,
+    noticeKind,
+    fetchClients,
+    filtered,
+    getAssignedFor,
+    openAssignModal,
+    onSaveAssignment,
+    onEdit,
+    onSave,
+    onAskDelete,
+    onConfirmDelete,
+    openFilesModal,
+    folderForClient,
+    toggleClientExpansion,
+    closeAssignModal,
+    closeFilesModal,
+    closeDeleteModal,
+  } = useActiveClients();
 
   if (!isAdmin) {
     return (
@@ -366,52 +169,52 @@ export default function ClientesActivos() {
                 </tr>
               )}
               {filtered.map((c) => (
-                <>
-                  <tr key={c.id}>
+                <div key={c.id} style={{ display: 'contents' }}>
+                  <tr>
                     <td>
-                      <div 
-                        style={{ 
-                          cursor: 'pointer', 
-                          color: '#4fd1c5', 
-                          fontWeight: '500',
-                          textDecoration: 'underline'
-                        }}
-                        onClick={() => toggleClientExpansion(c)}
-                        onMouseOver={(e) => e.target.style.color = '#6ee7d7'}
-                        onMouseOut={(e) => e.target.style.color = '#4fd1c5'}
+                    <div 
+                      style={{ 
+                        cursor: 'pointer', 
+                        color: '#4fd1c5', 
+                        fontWeight: '500',
+                        textDecoration: 'underline'
+                      }}
+                      onClick={() => toggleClientExpansion(c)}
+                      onMouseOver={(e) => e.target.style.color = '#6ee7d7'}
+                      onMouseOut={(e) => e.target.style.color = '#4fd1c5'}
+                    >
+                      {c.name || '-'} {expandedClient === c.id ? '▼' : '▶'}
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.75 }}>Admin asignado: {c.assignedAdmin?.name || '—'}</div>
+                  </td>
+                  <td>{c.email || '-'}</td>
+                  <td>{c.documentNumber || '-'}</td>
+                  <td>{c.phone || '-'}</td>
+                  <td>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => openAssignModal(c)}
+                        title={getAssignedFor(c.id) ? `Asignado a ${getAssignedFor(c.id)?.name || ''}` : 'Asignar administrador'}
                       >
-                        {c.name || '-'} {expandedClient === c.id ? '▼' : '▶'}
-                      </div>
-                      <div style={{ fontSize: 12, opacity: 0.75 }}>Admin asignado: {c.assignedAdmin?.name || '—'}</div>
-                    </td>
-                    <td>{c.email || '-'}</td>
-                    <td>{c.documentNumber || '-'}</td>
-                    <td>{c.phone || '-'}</td>
-                    <td>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => openAssignModal(c)}
-                          title={getAssignedFor(c.id) ? `Asignado a ${getAssignedFor(c.id)?.name || ''}` : 'Asignar administrador'}
-                        >
-                          {getAssignedFor(c.id) ? 'Asignado' : 'Asignar'}
-                        </button>
-                        <button 
-                          className="btn btn-primary btn-sm"
-                          onClick={() => openFilesModal(c)}
-                        >
-                          Archivos
-                        </button>
-                        <button className="btn btn-primary btn-sm" onClick={() => onEdit(c)}>Editar</button>
-                        <button className="btn btn-secondary btn-sm" onClick={() => onAskDelete(c)}>Eliminar</button>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* Fila expandible con archivos */}
-                  {expandedClient === c.id && (
-                    <tr>
-                      <td colSpan={5} style={{ padding: 0, background: '#0c1530' }}>
+                        {getAssignedFor(c.id) ? 'Asignado' : 'Asignar'}
+                      </button>
+                      <button 
+                        className="btn btn-primary btn-sm"
+                        onClick={() => openFilesModal(c)}
+                      >
+                        Archivos
+                      </button>
+                      <button className="btn btn-primary btn-sm" onClick={() => onEdit(c)}>Editar</button>
+                      <button className="btn btn-secondary btn-sm" onClick={() => onAskDelete(c)}>Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+                
+                {/* Fila expandible con archivos */}
+                expandedClient === c.id && (
+                  <tr key={`expanded-${c.id}`}>
+                    <td colSpan={5} style={{ padding: 0, background: '#0c1530' }}>
                         <div style={{ padding: '20px' }}>
                           <div style={{ 
                             display: 'flex', 
@@ -424,7 +227,7 @@ export default function ClientesActivos() {
                             </h4>
                             <button 
                               className="btn btn-secondary btn-sm"
-                              onClick={() => setExpandedClient(null)}
+                              onClick={collapseClient}
                             >
                               Cerrar
                             </button>
@@ -542,7 +345,7 @@ export default function ClientesActivos() {
                       </td>
                     </tr>
                   )}
-                </>
+                </div>
               ))}
             </tbody>
           </table>
@@ -556,18 +359,13 @@ export default function ClientesActivos() {
             </div>
           )}
           {filtered.map((c) => {
-            const isOpen = expandedId === c.id;
+            const isOpen = expandedClient === c.id;
             return (
               <div key={c.id} className="mobile-item">
                 <button
                   type="button"
                   className="btn btn-primary btn-sm mobile-item-header"
-                  onClick={() => {
-                    setExpandedId((prev) => (prev === c.id ? null : c.id));
-                    if (!isOpen) {
-                      toggleClientExpansion(c);
-                    }
-                  }}
+                  onClick={() => toggleClientExpansion(c)}
                   aria-expanded={isOpen}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
@@ -778,7 +576,7 @@ export default function ClientesActivos() {
             zIndex: 60, 
             padding: 16 
           }}
-          onClick={() => setFilesOpen(false)}
+          onClick={closeFilesModal}
         >
           <div 
             style={{ 
@@ -792,7 +590,7 @@ export default function ClientesActivos() {
             <MiExpediente 
               selectedClient={filesClient}
               isModal={true}
-              onClose={() => setFilesOpen(false)}
+              onClose={closeFilesModal}
             />
           </div>
         </div>
@@ -803,7 +601,7 @@ export default function ClientesActivos() {
           role="dialog"
           aria-modal="true"
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16 }}
-          onClick={(e) => { if (e.target === e.currentTarget) { setAssignOpen(false); setAssignClient(null); } }}
+          onClick={(e) => { if (e.target === e.currentTarget) { closeAssignModal(); } }}
         >
           <div className="dash-card" style={{ width: '100%', maxWidth: 560 }}>
             <div className="dash-header" style={{ marginBottom: 8 }}>
@@ -830,7 +628,7 @@ export default function ClientesActivos() {
               </label>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-              <button className="btn btn-secondary" onClick={()=>{ setAssignOpen(false); setAssignClient(null); }} disabled={adminsLoading}>Cancelar</button>
+              <button className="btn btn-secondary" onClick={closeAssignModal} disabled={adminsLoading}>Cancelar</button>
               <button className="btn btn-primary" onClick={onSaveAssignment} disabled={adminsLoading}>Guardar</button>
             </div>
           </div>
@@ -842,7 +640,7 @@ export default function ClientesActivos() {
           role="dialog"
           aria-modal="true"
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 65, padding: 16 }}
-          onClick={(e) => { if (e.target === e.currentTarget) { setConfirmDeleteOpen(false); setConfirmDeleteClient(null); } }}
+          onClick={(e) => { if (e.target === e.currentTarget) { closeDeleteModal(); } }}
         >
           <div className="dash-card" style={{ width: '100%', maxWidth: 520 }}>
             <div className="dash-header" style={{ marginBottom: 8 }}>
@@ -883,7 +681,7 @@ export default function ClientesActivos() {
                 )}
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                <button className="btn btn-secondary" onClick={() => { setConfirmDeleteOpen(false); setConfirmDeleteClient(null); }} disabled={deleting}>Cancelar</button>
+                <button className="btn btn-secondary" onClick={closeDeleteModal} disabled={deleting}>Cancelar</button>
                 <button className="btn btn-primary" onClick={onConfirmDelete} disabled={deleting || !deletePass}>{deleting ? 'Eliminando...' : 'Eliminar'}</button>
               </div>
           </div>

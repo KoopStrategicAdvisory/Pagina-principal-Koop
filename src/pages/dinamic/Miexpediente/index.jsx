@@ -1,10 +1,7 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+﻿import React from 'react';
 import '../../../styles/dashboard.css';
 import '../../../styles/mi-expediente.css';
-import { useAuth } from '../../../context/AuthContext.jsx';
-import { normalizeUpperAscii } from '../../../utils/strings.js';
-import { listRecentDocs, uploadDoc, getDownloadUrl, getClientDocumentHistory, getDiagnostics, createFolder, deleteDocument, deleteFolder } from '../../../api/docs.js';
-import { listActiveClients } from '../../../api/clients.js';
+import { useMiExpediente } from '../../../hooks/useMiExpediente';
 import { SuccessNotice, DangerNotice } from '../../../components/common/Notice.jsx';
 
 const actionChipBase = {
@@ -35,468 +32,121 @@ const actionChipSecondary = {
   border: '1px solid rgba(148,163,184,0.35)',
 };
 
-const convertLatin1ToUtf8 = (input) => {
-  if (!input) return input;
-  try {
-    const bytes = Uint8Array.from([...input], (char) => char.charCodeAt(0));
-    return new TextDecoder('utf-8').decode(bytes);
-  } catch (error) {
-    console.log('Error convirtiendo latin1 a utf8:', error);
-    return input;
-  }
-};
-
-const stringToHex = (input = '') => {
-  if (!input) return '';
-  return Array.from(new TextEncoder().encode(input))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
-};
-// FunciÃ³n global para corregir codificaciÃ³n UTF-8
-const fixUTF8Encoding = (str) => {
-  if (!str) return str;
-  
-  console.log('ðŸ”§ Fixing encoding for:', str);
-  console.log('ðŸ”§ Original bytes:', Array.from(str).map(c => c.charCodeAt(0).toString(16)).join(' '));
-  
-  let corrected = str;
-  
-  // Verificar si el texto ya tiene caracteres correctos (no corromper texto bueno)
-  const hasCorrectChars = /[Ã¡Ã©Ã­Ã³ÃºÃ±Ã¼Ã§ÃÃ‰ÃÃ“ÃšÃ‘ÃœÃ‡]/.test(str);
-  const hasCorruptedChars = /[Ãƒ]/.test(str);
-  
-  if (hasCorrectChars && !hasCorruptedChars) {
-    console.log('ðŸ”§ Text already has correct characters, preserving:', str);
-    return str; // No corromper texto que ya estÃ¡ bien
-  }
-  
-  // Solo aplicar correcciones si hay caracteres corrompidos
-  if (hasCorruptedChars) {
-    console.log('ðŸ”§ Detected corrupted characters, applying corrections...');
-    
-    corrected = corrected
-      // Correcciones especÃ­ficas para "ConstituciÃƒÂ³n PolÃƒÂ­tica"
-      .replace(/ConstituciÃƒÂ³n/g, 'ConstituciÃ³n')
-      .replace(/PolÃƒÂ­tica/g, 'PolÃ­tica')
-      .replace(/constituciÃƒÂ³n/g, 'constituciÃ³n')
-      .replace(/polÃƒÂ­tica/g, 'polÃ­tica')
-      // Correcciones generales para caracteres espaÃ±oles
-      .replace(/ÃƒÂ¡/g, 'Ã¡')
-      .replace(/ÃƒÂ©/g, 'Ã©') 
-      .replace(/ÃƒÂ­/g, 'Ã­')
-      .replace(/ÃƒÂ³/g, 'Ã³')
-      .replace(/ÃƒÂº/g, 'Ãº')
-      .replace(/ÃƒÂ±/g, 'Ã±')
-      .replace(/ÃƒÂ¼/g, 'Ã¼')
-      .replace(/ÃƒÂ§/g, 'Ã§')
-      .replace(/Ãƒ/g, 'Ã')
-      .replace(/Ãƒâ€°/g, 'Ã‰')
-      .replace(/Ãƒ/g, 'Ã')
-      .replace(/Ãƒ"/g, 'Ã“')
-      .replace(/ÃƒÅ¡/g, 'Ãš')
-      .replace(/Ãƒ'/g, 'Ã‘')
-      .replace(/ÃƒÅ“/g, 'Ãœ')
-      .replace(/Ãƒâ€¡/g, 'Ã‡')
-      .replace(/ÃƒÂ¢/g, 'Ã¢')
-      .replace(/ÃƒÂª/g, 'Ãª')
-      .replace(/ÃƒÂ®/g, 'Ã®')
-      .replace(/ÃƒÂ´/g, 'Ã´')
-      .replace(/ÃƒÂ»/g, 'Ã»')
-      .replace(/Ãƒâ€š/g, 'Ã‚')
-      .replace(/ÃƒÅ /g, 'ÃŠ')
-      .replace(/ÃƒÅ½/g, 'ÃŽ')
-      .replace(/Ãƒ"/g, 'Ã”')
-      .replace(/Ãƒâ€º/g, 'Ã›')
-      .replace(/ÃƒÂ¨/g, 'Ã¨')
-      .replace(/ÃƒÂ¬/g, 'Ã¬')
-      .replace(/ÃƒÂ²/g, 'Ã²')
-      .replace(/ÃƒÂ¹/g, 'Ã¹')
-      .replace(/Ãƒâ‚¬/g, 'Ã€')
-      .replace(/ÃƒÅ’/g, 'ÃŒ')
-      .replace(/Ãƒ'/g, 'Ã’')
-      .replace(/Ãƒâ„¢/g, 'Ã™')
-      .replace(/ÃƒÂ¤/g, 'Ã¤')
-      .replace(/ÃƒÂ«/g, 'Ã«')
-      .replace(/ÃƒÂ¯/g, 'Ã¯')
-      .replace(/ÃƒÂ¶/g, 'Ã¶')
-      .replace(/Ãƒâ€ž/g, 'Ã„')
-      .replace(/Ãƒâ€¹/g, 'Ã‹')
-      .replace(/Ãƒ/g, 'Ã')
-      .replace(/Ãƒâ€“/g, 'Ã–')
-      .replace(/Ã¢â‚¬â„¢/g, "'")
-      .replace(/Ã¢â‚¬Å“/g, '"')
-      .replace(/Ã¢â‚¬/g, '"')
-      .replace(/Ã¢â‚¬"/g, 'â€“')
-      .replace(/Ã¢â‚¬"/g, 'â€”');
-    
-    // Intentar correcciÃ³n desde latin1 si aÃºn hay problemas
-    if (corrected.includes('Ãƒ')) {
-      try {
-        const latin1Corrected = convertLatin1ToUtf8(corrected);
-        if (!latin1Corrected.includes('Ãƒ')) {
-          corrected = latin1Corrected;
-          console.log('ðŸ”§ Applied latin1 correction:', corrected);
-        }
-      } catch (e) {
-        console.log('ðŸ”§ Error en correcciÃ³n latin1:', e);
-      }
-    }
-  }
-  
-  console.log('ðŸ”§ Final result:', corrected);
-  console.log('ðŸ”§ Final bytes:', Array.from(corrected).map(c => c.charCodeAt(0).toString(16)).join(' '));
-  return corrected;
-};
-
-// FunciÃ³n de correcciÃ³n agresiva
-const aggressiveUTF8Fix = (str) => {
-  if (!str) return str;
-  
-  return str
-    // Correcciones especÃ­ficas para casos reportados
-    .replace(/TrÃƒÂ¡mite/g, 'TrÃ¡mite')
-    .replace(/TÃƒÂºtela/g, 'TÃºtela')
-    .replace(/trÃƒÂ¡mite/g, 'trÃ¡mite')
-    .replace(/tÃƒÂºtela/g, 'tÃºtela')
-    .replace(/ConstituciÃƒÂ³n/g, 'ConstituciÃ³n')
-    .replace(/PolÃƒÂ­tica/g, 'PolÃ­tica')
-    .replace(/constituciÃƒÂ³n/g, 'constituciÃ³n')
-    .replace(/polÃƒÂ­tica/g, 'polÃ­tica')
-    // Correcciones generales
-    .replace(/ÃƒÂ¡/g, 'Ã¡')
-    .replace(/ÃƒÂ©/g, 'Ã©')
-    .replace(/ÃƒÂ­/g, 'Ã­')
-    .replace(/ÃƒÂ³/g, 'Ã³')
-    .replace(/ÃƒÂº/g, 'Ãº')
-    .replace(/ÃƒÂ±/g, 'Ã±')
-    .replace(/Ãƒ/g, 'Ã')
-    .replace(/Ãƒâ€°/g, 'Ã‰')
-    .replace(/Ãƒ/g, 'Ã')
-    .replace(/Ãƒ"/g, 'Ã“')
-    .replace(/ÃƒÅ¡/g, 'Ãš')
-    .replace(/Ãƒ'/g, 'Ã‘')
-    .replace(/ÃƒÂ¼/g, 'Ã¼')
-    .replace(/ÃƒÅ“/g, 'Ãœ')
-    .replace(/Ãƒâ€¡/g, 'Ã‡')
-    .replace(/ÃƒÂ§/g, 'Ã§');
-};
-
-// Hook personalizado para manejar codificaciÃ³n en inputs con correcciÃ³n agresiva
-const useUTF8Input = (initialValue = '') => {
-  const [value, setValue] = useState(initialValue);
-  
-  const handleChange = (e) => {
-    let inputValue = e.target.value;
-    
-    // Aplicar correcciÃ³n agresiva SIEMPRE
-    const correctedValue = aggressiveUTF8Fix(inputValue);
-    
-    if (correctedValue !== inputValue) {
-      console.log('ðŸ”§ AGGRESSIVE FIX - Original:', inputValue, 'Corrected:', correctedValue);
-      e.target.value = correctedValue;
-      inputValue = correctedValue;
-    }
-    
-    setValue(inputValue);
-  };
-  
-  return [value, setValue, handleChange];
-};
-
 export default function MiExpediente({ selectedClient: propSelectedClient, isModal = false, onClose }) {
-  const [activeTab, setActiveTab] = useState('docs');
-  const { user, accessToken } = useAuth();
-  const displayName = normalizeUpperAscii(user?.name || '');
-  const DEFAULT_FOLDER = 'clientes';
-  const roles = Array.isArray(user?.roles) ? user.roles : (user?.roles ? [user?.roles] : []);
-  const isAdmin = roles.map((r)=>String(r||'').trim().toLowerCase()).includes('admin');
-  // Clientes asignados (solo admin)
-  const [assignedClients, setAssignedClients] = useState([]);
-  const [assignedLoading, setAssignedLoading] = useState(false);
-  const [assignedError, setAssignedError] = useState(null);
+  const {
+    activeTab,
+    assignedClients,
+    assignedLoading,
+    assignedError,
+    audienceData,
+    audiences,
+    cancelFileUpload,
+    closePreviewModal,
+    customFileName,
+    displayName,
+    docs,
+    error,
+    expandedClients,
+    expandedUserFolders,
+    fileInputRef,
+    folderToDelete,
+    getFallbackUrl,
+    handleCreateProcess,
+    handleDeleteFolder,
+    handleDeleteSelected,
+    handleFileUpload,
+    handleFileUploadChange,
+    handlePreviewDocument,
+    handleRenameFile,
+    handleShareDocument,
+    handleProcessNameChange,
+    handleCustomFileNameChange,
+    handleUserFolderAccordionClick,
+    handleUserFolderClick,
+    handleDownloadDocument,
+    isAdmin,
+    loading,
+    loadingFolders,
+    loadingUserFolders,
+    multiSelectMode,
+    noticeMessage,
+    onClickUpload,
+    onCreateProcess,
+    onDeleteFile,
+    onFolderClick,
+    onClientClick,
+    onPreviewDocument,
+    onSaveProcessInfo,
+    onShareDocument,
+    onDeleteFolder,
+    onDownloadDocument,
+    onRenameFile,
+    toggleMultiSelectMode,
+    toggleItemSelection,
+    openCreateProcess,
+    openDeleteConfirm,
+    openProcessInfo,
+    openAudienceModal,
+    previewDoc,
+    previewError,
+    previewLoading,
+    reloadCurrentFolder,
+    selectedClient,
+    selectedFile,
+    selectedFileForAction,
+    selectedFolder,
+    selectedItems,
+    selectedUserFolder,
+    selectAllItems,
+    setActiveTab,
+    setAudienceData,
+    setAudiences,
+    setClientFolders,
+    setDeleteFolder: setFolderToDelete,
+    setSelectedClient,
+    setSelectedFolder,
+    setShowAudienceModal,
+    setShowCreateProcess,
+    setShowDeleteConfirm,
+    setShowDeleteFile,
+    setShowDeleteFolderModal,
+    setShowErrorNotice,
+    setShowProcessInfo,
+    setShowSuccessNotice,
+    setShowFileNameInput,
+    setUserFolders,
+    setViewingUserFolder: setSelectedUserFolder,
+    setCustomFileName,
+    setNewProcessName,
+    setNewProcessType,
+    setNoticeMessage,
+    setDocs,
+    setError,
+    setLoading,
+    setWarning,
+    setSelectedFile,
+    setSelectedFileForAction,
+    setProcessData,
+    userFolders,
+    clientFolders,
+    newProcessName,
+    newProcessType,
+    creatingProcess,
+    deletingFolder,
+    showAudienceModal,
+    showCreateProcess,
+    showDeleteConfirm,
+    showDeleteFile,
+    showErrorNotice,
+    showProcessInfo,
+    showFileNameInput,
+    showRenameFile,
+    showSuccessNotice,
+    warning,
+  } = useMiExpediente({ propSelectedClient, isModal });
 
-  const [docs, setDocs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [warning, setWarning] = useState(null);
-  const [previewDoc, setPreviewDoc] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState('');
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewError, setPreviewError] = useState(null);
-
-  // Estados para notificaciones
-  const [showSuccessNotice, setShowSuccessNotice] = useState(false);
-  const [showErrorNotice, setShowErrorNotice] = useState(false);
-  const [noticeMessage, setNoticeMessage] = useState('');
-  const fileInputRef = useRef(null);
-  const noticeTimeoutRef = useRef(null);
-
-  // Estados para gestiï¿½n de carpetas de clientes
-  const [selectedClient, setSelectedClient] = useState(propSelectedClient || null);
-  const [clientFolders, setClientFolders] = useState({});
-  const [selectedFolder, setSelectedFolder] = useState(null);
-  const [loadingFolders, setLoadingFolders] = useState(false);
-  const [expandedClients, setExpandedClients] = useState(new Set());
-  
-  // Estados para usuarios regulares
-  const [userFolders, setUserFolders] = useState([]);
-  const [selectedUserFolder, setSelectedUserFolder] = useState(null);
-  const [loadingUserFolders, setLoadingUserFolders] = useState(false);
-  const [expandedUserFolders, setExpandedUserFolders] = useState(new Set());
-
-  // Estados para funcionalidades del expediente
-  const [showCreateProcess, setShowCreateProcess] = useState(false);
-  const [showRenameFile, setShowRenameFile] = useState(false);
-  const [showDeleteFile, setShowDeleteFile] = useState(false);
-  const [showProcessInfo, setShowProcessInfo] = useState(false);
-  const [selectedFileForAction, setSelectedFileForAction] = useState(null);
-  const [newFileName, setNewFileName] = useState('');
-  // Estados para modal de audiencias
-  const [showAudienceModal, setShowAudienceModal] = useState(false);
-  const [audienceData, setAudienceData] = useState({
-    fecha: '',
-    actuacion: '',
-    tipo: '',
-    juzgado: '',
-    estado: ''
-  });
-  const [audiences, setAudiences] = useState([]);
-
-  // Estados para eliminar carpetas
-  const [showDeleteFolderModal, setShowDeleteFolderModal] = useState(false);
-  const [folderToDelete, setFolderToDelete] = useState(null);
-  const [deletingFolder, setDeletingFolder] = useState(false);
-
-  const [processData, setProcessData] = useState({
-    radicado: '',
-    clase: '',
-    demandante: '',
-    demandado: '',
-    juzgado: '',
-    estado: ''
-  });
-  const [newProcessName, setNewProcessName, handleProcessNameChange] = useUTF8Input('');
-  const [newProcessType, setNewProcessType] = useState('');
-  const [creatingProcess, setCreatingProcess] = useState(false);
-
-  // Efecto especÃ­fico para corregir el nombre del proceso
-  useEffect(() => {
-    if (newProcessName && newProcessName.includes('Ãƒ')) {
-      console.log('ðŸ”§ Process name has corrupted characters, correcting...');
-      const corrected = fixUTF8Encoding(newProcessName);
-      if (corrected !== newProcessName) {
-        console.log('ðŸ”§ Auto-correcting process name:', newProcessName, '->', corrected);
-        setNewProcessName(corrected);
-      }
-    }
-  }, [newProcessName]);
-
-  // Estados para selecciÃ³n mÃºltiple
-  const [multiSelectMode, setMultiSelectMode] = useState(false);
-  const [selectedItems, setSelectedItems] = useState(new Set());
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deletingItems, setDeletingItems] = useState(false);
-
-  // Estados para subida de archivos con nombre personalizado
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [customFileName, setCustomFileName, handleCustomFileNameChange] = useUTF8Input('');
-  const [showFileNameInput, setShowFileNameInput] = useState(false);
-
-  // Efecto especÃ­fico para corregir el nombre del archivo personalizado - AGRESIVO
-  useEffect(() => {
-    if (customFileName) {
-      const corrected = aggressiveUTF8Fix(customFileName);
-      if (corrected !== customFileName) {
-        console.log('ðŸ”§ AGGRESSIVE FILE NAME FIX - Original:', customFileName, 'Corrected:', corrected);
-        setCustomFileName(corrected);
-      }
-    }
-  }, [customFileName]);
-
-  // Efecto para corregir automÃ¡ticamente el input de archivo cada 100ms
-  useEffect(() => {
-    const handleFileInputCorrection = () => {
-      // Buscar especÃ­ficamente el input de nombre de archivo
-      const fileInput = document.querySelector('input[type="text"][placeholder="Nombre del archivo..."]');
-      if (fileInput && fileInput.value) {
-        const corrected = aggressiveUTF8Fix(fileInput.value);
-        if (corrected !== fileInput.value) {
-          console.log('ðŸ”§ INTERVAL FILE INPUT FIX - Original:', fileInput.value, 'Corrected:', corrected);
-          fileInput.value = corrected;
-          
-          // Disparar evento de cambio
-          const changeEvent = new Event('change', { bubbles: true });
-          fileInput.dispatchEvent(changeEvent);
-        }
-      }
-    };
-
-    // Ejecutar correcciÃ³n cada 100ms
-    const interval = setInterval(handleFileInputCorrection, 100);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  // Efecto para corregir automÃ¡ticamente el texto - DESACTIVADO TEMPORALMENTE
-  useEffect(() => {
-    console.log('ðŸ”§ Global text correction effect loaded - DISABLED');
-    // TEMPORAL: No aplicar correcciones automÃ¡ticas
-  }, []);
-
-  // Efecto para monitorear y corregir codificaciÃ³n en tiempo real - AGRESIVO
-  useEffect(() => {
-    const handleInputEvent = (e) => {
-      if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
-        const inputValue = e.target.value;
-        const corrected = aggressiveUTF8Fix(inputValue);
-        
-        if (corrected !== inputValue) {
-          console.log('ðŸ”§ GLOBAL AGGRESSIVE FIX - Original:', inputValue, 'Corrected:', corrected);
-          e.target.value = corrected;
-          
-          // Disparar evento de cambio para actualizar el estado
-          const changeEvent = new Event('change', { bubbles: true });
-          e.target.dispatchEvent(changeEvent);
-        }
-      }
-    };
-
-    const handleKeyUpEvent = (e) => {
-      if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
-        const inputValue = e.target.value;
-        const corrected = aggressiveUTF8Fix(inputValue);
-        
-        if (corrected !== inputValue) {
-          console.log('ðŸ”§ KEYUP AGGRESSIVE FIX - Original:', inputValue, 'Corrected:', corrected);
-          e.target.value = corrected;
-          
-          // Disparar evento de cambio para actualizar el estado
-          const changeEvent = new Event('change', { bubbles: true });
-          e.target.dispatchEvent(changeEvent);
-        }
-      }
-    };
-
-    // Agregar listeners globales para inputs
-    document.addEventListener('input', handleInputEvent);
-    document.addEventListener('keyup', handleKeyUpEvent);
-    
-    return () => {
-      document.removeEventListener('input', handleInputEvent);
-      document.removeEventListener('keyup', handleKeyUpEvent);
-    };
-  }, []);
-
-  const loadDocs = async () => {
-    setLoading(true);
-    setError(null);
-    setWarning(null);
-    try {
-      const data = await listRecentDocs({ limit: 20, subfolder: DEFAULT_FOLDER });
-      setDocs(Array.isArray(data?.items) ? data.items : []);
-      if (data?.warning) setWarning(data.warning);
-    } catch (e) {
-      setError(e?.message || 'Error cargando documentos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === 'docs') {
-      if (isAdmin) {
-        loadDocs();
-      } else {
-        // Para usuarios regulares, cargar sus carpetas
-        loadUserFolders();
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, isAdmin]);
-
-  // Efecto para cargar carpetas cuando se pasa un cliente como prop (modo modal)
-  useEffect(() => {
-    if (propSelectedClient && isModal) {
-      setSelectedClient(propSelectedClient);
-      loadClientFolders(propSelectedClient);
-    }
-  }, [propSelectedClient, isModal]);
-
-  // Cargar clientes asignados al admin actual
-  useEffect(() => {
-    if (!isAdmin) return;
-    let ignore = false;
-    (async () => {
-      try {
-        setAssignedLoading(true);
-        setAssignedError(null);
-        const data = await listActiveClients();
-        if (ignore) return;
-        const items = Array.isArray(data?.items) ? data.items : [];
-        const myId = String(user?.id || user?.sub || '').trim();
-        setAssignedClients(items.filter((c) => String(c?.assignedAdmin?.id || '').trim() === myId));
-      } catch (e) {
-        if (!ignore) setAssignedError(e?.response?.data?.message || e?.message || 'No se pudo cargar clientes asignados');
-      } finally {
-        if (!ignore) setAssignedLoading(false);
-      }
-    })();
-    return () => { ignore = true; };
-  }, [isAdmin, user]);
-
-  const onClickUpload = () => {
-    // Verificar si hay una carpeta seleccionada
-    if (isAdmin && !selectedFolder?.path) {
-      setNoticeMessage('Debes seleccionar una carpeta antes de subir un documento');
-      setShowErrorNotice(true);
-      return;
-    }
-    
-    if (!isAdmin && !selectedUserFolder?.path) {
-      setNoticeMessage('Debes seleccionar una carpeta antes de subir un documento');
-      setShowErrorNotice(true);
-      return;
-    }
-    
-    fileInputRef.current?.click();
-  };
-
-  const onFileChange = (e) => {
-    const f = e.target?.files?.[0];
-    if (!f) return;
-    
-    // Validar que se haya seleccionado una subcarpeta especÃ­fica
-    let errorMessage = null;
-    
-    if (isAdmin) {
-      // Para administradores: debe haber un cliente y una carpeta seleccionados
-      if (!selectedClient?.documentNumber) {
-        errorMessage = 'Debes seleccionar un cliente primero';
-      } else if (!selectedFolder?.path) {
-        errorMessage = 'Debes seleccionar una carpeta especÃ­fica del proceso judicial para subir documentos. No se permiten archivos sueltos en la carpeta del cliente.';
-      }
-    } else {
-      // Para usuarios regulares: debe haber una carpeta de usuario seleccionada
-      if (!selectedUserFolder?.path) {
-        errorMessage = 'Debes seleccionar una carpeta especÃ­fica del proceso judicial para subir documentos. No se permiten archivos sueltos en la carpeta del cliente.';
-      }
-    }
-    
-    if (errorMessage) {
-      setError(errorMessage);
-      setNoticeMessage(errorMessage);
-      setShowErrorNotice(true);
-      try { e.target.value = null; } catch {}
-      return;
-    }
-    
-    // Guardar el archivo seleccionado y mostrar el input para editar el nombre
-    setSelectedFile(f);
-    setCustomFileName(f.name); // Nombre por defecto
-    setShowFileNameInput(true);
-    
-    // Limpiar el input file
-    try { e.target.value = null; } catch {}
+  const handleClientAccordionClick = (client) => {
+    onClientClick(client);
   };
 
   /* const onFileChangeOld = async (e) => {
@@ -557,905 +207,6 @@ export default function MiExpediente({ selectedClient: propSelectedClient, isMod
       try { e.target.value = null; } catch {}
     }
   }; */
-
-  const handleFileUpload = async () => {
-    if (!selectedFile || !customFileName.trim()) {
-      setError('Debes seleccionar un archivo y especificar un nombre');
-      setNoticeMessage('Debes seleccionar un archivo y especificar un nombre');
-      setShowErrorNotice(true);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      setShowErrorNotice(false);
-      setShowSuccessNotice(false);
-      
-      // Determinar la subcarpeta
-      let subfolder = null;
-      if (isAdmin && selectedClient && selectedFolder) {
-        subfolder = selectedFolder.path;
-      } else if (!isAdmin && selectedUserFolder) {
-        subfolder = selectedUserFolder.path;
-      }
-      
-      // Crear un nuevo archivo con el nombre personalizado
-      const originalFileName = customFileName.trim();
-      console.log('ðŸ”§ File name original:', originalFileName);
-      console.log('ðŸ”§ File name original bytes:', Array.from(originalFileName).map(c => c.charCodeAt(0).toString(16)).join(' '));
-      
-      // Aplicar correcciÃ³n agresiva MÃšLTIPLES VECES
-      let correctedFileName = aggressiveUTF8Fix(originalFileName);
-      console.log('ðŸ”§ File name despuÃ©s de primera correcciÃ³n:', correctedFileName);
-      
-      // Segunda correcciÃ³n por si acaso
-      correctedFileName = aggressiveUTF8Fix(correctedFileName);
-      console.log('ðŸ”§ File name despuÃ©s de segunda correcciÃ³n:', correctedFileName);
-      
-      // Tercera correcciÃ³n manual especÃ­fica
-      correctedFileName = correctedFileName
-        .replace(/TrÃƒÂ¡mite/g, 'TrÃ¡mite')
-        .replace(/TÃƒÂºtela/g, 'TÃºtela')
-        .replace(/trÃƒÂ¡mite/g, 'trÃ¡mite')
-        .replace(/tÃƒÂºtela/g, 'tÃºtela');
-      console.log('ðŸ”§ File name despuÃ©s de correcciÃ³n manual:', correctedFileName);
-      
-      console.log('ðŸ”§ File name final (con correcciÃ³n agresiva):', correctedFileName);
-      const fileWithCustomName = new File([selectedFile], correctedFileName, {
-        type: selectedFile.type,
-        lastModified: selectedFile.lastModified
-      });
-      
-      console.log('Subiendo archivo con nombre personalizado:', correctedFileName, 'a subfolder:', subfolder);
-      console.log('ðŸ”§ Enviando useExactName: true');
-      const res = await uploadDoc(fileWithCustomName, { subfolder, useExactName: true });
-      
-      // Mostrar inmediatamente el reciÃ©n subido
-      if (res?.file) setDocs((prev) => [res.file, ...prev]);
-      
-      // Actualizar lista desde el backend
-      await reloadCurrentFolder();
-      
-      // Mostrar notificaciÃ³n de Ã©xito
-      setNoticeMessage(`Documento subido exitosamente`);
-      setShowErrorNotice(true); // NotificaciÃ³n roja
-      
-      // Limpiar estados
-      setSelectedFile(null);
-      setCustomFileName('');
-      setShowFileNameInput(false);
-      
-    } catch (e2) {
-      const errorMsg = e2?.message || 'Error subiendo documento';
-      setError(errorMsg);
-      setNoticeMessage(`Error al subir documento: ${errorMsg}`);
-      setShowErrorNotice(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const cancelFileUpload = () => {
-    setSelectedFile(null);
-    setCustomFileName('');
-    setShowFileNameInput(false);
-  };
-
-  const getFallbackUrl = (doc, fallbackUrl) => {
-    return (
-      fallbackUrl ||
-      doc?.downloadURL ||
-      doc?.downloadUrl ||
-      doc?.webContentLink ||
-      doc?.webViewLink ||
-      doc?.url ||
-      doc?.fallbackUrl ||
-      null
-    );
-  };
-
-  const fetchDocumentUrl = async (doc, fallbackUrl) => {
-    if (!doc?.key) throw new Error('Documento sin identificador');
-    const safeFallback = getFallbackUrl(doc, fallbackUrl);
-    const { downloadURL, downloadUrl, url } = await getDownloadUrl(doc.key, 600);
-    const finalUrl = downloadURL || downloadUrl || url || safeFallback;
-    if (!finalUrl) throw new Error('No se recibió URL de previsualización');
-    return finalUrl;
-  };
-
-  const closePreviewModal = () => {
-    setPreviewDoc(null);
-    setPreviewUrl('');
-    setPreviewError(null);
-    setPreviewLoading(false);
-  };
-
-  const onPreviewDocument = async (doc, fallbackUrl) => {
-    if (!doc?.key) return;
-    setPreviewDoc({ ...doc, fallbackUrl });
-    setPreviewUrl('');
-    setPreviewError(null);
-    setPreviewLoading(true);
-
-    try {
-      const finalUrl = await fetchDocumentUrl(doc, fallbackUrl);
-      setPreviewUrl(finalUrl);
-    } catch (e) {
-      console.error('Error obteniendo URL de previsualización:', e);
-      const friendly = e?.response?.data?.message || e?.message || 'No se pudo abrir el documento';
-      setPreviewError(friendly);
-      if (fallbackUrl) {
-        setPreviewUrl(fallbackUrl);
-      }
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
-
-  const retryPreviewDocument = () => {
-    if (!previewDoc?.key) return;
-    onPreviewDocument(previewDoc, getFallbackUrl(previewDoc));
-  };
-
-  const onDownloadDocument = async (doc, fallbackUrl) => {
-    try {
-      const url = await fetchDocumentUrl(doc, fallbackUrl);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.target = '_blank';
-      anchor.rel = 'noopener noreferrer';
-      anchor.download = doc?.name || doc?.key?.split('/').pop() || 'documento';
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-    } catch (e) {
-      console.error('Error descargando documento:', e);
-      const friendly = e?.response?.data?.message || e?.message || 'No se pudo descargar el documento';
-      setError(friendly);
-      setNoticeMessage(friendly);
-      setShowErrorNotice(true);
-    }
-  };
-
-  const onShareDocument = async (doc, fallbackUrl) => {
-    try {
-      const url = await fetchDocumentUrl(doc, fallbackUrl);
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        setNoticeMessage('Enlace copiado al portapapeles');
-        setShowSuccessNotice(true);
-      } else {
-        window.prompt('Copia el siguiente enlace', url);
-      }
-    } catch (e) {
-      console.error('Error compartiendo documento:', e);
-      const friendly = e?.response?.data?.message || e?.message || 'No se pudo obtener el enlace para compartir';
-      setNoticeMessage(friendly);
-      setShowErrorNotice(true);
-    }
-  };
-
-
-  // Funciï¿½n para cargar carpetas de un cliente
-  const loadClientFolders = async (client) => {
-    if (!client?.documentNumber) return;
-    
-    setLoadingFolders(true);
-    try {
-      // Usar el endpoint /recent para listar objetos de S3 directamente
-      const data = await listRecentDocs({ 
-        limit: 100,
-        subfolder: `clientes/${client.documentNumber}`
-      });
-      
-      // Agrupar documentos por carpeta
-      const folders = {};
-      const clientBasePath = `clientes/${client.documentNumber}`;
-      
-      if (Array.isArray(data?.items)) {
-        console.log('ðŸ“ Cargando carpetas para cliente:', client.documentNumber);
-        console.log('ðŸ“ clientBasePath:', clientBasePath);
-        console.log('ðŸ“ Items recibidos:', data.items.length);
-        data.items.forEach(item => {
-          if (item.isFolder) {
-            // Es una carpeta - solo mostrar subcarpetas, no la carpeta padre del cliente
-            const folderPath = item.key?.replace(/\/$/, ''); // Remover trailing slash
-            
-            console.log('ðŸ“ Procesando carpeta:', folderPath);
-            console.log('ðŸ“ Es diferente a clientBasePath?', folderPath !== clientBasePath);
-            console.log('ðŸ“ Empieza con clientBasePath + /?', folderPath.startsWith(clientBasePath + '/'));
-            
-            // Solo incluir si es una subcarpeta del cliente (no la carpeta padre)
-            if (folderPath && folderPath !== clientBasePath && folderPath.startsWith(clientBasePath + '/')) {
-              // Extraer solo el nombre de la carpeta (la ï¿½ltima parte despuï¿½s del cliente)
-              const relativePath = folderPath.replace(clientBasePath + '/', '');
-              const folderName = relativePath.split('/').pop() || 'Carpeta';
-              
-              console.log('âœ… Agregando carpeta:', folderName, 'path:', folderPath);
-              
-              folders[folderPath] = {
-                name: folderName,
-                path: folderPath,
-                documents: [],
-                isFolder: true
-              };
-            } else {
-              console.log('âŒ Excluyendo carpeta:', folderPath);
-            }
-    } else {
-            // Es un archivo
-            const folderPath = item.key?.split('/').slice(0, -1).join('/') || 'root';
-            
-            // Solo incluir archivos que estï¿½n en subcarpetas del cliente
-            if (folderPath && folderPath !== clientBasePath && folderPath.startsWith(clientBasePath + '/')) {
-              if (!folders[folderPath]) {
-                // Extraer solo el nombre de la carpeta (la ï¿½ltima parte despuï¿½s del cliente)
-                const relativePath = folderPath.replace(clientBasePath + '/', '');
-                const folderName = relativePath.split('/').pop() || 'Carpeta';
-                
-                folders[folderPath] = {
-                  name: folderName,
-                  path: folderPath,
-                  documents: [],
-                  isFolder: false
-                };
-              }
-              folders[folderPath].documents.push(item);
-            }
-          }
-        });
-      }
-      
-      // Si no hay subcarpetas encontradas, no crear ninguna carpeta
-      // Solo mostrar las subcarpetas reales que existen
-      
-      setClientFolders(prev => ({
-        ...prev,
-        [client.id]: folders
-      }));
-    } catch (e) {
-      console.error('Error cargando carpetas del cliente:', e);
-      // En caso de error, no mostrar ninguna carpeta
-      setClientFolders(prev => ({
-        ...prev,
-        [client.id]: {}
-      }));
-    } finally {
-      setLoadingFolders(false);
-    }
-  };
-
-  // Funciï¿½n para manejar clic en cliente (acordeï¿½n)
-  const onClientClick = async (client) => {
-    const isExpanded = expandedClients.has(client.id);
-    
-    if (isExpanded) {
-      // Si estï¿½ expandido, lo contraemos
-      setExpandedClients(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(client.id);
-        return newSet;
-      });
-      setSelectedClient(null);
-      setSelectedFolder(null);
-    } else {
-      // Si estï¿½ contraï¿½do, lo expandimos
-      setExpandedClients(prev => new Set(prev).add(client.id));
-      setSelectedClient(client);
-      setSelectedFolder(null);
-      
-      // Si ya tenemos las carpetas cargadas, no las volvemos a cargar
-      if (!clientFolders[client.id]) {
-        await loadClientFolders(client);
-      }
-    }
-  };
-
-  // Funciï¿½n para manejar clic en carpeta
-  const onFolderClick = async (folder) => {
-    setSelectedFolder(folder);
-    
-    // Si la carpeta ya tiene documentos cargados, los mostramos
-    if (folder.documents && folder.documents.length > 0) {
-      setDocs(folder.documents);
-    } else {
-      // Si no tiene documentos, intentamos cargar desde la API
-      setLoading(true);
-      try {
-        const data = await listRecentDocs({ 
-          limit: 100,
-          subfolder: folder.path
-        });
-        const documents = Array.isArray(data?.items) ? data.items.filter(item => !item.isFolder) : [];
-        setDocs(documents);
-        
-        // Actualizar la carpeta con los documentos cargados
-        setClientFolders(prev => ({
-          ...prev,
-          [selectedClient.id]: {
-            ...prev[selectedClient.id],
-            [folder.path]: {
-              ...folder,
-              documents: documents
-            }
-          }
-        }));
-      } catch (e) {
-        console.error('Error cargando documentos de la carpeta:', e);
-        setDocs([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  // FunciÃ³n para verificar si una carpeta estÃ¡ vacÃ­a
-  const isFolderEmpty = async (folder) => {
-    try {
-      const data = await listRecentDocs({ 
-        limit: 100, // Aumentar el lÃ­mite para verificar todos los elementos
-        subfolder: folder.path
-      });
-      
-      if (!data?.items || data.items.length === 0) {
-        return true; // No hay elementos, la carpeta estÃ¡ vacÃ­a
-      }
-      
-      // Verificar que no haya archivos (solo carpetas)
-      const hasFiles = data.items.some(item => {
-        const isFolder = item.isFolder || item.key?.endsWith('/') || item.name?.endsWith('/');
-        return !isFolder; // Si no es carpeta, es un archivo
-      });
-      
-      return !hasFiles; // Si no hay archivos, la carpeta estÃ¡ vacÃ­a
-    } catch (error) {
-      console.error('Error verificando si la carpeta está vacía', error);
-      return false; // En caso de error, asumir que no estÃ¡ vacÃ­a por seguridad
-    }
-  };
-
-  // FunciÃ³n para eliminar una carpeta
-  const handleDeleteFolder = async () => {
-    if (!folderToDelete) return;
-    
-    try {
-      setDeletingFolder(true);
-      
-      // Verificar que la carpeta estÃ© vacÃ­a
-      const isEmpty = await isFolderEmpty(folderToDelete);
-      if (!isEmpty) {
-        setNoticeMessage('No se puede eliminar la carpeta porque contiene archivos. Solo se pueden eliminar carpetas completamente vacÃ­as.');
-        setShowErrorNotice(true);
-        return;
-      }
-      
-      // Eliminar la carpeta del backend
-      console.log('Eliminando carpeta:', folderToDelete.path);
-      await deleteFolder(folderToDelete.path);
-      
-      // Actualizar el estado local
-      if (selectedClient) {
-        setClientFolders(prev => {
-          const updated = { ...prev };
-          if (updated[selectedClient.id]) {
-            const filtered = Object.fromEntries(
-              Object.entries(updated[selectedClient.id]).filter(
-                ([key, folder]) => folder.path !== folderToDelete.path
-              )
-            );
-            updated[selectedClient.id] = filtered;
-          }
-          return updated;
-        });
-      }
-      
-      // Si la carpeta eliminada era la seleccionada, limpiar la selecciÃ³n
-      if (selectedFolder?.path === folderToDelete.path) {
-        setSelectedFolder(null);
-        setDocs([]); // Limpiar tambiÃ©n los documentos mostrados
-      }
-      
-      setShowDeleteFolderModal(false);
-      setFolderToDelete(null);
-      setNoticeMessage('Carpeta eliminada correctamente');
-      setShowSuccessNotice(true);
-      
-    } catch (error) {
-      console.error('Error eliminando carpeta:', error);
-      setNoticeMessage('Error al eliminar la carpeta');
-      setShowErrorNotice(true);
-    } finally {
-      setDeletingFolder(false);
-    }
-  };
-
-  // FunciÃ³n para cargar carpetas del usuario regular
-  const loadUserFolders = async () => {
-    setLoadingUserFolders(true);
-    try {
-      console.log('Usuario actual:', user);
-      console.log('Token de acceso:', accessToken ? 'Presente' : 'Ausente');
-      console.log('Roles del usuario:', user?.roles);
-      
-      // Primero intentamos una llamada simple para verificar autenticaciÃ³n
-      console.log('Intentando verificar conectividad...');
-      try {
-        const healthCheck = await getDiagnostics();
-        console.log('Health check exitoso:', healthCheck);
-      } catch (healthError) {
-        console.error('Health check fallÃ³:', healthError);
-        throw new Error('No se puede conectar con el servidor de documentos');
-      }
-      
-      console.log('Intentando cargar documentos del usuario...');
-      
-      // Para usuarios regulares, cargamos sus documentos desde su carpeta de cliente
-      // El backend automÃ¡ticamente resuelve la carpeta del cliente basado en el usuario autenticado
-      // cuando usamos 'clientes' como subfolder
-      const data = await listRecentDocs({ limit: 100, subfolder: 'clientes' });
-      console.log('Datos de la API para usuario:', data);
-      const items = Array.isArray(data?.items) ? data.items : [];
-      console.log('Items procesados:', items);
-      
-      // Agrupamos los documentos por carpetas
-      const foldersMap = new Map();
-      
-      // Obtener el prefijo base del cliente (ej: "clientes/1032465160/")
-      // Buscar la primera carpeta que contenga "clientes/" para obtener la ruta base
-      let clientBasePath = 'clientes';
-      const clientFolder = items.find(item => item.isFolder && item.key && item.key.includes('clientes/'));
-      if (clientFolder) {
-        // Extraer la ruta base del cliente (ej: "clientes/1032465160/")
-        const pathParts = clientFolder.key.split('/');
-        if (pathParts.length >= 2) {
-          clientBasePath = `${pathParts[0]}/${pathParts[1]}/`;
-        }
-      }
-      console.log('Ruta base del cliente:', clientBasePath);
-      console.log('Items encontrados:', items.map(item => ({ key: item.key, isFolder: item.isFolder, name: item.name })));
-      
-      // Primero, procesar solo las carpetas para evitar duplicados
-      items.forEach(item => {
-        if (item.isFolder) {
-          const fullPath = item.key;
-          
-          // Solo incluir si es una subcarpeta dentro de clientes/1032465160/
-          if (fullPath && fullPath.startsWith(clientBasePath) && fullPath !== clientBasePath) {
-            const relativePath = fullPath.replace(clientBasePath, '').replace(/^\/+|\/+$/g, '');
-            
-            // Verificar que sea una subcarpeta directa (no sub-subcarpeta)
-            if (relativePath && !relativePath.includes('/')) {
-              foldersMap.set(fullPath, {
-                name: relativePath,
-                path: fullPath,
-                documents: [],
-                isFolder: true
-              });
-            }
-          }
-        }
-      });
-      
-      // Luego, agregar archivos a las carpetas existentes
-      items.forEach(item => {
-        if (!item.isFolder) {
-          const pathParts = item.key?.split('/') || [];
-          
-          if (pathParts.length > 2) { // clientes/1032465160/subcarpeta/archivo
-            const folderPath = pathParts.slice(0, -1).join('/');
-            
-            if (folderPath.startsWith(clientBasePath) && folderPath !== clientBasePath) {
-              const relativePath = folderPath.replace(clientBasePath, '').replace(/^\/+|\/+$/g, '');
-              
-              if (relativePath && !relativePath.includes('/')) {
-                // Solo agregar archivo si la carpeta ya existe y el item no es una carpeta
-                const existingFolder = foldersMap.get(folderPath);
-                if (existingFolder && !item.isFolder) {
-                  existingFolder.documents.push(item);
-                }
-              }
-            }
-          }
-        }
-      });
-      
-      const folders = Array.from(foldersMap.values());
-      console.log('Carpetas del usuario cargadas:', folders);
-      setUserFolders(folders);
-    } catch (error) {
-      console.error('Error cargando carpetas del usuario:', error);
-      console.error('Detalles del error:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-      
-      if (error.response?.status === 401) {
-        setError('Error de autenticaciÃ³n. Por favor, cierra sesiÃ³n y vuelve a iniciar sesiÃ³n.');
-      } else {
-        setError('Error cargando carpetas: ' + (error.message || 'Error desconocido'));
-      }
-    } finally {
-      setLoadingUserFolders(false);
-    }
-  };
-
-  // FunciÃ³n para manejar clic en carpeta de usuario
-  const onUserFolderClick = async (folder) => {
-    setSelectedUserFolder(folder);
-    
-    // Si ya tenemos los documentos cargados para esta carpeta, los mostramos
-    if (folder.documents && folder.documents.length > 0) {
-      setDocs(folder.documents);
-    } else {
-      // Si no, cargamos los documentos de la carpeta
-      try {
-        setLoading(true);
-        const data = await listRecentDocs({ 
-          limit: 50, 
-          subfolder: folder.path 
-        });
-        // Solo mostrar archivos, no carpetas
-        const documents = Array.isArray(data?.items) ? data.items.filter(item => !item.isFolder) : [];
-        setDocs(documents);
-        
-        // Actualizamos la carpeta con los documentos cargados (solo archivos)
-        setUserFolders(prev => prev.map(f => 
-          f.path === folder.path 
-            ? { ...f, documents: documents }
-            : f
-        ));
-      } catch (error) {
-        console.error('Error cargando documentos de la carpeta:', error);
-        setError('Error cargando documentos de la carpeta');
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  // FunciÃ³n para manejar clic en carpeta de usuario (acordeÃ³n)
-  const onUserFolderAccordionClick = (folder) => {
-    const isExpanded = expandedUserFolders.has(folder.path);
-    
-    if (isExpanded) {
-      // Si estÃ¡ expandido, lo contraemos
-      setExpandedUserFolders(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(folder.path);
-        return newSet;
-      });
-      setSelectedUserFolder(null);
-    } else {
-      // Si estÃ¡ contraÃ­do, lo expandimos
-      setExpandedUserFolders(prev => new Set(prev).add(folder.path));
-      onUserFolderClick(folder);
-    }
-  };
-
-  // Funciones para acciones del expediente
-  const onCreateProcess = async () => {
-    if (!newProcessName.trim()) {
-      setError('El nombre del proceso es requerido');
-      setNoticeMessage('El nombre del proceso es requerido');
-      setShowErrorNotice(true);
-      return;
-    }
-
-    try {
-      setCreatingProcess(true);
-      setError(null);
-      setShowErrorNotice(false);
-      setShowSuccessNotice(false);
-
-      // Determinar la ruta base del cliente
-      let clientBasePath = '';
-      if (isAdmin && selectedClient?.documentNumber) {
-        clientBasePath = `clientes/${selectedClient.documentNumber}`;
-      } else if (!isAdmin) {
-        // Para usuarios regulares, usar su carpeta de cliente
-        // El backend automÃ¡ticamente resuelve la carpeta del cliente
-        clientBasePath = 'clientes';
-      } else {
-        throw new Error('No se puede determinar la carpeta del cliente');
-      }
-
-      // Crear el nombre de la carpeta combinando tipo de proceso + nombre
-      const processName = newProcessName.trim();
-      
-      console.log('ðŸ”§ Proceso original:', processName);
-      console.log('ðŸ”§ Proceso original bytes:', Array.from(processName).map(c => c.charCodeAt(0).toString(16)).join(' '));
-      
-      // Aplicar correcciÃ³n agresiva
-      const correctedProcessName = aggressiveUTF8Fix(processName);
-      console.log('ðŸ”§ Proceso final (con correcciÃ³n agresiva):', correctedProcessName);
-      let folderName = '';
-      
-      if (newProcessType && correctedProcessName) {
-        // Combinar tipo de proceso + nombre
-        const typeLabels = {
-          'civil': 'Proceso Civil',
-          'laboral': 'Proceso Laboral', 
-          'penal': 'Proceso Penal',
-          'administrativo': 'Proceso Administrativo',
-          'comercial': 'Proceso Comercial',
-          'ejecutivo': 'Proceso Ejecutivo',
-          'familia': 'Proceso de Familia',
-          'notarial': 'TrÃ¡mite Notarial',
-          'tramite': 'TrÃ¡mite'
-        };
-        const typeLabel = typeLabels[newProcessType] || newProcessType;
-        folderName = `${typeLabel} - ${correctedProcessName}`;
-      } else if (correctedProcessName) {
-        // Solo nombre si no hay tipo seleccionado
-        folderName = correctedProcessName;
-      } else {
-        throw new Error('El nombre del proceso es requerido');
-      }
-      
-      const fullPath = `${clientBasePath}/${folderName}`;
-
-      console.log('Creando carpeta:', fullPath);
-      console.log('folderName (hex):', stringToHex(folderName));
-      console.log('fullPath (hex):', stringToHex(fullPath));
-      
-      // Log del payload que se enviarÃ¡ al backend
-      const payload = { subfolder: fullPath };
-      console.log('ðŸ”§ Payload a enviar al backend:', payload);
-      console.log('ðŸ”§ Payload JSON:', JSON.stringify(payload));
-      console.log('ðŸ”§ Payload subfolder (hex):', stringToHex(payload.subfolder));
-      
-      // Crear la carpeta usando la API
-      const result = await createFolder(payload);
-      
-      console.log('Carpeta creada exitosamente:', result);
-
-      // Limpiar el formulario
-      setNewProcessName('');
-      setNewProcessType('');
-      setShowCreateProcess(false);
-
-      // Mostrar notificaciÃ³n de Ã©xito
-      setNoticeMessage(`Proceso creado exitosamente`);
-      setShowSuccessNotice(true);
-
-      // Recargar las carpetas del cliente
-      if (isAdmin && selectedClient) {
-        await loadClientFolders(selectedClient);
-      } else if (!isAdmin) {
-        await loadUserFolders();
-      }
-
-    } catch (e) {
-      console.error('Error creando proceso:', e);
-      const errorMsg = e?.response?.data?.message || e?.message || 'Error creando proceso';
-      setError(errorMsg);
-      setNoticeMessage(`Error al crear proceso: ${errorMsg}`);
-      setShowErrorNotice(true);
-    } finally {
-      setCreatingProcess(false);
-    }
-  };
-
-
-  const onRenameFile = (file) => {
-    setSelectedFileForAction(file);
-    setNewFileName(file.name || file.key?.split('/').pop() || '');
-    setShowRenameFile(true);
-  };
-
-  const onDeleteFile = (file) => {
-    setSelectedFileForAction(file);
-    setShowDeleteFile(true);
-  };
-
-  const onSaveProcessInfo = async () => {
-    try {
-      // AquÃ­ implementarÃ­as la lÃ³gica para guardar la informaciÃ³n del proceso
-      console.log('Guardando informaciÃ³n del proceso:', processData);
-      setShowProcessInfo(false);
-      setError(null);
-    } catch (e) {
-      setError('Error guardando informaciÃ³n: ' + e.message);
-    }
-  };
-
-  // Funciones para selecciÃ³n mÃºltiple
-  const toggleMultiSelectMode = () => {
-    if (!isAdmin) return;
-    setSelectedItems(new Set());
-    setMultiSelectMode((prev) => !prev);
-  };
-
-  const toggleItemSelection = (itemKey) => {
-    const newSelected = new Set(selectedItems);
-    if (newSelected.has(itemKey)) {
-      newSelected.delete(itemKey);
-    } else {
-      newSelected.add(itemKey);
-    }
-    setSelectedItems(newSelected);
-  };
-
-  const selectAllItems = () => {
-    const allItems = new Set();
-    docs.forEach(doc => {
-      if (doc.key) allItems.add(doc.key);
-    });
-    setSelectedItems(allItems);
-  };
-
-  const clearSelection = () => {
-    setSelectedItems(new Set());
-  };
-
-  // useEffect para manejar el timeout de las notificaciones
-  useEffect(() => {
-    if (showSuccessNotice || showErrorNotice) {
-      // Limpiar timeout anterior si existe
-      if (noticeTimeoutRef.current) {
-        clearTimeout(noticeTimeoutRef.current);
-      }
-      
-      // Establecer nuevo timeout para ocultar la notificaciÃ³n despuÃ©s de 5 segundos
-      noticeTimeoutRef.current = setTimeout(() => {
-        setShowSuccessNotice(false);
-        setShowErrorNotice(false);
-        setNoticeMessage('');
-      }, 5000);
-    }
-    
-    // Cleanup function para limpiar el timeout cuando el componente se desmonte
-    return () => {
-      if (noticeTimeoutRef.current) {
-        clearTimeout(noticeTimeoutRef.current);
-      }
-    };
-  }, [showSuccessNotice, showErrorNotice]);
-
-  const reloadCurrentFolder = async () => {
-    console.log('ðŸ”„ Iniciando recarga de carpeta...');
-    setLoading(true);
-    setError(null);
-    setWarning(null);
-    try {
-      let subfolder = null;
-      
-      if (isAdmin && selectedClient && selectedFolder) {
-        // Para administradores: recargar la carpeta del cliente seleccionada
-        subfolder = selectedFolder.path;
-        console.log('ðŸ“ Admin - Carpeta especÃ­fica:', subfolder);
-      } else if (!isAdmin && selectedUserFolder) {
-        // Para usuarios regulares: recargar su carpeta seleccionada
-        subfolder = selectedUserFolder.path;
-        console.log('ðŸ‘¤ Usuario - Carpeta especÃ­fica:', subfolder);
-      } else if (isAdmin && selectedClient) {
-        // Si hay cliente pero no carpeta especÃ­fica, recargar la carpeta del cliente
-        subfolder = `clientes/${selectedClient.documentNumber}`;
-        console.log('ðŸ“ Admin - Carpeta del cliente:', subfolder);
-      } else if (!isAdmin) {
-        // Para usuarios regulares sin carpeta especÃ­fica, recargar su carpeta base
-        subfolder = 'clientes';
-        console.log('ðŸ‘¤ Usuario - Carpeta base:', subfolder);
-      } else {
-        // Fallback: recargar la carpeta por defecto
-        subfolder = DEFAULT_FOLDER;
-        console.log('ðŸ”„ Fallback - Carpeta por defecto:', subfolder);
-      }
-      
-      console.log('ðŸ“¡ Llamando API con subfolder:', subfolder);
-      const data = await listRecentDocs({ limit: 100, subfolder });
-      console.log('ðŸ“¦ Datos recibidos de la API:', data);
-      
-      const allItems = Array.isArray(data?.items) ? data.items : [];
-      console.log('ðŸ“‹ Total de elementos recibidos:', allItems.length);
-      const filesOnly = allItems.filter((item) => !(item?.isFolder || String(item?.key || '').endsWith('/')));
-      
-      // Mostrar tanto archivos como carpetas
-      setDocs(allItems);
-      console.log('âœ… Lista de documentos actualizada con', allItems.length, 'elementos');
-      
-      if (isAdmin && selectedClient && selectedFolder) {
-        setClientFolders((prev) => {
-          const clientData = prev[selectedClient.id];
-          if (!clientData || !clientData[selectedFolder.path]) return prev;
-          return {
-            ...prev,
-            [selectedClient.id]: {
-              ...clientData,
-              [selectedFolder.path]: {
-                ...clientData[selectedFolder.path],
-                documents: filesOnly,
-              },
-            },
-          };
-        });
-        setSelectedFolder((prev) => (prev ? { ...prev, documents: filesOnly } : prev));
-      } else if (!isAdmin && selectedUserFolder) {
-        setUserFolders((prev) =>
-          prev.map((folder) =>
-            folder.path === selectedUserFolder.path ? { ...folder, documents: filesOnly } : folder
-          )
-        );
-        setSelectedUserFolder((prev) => (prev ? { ...prev, documents: filesOnly } : prev));
-      }
-if (data?.warning) {
-        setWarning(data.warning);
-        console.log('âš ï¸ Advertencia:', data.warning);
-      }
-    } catch (e) {
-      console.error('âŒ Error recargando carpeta:', e);
-      setError(e?.message || 'Error recargando documentos');
-    } finally {
-      setLoading(false);
-      console.log('ðŸ Recarga completada');
-    }
-  };
-
-  const handleDeleteSelected = async () => {
-    if (selectedItems.size === 0) return;
-    
-    try {
-      setDeletingItems(true);
-      setError(null);
-      setShowErrorNotice(false);
-      setShowSuccessNotice(false);
-      
-      // Eliminar archivos y carpetas seleccionados
-      const itemsToDelete = Array.from(selectedItems);
-      let deletedCount = 0;
-      let errors = [];
-      
-      for (const itemKey of itemsToDelete) {
-        try {
-          console.log('ðŸ—‘ï¸ Eliminando elemento:', itemKey);
-          await deleteDocument(itemKey);
-          deletedCount++;
-          console.log('âœ… Elemento eliminado exitosamente:', itemKey);
-        } catch (e) {
-          console.error('âŒ Error eliminando elemento:', itemKey, e);
-          const doc = docs.find(d => d.key === itemKey);
-          const name = doc?.name || itemKey.split('/').pop() || 'Elemento';
-          errors.push(`${name}: ${e?.message || 'Error desconocido'}`);
-        }
-      }
-      
-      console.log(`ðŸ“Š Resumen de eliminaciÃ³n: ${deletedCount} eliminados, ${errors.length} errores`);
-      
-      // Limpiar selecciÃ³n y salir del modo de selecciÃ³n mÃºltiple
-      setSelectedItems(new Set());
-      setMultiSelectMode(false);
-      setShowDeleteConfirm(false);
-      
-      // Mostrar notificaciÃ³n de eliminaciÃ³n (siempre en rojo)
-      if (errors.length === 0) {
-        setNoticeMessage(`Elementos eliminados correctamente`);
-        setShowErrorNotice(true); // Cambiado a rojo
-      } else if (deletedCount > 0) {
-        setNoticeMessage(`Algunos elementos eliminados correctamente`);
-        setShowErrorNotice(true);
-      } else {
-        setNoticeMessage(`Error al eliminar elementos`);
-        setShowErrorNotice(true);
-      }
-      
-      // PequeÃ±o delay para asegurar que el servidor haya procesado la eliminaciÃ³n
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Recargar la lista de documentos de la carpeta actual
-      await reloadCurrentFolder();
-      
-    } catch (e) {
-      console.error('Error en eliminaciÃ³n masiva:', e);
-      const errorMsg = e?.message || 'Error eliminando elementos';
-      setError(errorMsg);
-      setNoticeMessage(`Error al eliminar elementos: ${errorMsg}`);
-      setShowErrorNotice(true);
-    } finally {
-      setDeletingItems(false);
-    }
-  };
 
   return (
     <div
@@ -1577,7 +328,7 @@ if (data?.warning) {
                               fontSize: '12px',
                               color: isExpanded ? '#4fd1c5' : '#9fb3cc'
                             }}>
-                              â–¼
+                              ▶
                             </span>
                             {folder.name}
                           </div>
@@ -1714,7 +465,7 @@ if (data?.warning) {
                 <div className="me-leaf" style={{ color: '#fecaca' }}>{assignedError}</div>
               )}
               {isAdmin && !isModal && !assignedError && assignedLoading && (
-                <div className="me-leaf" style={{ opacity: .8 }}>Cargando clientesï¿½</div>
+                <div className="me-leaf" style={{ opacity: .8 }}>Cargando clientes</div>
               )}
               {isAdmin && !isModal && !assignedLoading && assignedClients.length === 0 && (
                 <div className="me-leaf" style={{ opacity: .8 }}>No tienes clientes asignados</div>
@@ -1739,7 +490,7 @@ if (data?.warning) {
                             gap: '8px',
                             transition: 'all 0.2s ease'
                           }}
-                          onClick={() => onClientClick(c)}
+                          onClick={() => handleClientAccordionClick(c)}
                         >
                           {/* Indicador de acordeï¿½n */}
                           <span style={{
@@ -1749,7 +500,7 @@ if (data?.warning) {
                             fontSize: '12px',
                             color: isExpanded ? '#4fd1c5' : '#9fb3cc'
                           }}>
-                            â–¼
+                            ▶
                           </span>
                           {c.name}
                         </div>
@@ -2081,7 +832,7 @@ if (data?.warning) {
               <>
                 <div className="me-head">Herramientas del Expediente</div>
                 <div className="me-right-content" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={onFileChange} />
+                  <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={handleFileUploadChange} />
                   <button 
                     className="btn btn-primary" 
                     onClick={onClickUpload}
