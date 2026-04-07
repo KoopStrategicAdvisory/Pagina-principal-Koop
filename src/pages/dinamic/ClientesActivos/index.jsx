@@ -2,7 +2,7 @@ import { useActiveClients } from '../../../hooks/useActiveClients';
 import '../../../styles/dashboard.css';
 import { SuccessNotice, DangerNotice } from '../../../components/common/Notice';
 import { EditForm, EditField, EditRow } from '../../../components/common/EditFormKit';
-import MiExpediente from '../Miexpediente';
+import MiExpediente from '../../../views/authenticated/MiExpediente';
 
 export default function ClientesActivos() {
   const {
